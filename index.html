@@ -516,10 +516,26 @@
         
         // --- Отображение данных ---
         function loadInitialData(startDateString, endDateString) {
-            meetingsList.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
-            const payload = { login: currentUser, startDateString, endDateString };
-            callApi('getInitialData', payload).then(onDataLoaded).catch(onFailure);
-        }
+    meetingsList.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
+    const payload = { login: currentUser, startDateString, endDateString };
+
+    callApi('getInitialData', payload)
+        .then(onDataLoaded)
+        .catch(err => {
+            // Показываем ошибку в виде всплывающего уведомления
+            onFailure(err); 
+            
+            // А также выводим сообщение в основном окне с кнопкой "Повторить"
+            meetingsList.innerHTML = `
+                <div class="col-12 text-center p-5 bg-light rounded-3">
+                    <h4>Не удалось загрузить встречи</h4>
+                    <p class="text-muted">${err.message}</p>
+                    <button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">
+                        Попробовать снова
+                    </button>
+                </div>`;
+        });
+}
 
         function onDataLoaded(data) {
             allMeetings = data.meetings;
