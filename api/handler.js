@@ -19,16 +19,27 @@ export default async function handler(request, response) {
       handleCalendarEvent(action, meetingData);
     }
 
-    // 3. Возвращаем ответ от 1С на фронтенд
+    // 3. Возвращаем успешный ответ от 1С на фронтенд
     response.status(200).json(responseFrom1C);
 
   } catch (error) {
     console.error("Proxy error:", error.message);
-    response.status(500).json({ status: 'error', message: 'Ошибка при обращении к серверу 1С' });
+
+    // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+    // Проверяем, является ли ошибка ответом от сервера 1С
+    if (error.response) {
+      // Если да, то пересылаем оригинальный ответ и статус от 1С
+      response.status(error.response.status).json(error.response.data);
+    } else {
+      // Если это другая ошибка (например, Vercel не смог связаться с 1С),
+      // отправляем наше общее сообщение
+      response.status(500).json({ status: 'error', message: 'Ошибка прокси-сервера при обращении к 1С' });
+    }
+    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
   }
 }
 
-// --- ФУНКЦИЯ ДЛЯ РАБОТЫ С 1С ---
+// --- ФУНКЦИЯ ДЛЯ РАБОТЫ С 1С (без изменений) ---
 async function forwardRequestToOneC(requestBody) {
   const ONEC_API_URL = process.env.ONEC_API_URL;
   const ONEC_LOGIN = process.env.ONEC_LOGIN;
@@ -39,48 +50,38 @@ async function forwardRequestToOneC(requestBody) {
     const token = Buffer.from(`${ONEC_LOGIN}:${ONEC_PASSWORD}`).toString('base64');
     headers['Authorization'] = `Basic ${token}`;
   }
-
+  
   const apiResponse = await axios.post(ONEC_API_URL, requestBody, { headers });
   return apiResponse.data;
 }
 
-// --- ФУНКЦИИ ДЛЯ РАБОТЫ С GOOGLE CALENDAR ---
-
-// Создает авторизованный клиент для работы с API
+// --- ФУНКЦИИ ДЛЯ РАБОТЫ С GOOGLE CALENDAR (без изменений) ---
 function getGoogleAuth(userEmail) {
-  // Ключи берутся из переменных окружения Vercel
   const auth = new google.auth.JWT({
     email: process.env.GAPI_CLIENT_EMAIL,
-    key: process.env.GAPI_PRIVATE_KEY.replace(/\\n/g, '\n'), // Важная обработка ключа
+    key: process.env.GAPI_PRIVATE_KEY.replace(/\\n/g, '\n'),
     scopes: ['https://www.googleapis.com/auth/calendar'],
-    subject: userEmail, // Указываем, от чьего имени действуем
+    subject: userEmail,
   });
   return auth;
 }
 
-// Главная функция управления событиями календаря
 async function handleCalendarEvent(action, meeting) {
-  // Выполняем действия только для сохранения или обновления встреч
   if (!meeting || !meeting.ManagerLogin || (action !== 'saveNewMeeting' && action !== 'updateMeeting')) {
     return;
   }
-
   const auth = getGoogleAuth(meeting.ManagerLogin);
   const calendar = google.calendar({ version: 'v3', auth });
-
   const isCancelled = (meeting.Status === 'Отмена' || meeting.Status === 'Завершена');
 
-  // Если встреча отменена и у нее есть ID события в календаре, удаляем его
   if (isCancelled && meeting.calendarEventId) {
     try {
       await calendar.events.delete({ auth, calendarId: 'primary', eventId: meeting.calendarEventId });
     } catch (e) { console.error(`Не удалось удалить событие ${meeting.calendarEventId}:`, e.message); }
     return;
   }
+  if (isCancelled) return;
 
-  if (isCancelled) return; // Если отменена, но ID нет, просто выходим
-
-  // Готовим данные для события
   const [startTime, endTime] = parseDateTime(meeting.Date, meeting.Time);
   const eventResource = {
     summary: `Встреча: ${meeting.Client}`,
@@ -89,15 +90,11 @@ async function handleCalendarEvent(action, meeting) {
     start: { dateTime: startTime.toISOString() },
     end: { dateTime: endTime.toISOString() }
   };
-
   try {
     if (action === 'updateMeeting' && meeting.calendarEventId) {
-      // Обновляем существующее событие
       await calendar.events.update({ auth, calendarId: 'primary', eventId: meeting.calendarEventId, resource: eventResource });
     } else {
-      // Создаем новое событие
       const newEvent = await calendar.events.insert({ auth, calendarId: 'primary', resource: eventResource });
-      // Отправляем ID нового события обратно в 1С
       const payloadTo1C = { action: "updateMeetingCalendarId", payload: { meetingId: meeting.ID, calendarEventId: newEvent.data.id } };
       forwardRequestToOneC(JSON.stringify(payloadTo1C));
     }
@@ -106,7 +103,6 @@ async function handleCalendarEvent(action, meeting) {
   }
 }
 
-// Вспомогательная функция для парсинга даты
 function parseDateTime(dateStr, timeStr) {
   const [day, month, year] = dateStr.split('.');
   const [hours, minutes] = timeStr.split(':');
