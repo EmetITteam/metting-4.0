@@ -12,21 +12,17 @@
         body {
             background-color: #f8f9fa;
         }
-
         .meeting-card {
             height: 100%;
             position: relative;
         }
-
         .toast-container {
             z-index: 1100;
         }
-
         .app-logo {
             max-height: 50px;
             width: auto;
         }
-
         .edit-icon-btn {
             position: absolute;
             top: 10px;
@@ -35,11 +31,9 @@
             color: #6c757d;
             text-decoration: none;
         }
-
         .edit-icon-btn:hover {
             color: #0d6efd;
         }
-
         .status-dot {
             display: inline-block;
             width: 10px;
@@ -47,23 +41,10 @@
             border-radius: 50%;
             margin-right: 8px;
         }
-
-        .status-blue {
-            background-color: #0d6efd;
-        }
-
-        .status-green {
-            background-color: #198754;
-        }
-
-        .status-orange {
-            background-color: #fd7e14;
-        }
-
-        .status-gray {
-            background-color: #6c757d;
-        }
-
+        .status-blue { background-color: #0d6efd; }
+        .status-green { background-color: #198754; }
+        .status-orange { background-color: #fd7e14; }
+        .status-gray { background-color: #6c757d; }
         .report-btn-icon {
             font-size: 0.8em;
             vertical-align: middle;
@@ -318,34 +299,36 @@
             </div>
         </div>
     </div>
+
     <div class="modal fade" id="clientSearchModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5">Поиск контрагента</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Введите номер телефона или ФИО для поиска клиента в базе 1С.</p>
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="clientSearchInput" placeholder="Телефон или ФИО...">
-                    <button class="btn btn-primary" type="button" id="clientSearchBtn">Найти</button>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Поиск контрагента</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div id="clientSearchResult" class="mt-3">
+                <div class="modal-body">
+                    <p>Введите номер телефона или ФИО для поиска клиента в базе 1С.</p>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="clientSearchInput" placeholder="Телефон или ФИО...">
+                        <button class="btn btn-primary" type="button" id="clientSearchBtn">Найти</button>
                     </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <div id="clientSearchResult" class="mt-3"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
     <script>
         const API_URL = "/api/handler";
         const HIDDEN_CLASS = 'd-none';
+
         let currentUser = null,
             allMeetings = [],
             currentEditingMeeting = null;
@@ -358,13 +341,10 @@
         const rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
         const cancelConfirmModal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
         const outcomeModal = new bootstrap.Modal(document.getElementById('outcomeModal'));
-        // ... существующие переменные
-const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
-// НОВАЯ ПЕРЕМЕННАЯ
-const clientSearchModal = new bootstrap.Modal(document.getElementById('clientSearchModal'));
-let datePicker = null;
-// ...
+        const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+        const clientSearchModal = new bootstrap.Modal(document.getElementById('clientSearchModal'));
         const appToast = new bootstrap.Toast(document.getElementById('appToast'));
+        let datePicker = null;
         let adminDatePicker = null;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -390,85 +370,58 @@ let datePicker = null;
                 lang: 'ru-RU'
             });
 
+            // Основные обработчики
             document.getElementById('login-form').addEventListener('submit', handleLogin);
             document.getElementById('logout-btn').addEventListener('click', handleLogout);
             document.getElementById('admin-logout-btn').addEventListener('click', handleLogout);
             document.getElementById('show-add-form-btn').addEventListener('click', showAddForm);
+            
+            // Обработчики формы встречи
             document.getElementById('meeting-form').addEventListener('submit', handleFormSubmit);
             document.getElementById('cancel-btn').addEventListener('click', handleCancelClick);
-            document.getElementById('get-location-btn').addEventListener('click', handleGetLocationClick);
-            document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
             document.getElementById('confirmCancelBtn').addEventListener('click', () => {
                 cancelConfirmModal.hide();
                 showForm(false);
             });
+            document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
+            document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
+            
+            // Обработчики фильтров и других кнопок
             document.getElementById('searchInput').addEventListener('input', filterAndGroupMeetings);
             document.getElementById('resetFiltersBtn').addEventListener('click', () => {
                 document.getElementById('searchInput').value = '';
                 datePicker.setDateRange(new Date(), new Date());
             });
-            document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
-            document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
+            
+            // Обработчики модальных окон
+            document.getElementById('get-location-btn').addEventListener('click', handleGetLocationClick);
+            document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
             document.getElementById('saveOutcomeBtn').addEventListener('click', handleSaveOutcome);
-            // ... существующие обработчики
             document.getElementById('adminRefreshBtn').addEventListener('click', loadAdminStats);
 
-            // НОВЫЕ ОБРАБОТЧИКИ
+            // Обработчики для поиска клиента
             document.getElementById('show-client-search-btn').addEventListener('click', () => {
-            document.getElementById('clientSearchInput').value = '';
-            document.getElementById('clientSearchResult').innerHTML = '';
-            clientSearchModal.show();
-});
+                document.getElementById('clientSearchInput').value = '';
+                document.getElementById('clientSearchResult').innerHTML = '';
+                clientSearchModal.show();
+            });
+            document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
+            document.getElementById('clientSearchInput').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    handleClientSearch();
+                }
+            });
+        });
 
-document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
-document.getElementById('clientSearchInput').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        handleClientSearch();
-    }
-});
-
-        function getTodayDateString() {
-            return formatDateToYYYYMMDD(new Date());
-        }
-
-        function getTomorrowDateString() {
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            return formatDateToYYYYMMDD(tomorrow);
-        }
-
+        // --- Утилиты ---
+        function getTodayDateString() { return formatDateToYYYYMMDD(new Date()); }
+        function getTomorrowDateString() { const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); return formatDateToYYYYMMDD(tomorrow); }
         function formatDateToYYYYMMDD(date) {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
-        async function callApi(action, payload) {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                redirect: 'follow',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    action,
-                    payload
-                })
-            });
-            try {
-                const result = await response.json();
-                if (result.status === 'error') {
-                    throw new Error(result.message);
-                }
-                return result.data;
-            } catch (e) {
-                if (response.ok) {
-                    return {};
-                }
-                throw new Error('Ошибка сети или ответа сервера.');
-            }
-        }
-
         function toggleButtonSpinner(btn, show) {
             if (show) {
                 btn.disabled = true;
@@ -479,12 +432,48 @@ document.getElementById('clientSearchInput').addEventListener('keypress', functi
                 btn.innerHTML = btn.dataset.originalText;
             }
         }
-
         function showToast(message) {
             document.querySelector('#appToast .toast-body').textContent = message;
             appToast.show();
         }
 
+        // --- API ---
+        async function callApi(action, payload) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, payload })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка сервера: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                if (!text) { return {}; } // Пустой успешный ответ
+
+                const result = JSON.parse(text);
+                if (result.status === 'error') {
+                    throw new Error(result.message);
+                }
+                return result.data;
+            } catch (e) {
+                console.error("API call failed:", e);
+                throw new Error('Ошибка сети или ответа сервера.');
+            }
+        }
+        function onFailure(error, errorElement = null) {
+            console.error(error);
+            if (errorElement) {
+                errorElement.textContent = error.message;
+                errorElement.classList.remove(HIDDEN_CLASS);
+            } else {
+                showToast('Ошибка: ' + error.message);
+            }
+        }
+
+        // --- Основная логика ---
         function handleLogin(e) {
             e.preventDefault();
             const loginBtn = document.getElementById('login-button');
@@ -524,39 +513,11 @@ document.getElementById('clientSearchInput').addEventListener('keypress', functi
         function handleLogout() {
             window.location.reload();
         }
-        async function loadAdminStats() {
-            const statsContainer = document.getElementById('stats-container');
-            statsContainer.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
-            const startDate = adminDatePicker.getStartDate() ? .toJSDate();
-            const endDate = adminDatePicker.getEndDate() ? .toJSDate();
-            if (!startDate || !endDate) {
-                statsContainer.innerHTML = '<p class="text-center text-danger">Выберите период</p>';
-                return;
-            }
-            try {
-                const payload = {
-                    startDateString: formatDateToYYYYMMDD(startDate),
-                    endDateString: formatDateToYYYYMMDD(endDate)
-                };
-                const stats = await callApi('getAdminStats', payload);
-                displayAdminStats(stats);
-            } catch (e) {
-                onFailure(e);
-            }
-        }
-
-        function displayAdminStats(stats) {
-            const statsContainer = document.getElementById('stats-container');
-            statsContainer.innerHTML = `<div class="col-md-4"><div class="card text-center h-100"><div class="card-body"><h5 class="card-title">Всего встреч</h5><p class="card-text fs-1 fw-bold">${stats.totalMeetings}</p></div></div></div><div class="col-md-4"><div class="card h-100"><div class="card-header">По статусам</div><ul class="list-group list-group-flush">${Object.entries(stats.statusCounts).map(([status, count]) => `<li class="list-group-item d-flex justify-content-between align-items-center">${status}<span class="badge bg-primary rounded-pill">${count}</span></li>`).join('')}</ul></div></div><div class="col-md-4"><div class="card h-100"><div class="card-header">По менеджерам</div><ul class="list-group list-group-flush">${Object.entries(stats.managerCounts).map(([manager, count]) => `<li class="list-group-item d-flex justify-content-between align-items-center">${manager}<span class="badge bg-primary rounded-pill">${count}</span></li>`).join('')}</ul></div></div>`;
-        }
-
+        
+        // --- Отображение данных ---
         function loadInitialData(startDateString, endDateString) {
             meetingsList.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
-            const payload = {
-                login: currentUser,
-                startDateString,
-                endDateString
-            };
+            const payload = { login: currentUser, startDateString, endDateString };
             callApi('getInitialData', payload).then(onDataLoaded).catch(onFailure);
         }
 
@@ -584,12 +545,7 @@ document.getElementById('clientSearchInput').addEventListener('keypress', functi
             const dateGroups = {};
             filtered.forEach(m => {
                 if (!dateGroups[m.Date]) {
-                    dateGroups[m.Date] = {
-                        'В работе': [],
-                        'Перенос': [],
-                        'Завершена': [],
-                        'Отмена': []
-                    };
+                    dateGroups[m.Date] = { 'В работе': [], 'Перенос': [], 'Завершена': [], 'Отмена': [] };
                 }
                 if (dateGroups[m.Date][m.Status]) {
                     dateGroups[m.Date][m.Status].push(m);
@@ -628,12 +584,7 @@ document.getElementById('clientSearchInput').addEventListener('keypress', functi
                             if (m.Status === 'Перенос' && m.Comment) {
                                 rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
                             }
-                            const statusColors = {
-                                'В работе': 'blue',
-                                'Завершена': 'green',
-                                'Перенос': 'orange',
-                                'Отмена': 'gray'
-                            };
+                            const statusColors = { 'В работе': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray' };
                             const statusColor = statusColors[m.Status] || 'gray';
                             const cardWrapper = document.createElement('div');
                             cardWrapper.className = "col-12 col-md-6";
@@ -643,6 +594,7 @@ document.getElementById('clientSearchInput').addEventListener('keypress', functi
                     }
                 });
             });
+            // Переназначаем обработчики событий для новых кнопок
             document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
             document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
             document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
@@ -652,67 +604,7 @@ document.getElementById('clientSearchInput').addEventListener('keypress', functi
             window.scrollTo(0, 0);
         }
 
-        function handleOutcomeClick(event) {
-            activeMeetingId = event.target.dataset.id;
-            const meeting = allMeetings.find(m => m.ID === activeMeetingId);
-            if (!meeting) return;
-            const potentialContainer = document.getElementById('potentialCategories');
-            potentialContainer.innerHTML = '';
-            let potentialData = {};
-            try {
-                potentialData = JSON.parse(meeting.PotentialData) || {};
-            } catch (e) {};
-            potentialCategories.forEach((cat, index) => {
-                const categoryName = cat.CategoryName;
-                const value = potentialData[categoryName] || '';
-                potentialContainer.innerHTML += `<div class="input-group mb-2"><span class="input-group-text">${categoryName}</span><input type="text" id="potential-${index}" class="form-control" data-category="${categoryName}" value="${value}"></div>`;
-            });
-            document.getElementById('meetingComment').value = meeting.Comment || '';
-            const surveyContainer = document.getElementById('surveyQuestions');
-            surveyContainer.innerHTML = '';
-            let surveyAnswers = {};
-            try {
-                surveyAnswers = JSON.parse(meeting.SurveyAnswers) || {};
-            } catch (e) {};
-            questions.forEach((q, index) => {
-                const questionText = q.QuestionText;
-                const answer = surveyAnswers[questionText] || '';
-                surveyContainer.innerHTML += `<div class="mb-2"><label for="question-${index}" class="form-label small">${questionText}</label><input type="text" id="question-${index}" class="form-control form-control-sm" data-question="${questionText}" value="${answer}"></div>`;
-            });
-            outcomeModal.show();
-        }
-        async function handleSaveOutcome() {
-            const btn = document.getElementById('saveOutcomeBtn');
-            toggleButtonSpinner(btn, true);
-            const oldData = allMeetings.find(m => m.ID === activeMeetingId);
-            const potentialData = {};
-            document.querySelectorAll('#potentialCategories input').forEach(input => {
-                potentialData[input.dataset.category] = input.value;
-            });
-            const surveyAnswers = {};
-            document.querySelectorAll('#surveyQuestions input').forEach(input => {
-                surveyAnswers[input.dataset.question] = input.value;
-            });
-            const newData = { ...oldData,
-                Comment: document.getElementById('meetingComment').value,
-                SurveyAnswers: JSON.stringify(surveyAnswers),
-                PotentialData: JSON.stringify(potentialData)
-            };
-            try {
-                await callApi('updateMeeting', {
-                    newData,
-                    oldData
-                });
-                showToast("Итоги встречи сохранены");
-                outcomeModal.hide();
-                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-            } catch (e) {
-                onFailure(e);
-            } finally {
-                toggleButtonSpinner(btn, false);
-            }
-        }
-
+        // --- Формы и Модальные окна ---
         function handleFormSubmit(e) {
             e.preventDefault();
             const saveBtn = document.getElementById('save-button');
@@ -741,10 +633,7 @@ document.getElementById('clientSearchInput').addEventListener('keypress', functi
                 return;
             }
             const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
-            const payload = isUpdating ? {
-                newData: data,
-                oldData: currentEditingMeeting
-            } : data;
+            const payload = isUpdating ? { newData: data, oldData: currentEditingMeeting } : data;
             callApi(action, payload).then(() => {
                 showToast("Встреча сохранена");
                 loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
@@ -753,14 +642,58 @@ document.getElementById('clientSearchInput').addEventListener('keypress', functi
                 toggleButtonSpinner(saveBtn, false);
             });
         }
+        
+        function handleEditClick(event) {
+            event.preventDefault();
+            const meetingId = event.currentTarget.dataset.id;
+            currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
+            if (!currentEditingMeeting) return;
+            document.getElementById('form-title').textContent = "Редактирование встречи";
+            const dateParts = currentEditingMeeting.Date.split('.');
+            document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+            document.getElementById('meeting-time').value = currentEditingMeeting.Time;
+            document.getElementById('meeting-id').value = currentEditingMeeting.ID;
+            document.getElementById('client-name').value = currentEditingMeeting.Client;
+            document.getElementById('purpose').value = currentEditingMeeting.Purpose;
+            document.getElementById('phone').value = currentEditingMeeting.Phone;
+            document.getElementById('location').value = currentEditingMeeting.Location;
+            document.getElementById('location-lat').value = currentEditingMeeting.LocationLat || '';
+            document.getElementById('location-lon').value = currentEditingMeeting.LocationLon || '';
+            document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
+            showForm(true);
+        }
 
+        async function handleCompleteClick(event) {
+            const btn = event.target;
+            toggleButtonSpinner(btn, true);
+            const meetingId = btn.dataset.id;
+            const oldData = allMeetings.find(m => m.ID === meetingId);
+            if (!oldData) {
+                toggleButtonSpinner(btn, false);
+                return;
+            }
+            if (!confirm(`Завершить встречу с клиентом "${oldData.Client}"?`)) {
+                toggleButtonSpinner(btn, false);
+                return;
+            }
+            const newData = { ...oldData, Status: 'Завершена' };
+            try {
+                await callApi('updateMeeting', { newData, oldData });
+                showToast("Встреча завершена");
+                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+            } catch(e) {
+                onFailure(e);
+            } finally {
+                if (btn.disabled) { toggleButtonSpinner(btn, false); }
+            }
+        }
+        
+        // --- Логика встречи ---
         function handleRescheduleClick(event) {
             const meetingId = event.target.dataset.id;
             const meetingData = allMeetings.find(m => m.ID === meetingId);
             if (!meetingData) return;
-            meetingToReschedule = { ...meetingData,
-                Status: 'Перенос'
-            };
+            meetingToReschedule = { ...meetingData, Status: 'Перенос' };
             currentEditingMeeting = meetingData;
             rescheduleModal.show();
         }
@@ -779,17 +712,8 @@ document.getElementById('clientSearchInput').addEventListener('keypress', functi
             try {
                 const newDateFormatted = newDate.split('-').reverse().join('.');
                 meetingToReschedule.Comment = `Перенесена на ${newDateFormatted} ${newTime}`;
-                const newMeetingData = { ...meetingToReschedule,
-                    ID: `m${Date.now()}`,
-                    Date: newDate.split('-').reverse().join('.'),
-                    Time: newTime,
-                    Status: 'В работе',
-                    Comment: ''
-                };
-                const updatePromise = callApi('updateMeeting', {
-                    newData: meetingToReschedule,
-                    oldData: currentEditingMeeting
-                });
+                const newMeetingData = { ...meetingToReschedule, ID: `m${Date.now()}`, Date: newDate.split('-').reverse().join('.'), Time: newTime, Status: 'В работе', Comment: '' };
+                const updatePromise = callApi('updateMeeting', { newData: meetingToReschedule, oldData: currentEditingMeeting });
                 const savePromise = callApi('saveNewMeeting', newMeetingData);
                 await Promise.all([updatePromise, savePromise]);
                 showToast("Встреча успешно перенесена");
@@ -802,16 +726,53 @@ document.getElementById('clientSearchInput').addEventListener('keypress', functi
                 toggleButtonSpinner(saveBtn, false);
             }
         }
-
-        function onFailure(error, errorElement = null) {
-            console.error(error);
-            if (errorElement) {
-                errorElement.textContent = error.message;
-                errorElement.classList.remove(HIDDEN_CLASS);
-            } else {
-                showToast('Ошибка: ' + error.message);
+        function handleOutcomeClick(event) {
+            activeMeetingId = event.target.dataset.id;
+            const meeting = allMeetings.find(m => m.ID === activeMeetingId);
+            if (!meeting) return;
+            const potentialContainer = document.getElementById('potentialCategories');
+            potentialContainer.innerHTML = '';
+            let potentialData = {};
+            try { potentialData = JSON.parse(meeting.PotentialData) || {}; } catch (e) {};
+            potentialCategories.forEach((cat, index) => {
+                const categoryName = cat.CategoryName;
+                const value = potentialData[categoryName] || '';
+                potentialContainer.innerHTML += `<div class="input-group mb-2"><span class="input-group-text">${categoryName}</span><input type="text" id="potential-${index}" class="form-control" data-category="${categoryName}" value="${value}"></div>`;
+            });
+            document.getElementById('meetingComment').value = meeting.Comment || '';
+            const surveyContainer = document.getElementById('surveyQuestions');
+            surveyContainer.innerHTML = '';
+            let surveyAnswers = {};
+            try { surveyAnswers = JSON.parse(meeting.SurveyAnswers) || {}; } catch (e) {};
+            questions.forEach((q, index) => {
+                const questionText = q.QuestionText;
+                const answer = surveyAnswers[questionText] || '';
+                surveyContainer.innerHTML += `<div class="mb-2"><label for="question-${index}" class="form-label small">${questionText}</label><input type="text" id="question-${index}" class="form-control form-control-sm" data-question="${questionText}" value="${answer}"></div>`;
+            });
+            outcomeModal.show();
+        }
+        async function handleSaveOutcome() {
+            const btn = document.getElementById('saveOutcomeBtn');
+            toggleButtonSpinner(btn, true);
+            const oldData = allMeetings.find(m => m.ID === activeMeetingId);
+            const potentialData = {};
+            document.querySelectorAll('#potentialCategories input').forEach(input => { potentialData[input.dataset.category] = input.value; });
+            const surveyAnswers = {};
+            document.querySelectorAll('#surveyQuestions input').forEach(input => { surveyAnswers[input.dataset.question] = input.value; });
+            const newData = { ...oldData, Comment: document.getElementById('meetingComment').value, SurveyAnswers: JSON.stringify(surveyAnswers), PotentialData: JSON.stringify(potentialData) };
+            try {
+                await callApi('updateMeeting', { newData, oldData });
+                showToast("Итоги встречи сохранены");
+                outcomeModal.hide();
+                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+            } catch (e) {
+                onFailure(e);
+            } finally {
+                toggleButtonSpinner(btn, false);
             }
         }
+
+        // --- Геолокация ---
         async function handleGetLocationClick() {
             const btn = document.getElementById('get-location-btn');
             toggleButtonSpinner(btn, true);
@@ -835,15 +796,8 @@ document.getElementById('clientSearchInput').addEventListener('keypress', functi
             if (!oldData) return;
             try {
                 const { address, lat, lon } = await getAddressFromGeolocation();
-                const newData = { ...oldData,
-                    Location: address,
-                    LocationLat: lat,
-                    LocationLon: lon
-                };
-                await callApi('updateMeeting', {
-                    newData,
-                    oldData
-                });
+                const newData = { ...oldData, Location: address, LocationLat: lat, LocationLon: lon };
+                await callApi('updateMeeting', { newData, oldData });
                 showToast("Геолокация сохранена");
                 loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
             } catch (error) {
@@ -872,60 +826,11 @@ document.getElementById('clientSearchInput').addEventListener('keypress', functi
                     } catch (e) {
                         reject(new Error("Не удалось получить адрес"));
                     }
-                }, () => reject(new Error("Нет доступа к геолокации")), {
-                    timeout: 10000
-                });
+                }, () => reject(new Error("Нет доступа к геолокации")), { timeout: 10000 });
             });
         }
 
-        function handleEditClick(event) {
-            event.preventDefault();
-            const meetingId = event.currentTarget.dataset.id;
-            currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
-            if (!currentEditingMeeting) return;
-            document.getElementById('form-title').textContent = "Редактирование встречи";
-            const dateParts = currentEditingMeeting.Date.split('.');
-            document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-            document.getElementById('meeting-time').value = currentEditingMeeting.Time;
-            document.getElementById('meeting-id').value = currentEditingMeeting.ID;
-            document.getElementById('client-name').value = currentEditingMeeting.Client;
-            document.getElementById('purpose').value = currentEditingMeeting.Purpose;
-            document.getElementById('phone').value = currentEditingMeeting.Phone;
-            document.getElementById('location').value = currentEditingMeeting.Location;
-            document.getElementById('location-lat').value = currentEditingMeeting.LocationLat || '';
-            document.getElementById('location-lon').value = currentEditingMeeting.LocationLon || '';
-            document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
-            showForm(true);
-        }
-        async function handleCompleteClick(event) {
-            const btn = event.target;
-            toggleButtonSpinner(btn, true);
-            const meetingId = btn.dataset.id;
-            const oldData = allMeetings.find(m => m.ID === meetingId);
-            if (!oldData) return;
-            if (!confirm(`Завершить встречу с клиентом "${oldData.Client}"?`)) {
-                toggleButtonSpinner(btn, false);
-                return;
-            }
-            const newData = { ...oldData,
-                Status: 'Завершена'
-            };
-            try {
-                await callApi('updateMeeting', {
-                    newData,
-                    oldData
-                });
-                showToast("Встреча завершена");
-                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-            } catch(e) {
-                onFailure(e);
-            } finally {
-                // Ensure the spinner is always removed
-                if (btn.disabled) {
-                    toggleButtonSpinner(btn, false);
-                }
-            }
-        }
+        // --- Отчеты и Поиск ---
         async function handleReportClick(event) {
             event.preventDefault();
             const clientName = event.currentTarget.dataset.client;
@@ -934,22 +839,44 @@ document.getElementById('clientSearchInput').addEventListener('keypress', functi
             reportModalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
             reportModal.show();
             try {
-                const data = await callApi('getClientReport', {
-                    clientName
-                });
+                const data = await callApi('getClientReport', { clientName });
                 renderReport(data);
             } catch (e) {
                 onFailure(e);
                 reportModal.hide();
             }
         }
-
         function renderReport(data) {
             const reportModalBody = document.getElementById('reportModalBody');
             const meetingsHtml = data.lastMeetings.map(m => `<li>${m.date} - ${m.status} (${m.purpose})</li>`).join('');
             reportModalBody.innerHTML = `<h4>${data.clientInfo.name}</h4><div class="row"><div class="col-md-6"><ul class="list-group"><li class="list-group-item"><strong>Общие продажи:</strong> ${data.clientInfo.totalSales}</li><li class="list-group-item"><strong>Средний чек:</strong> ${data.clientInfo.averageCheck}</li><li class="list-group-item"><strong>Последний контакт:</strong> ${data.clientInfo.lastContactDate}</li></ul></div><div class="col-md-6"><h6>Последние встречи:</h6><ul>${meetingsHtml}</ul></div></div>`;
         }
+        async function handleClientSearch() {
+            const searchInput = document.getElementById('clientSearchInput');
+            const resultContainer = document.getElementById('clientSearchResult');
+            const searchBtn = document.getElementById('clientSearchBtn');
+            const searchTerm = searchInput.value.trim();
+            if (!searchTerm) {
+                resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
+                return;
+            }
+            toggleButtonSpinner(searchBtn, true);
+            resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
+            try {
+                const result = await callApi('findClient', { searchTerm });
+                if (result.found) {
+                    resultContainer.innerHTML = `<div class="alert alert-success"><h5 class="alert-heading">Клиент найден!</h5><p class="mb-1"><strong>Наименование:</strong> ${result.clientName}</p><p class="mb-0"><strong>Закрепленный менеджер:</strong> ${result.managerName}</p></div>`;
+                } else {
+                    resultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
+                }
+            } catch (e) {
+                resultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
+            } finally {
+                toggleButtonSpinner(searchBtn, false);
+            }
+        }
 
+        // --- Управление отображением ---
         function showAddForm() {
             currentEditingMeeting = null;
             document.getElementById('form-title').textContent = "Новая встреча";
@@ -959,57 +886,13 @@ document.getElementById('clientSearchInput').addEventListener('keypress', functi
             document.getElementById('status').value = 'В работе';
             showForm(true);
         }
-
-        function onActionComplete() {
-            showForm(false);
-        }
-
-        function handleCancelClick() {
-            cancelConfirmModal.show();
-        }
-
+        function onActionComplete() { showForm(false); }
+        function handleCancelClick() { cancelConfirmModal.show(); }
         function showForm(show) {
             document.getElementById('view-meetings').classList.toggle(HIDDEN_CLASS, show);
             document.getElementById('form-section').classList.toggle(HIDDEN_CLASS, !show);
             document.querySelector('header').classList.toggle(HIDDEN_CLASS, show);
         }
-            async function handleClientSearch() {
-    const searchInput = document.getElementById('clientSearchInput');
-    const resultContainer = document.getElementById('clientSearchResult');
-    const searchBtn = document.getElementById('clientSearchBtn');
-    const searchTerm = searchInput.value.trim();
-
-    if (!searchTerm) {
-        resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
-        return;
-    }
-
-    toggleButtonSpinner(searchBtn, true);
-    resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
-
-    try {
-        const result = await callApi('findClient', { searchTerm });
-        
-        if (result.found) {
-            resultContainer.innerHTML = `
-                <div class="alert alert-success">
-                    <h5 class="alert-heading">Клиент найден!</h5>
-                    <p class="mb-1"><strong>Наименование:</strong> ${result.clientName}</p>
-                    <p class="mb-0"><strong>Закрепленный менеджер:</strong> ${result.managerName}</p>
-                </div>`;
-        } else {
-            resultContainer.innerHTML = `
-                <div class="alert alert-warning">
-                    <strong>Клиент не найден.</strong><br>
-                    Попробуйте изменить поисковый запрос.
-                </div>`;
-        }
-    } catch (e) {
-        resultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
-    } finally {
-        toggleButtonSpinner(searchBtn, false);
-    }
-}
     </script>
 </body>
 
