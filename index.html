@@ -520,6 +520,28 @@
         function handleLogout() {
             window.location.reload();
         }
+        // --- ВСТАВЬТЕ ЭТОТ БЛОК КОДА ---
+async function loadAdminStats() {
+    const statsContainer = document.getElementById('stats-container');
+    statsContainer.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
+    const startDate = adminDatePicker.getStartDate()?.toJSDate();
+    const endDate = adminDatePicker.getEndDate()?.toJSDate();
+    if (!startDate || !endDate) {
+        statsContainer.innerHTML = '<p class="text-center text-danger">Выберите период</p>';
+        return;
+    }
+    try {
+        const payload = {
+            startDateString: formatDateToYYYYMMDD(startDate),
+            endDateString: formatDateToYYYYMMDD(endDate)
+        };
+        const stats = await callApi('getAdminStats', payload);
+        displayAdminStats(stats);
+    } catch (e) {
+        onFailure(e);
+    }
+}
+// --- КОНЕЦ БЛОКА ---
         
         // --- Отображение данных ---
         function loadInitialData(startDateString, endDateString) {
