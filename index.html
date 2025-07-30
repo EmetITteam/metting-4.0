@@ -439,30 +439,37 @@
 
         // --- API ---
         async function callApi(action, payload) {
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action, payload })
-                });
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, payload })
+        });
 
-                if (!response.ok) {
-                    throw new Error(`Ошибка сервера: ${response.status}`);
-                }
-                
-                const text = await response.text();
-                if (!text) { return {}; } // Пустой успешный ответ
+        // Пытаемся прочитать ответ сервера в формате JSON
+        const result = await response.json();
 
-                const result = JSON.parse(text);
-                if (result.status === 'error') {
-                    throw new Error(result.message);
-                }
-                return result.data;
-            } catch (e) {
-                console.error("API call failed:", e);
-                throw new Error('Ошибка сети или ответа сервера.');
-            }
+        // Если ответ сервера НЕ успешный (например, ошибка 401 или 500)
+        if (!response.ok) {
+            // Используем сообщение об ошибке из ответа 1С, если оно есть
+            throw new Error(result.message || `Ошибка сервера: ${response.status}`);
         }
+
+        // Если ответ успешный, но 1С вернула свою ошибку
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
+
+        // Если все хорошо
+        return result.data;
+
+    } catch (e) {
+        // Этот блок сработает, если нарушена связь или ответ - не JSON
+        console.error("API call failed:", e);
+        // Передаем дальше текст ошибки, если он есть, или общее сообщение
+        throw e.message ? e : new Error('Ошибка сети или ответа сервера.');
+    }
+}
         function onFailure(error, errorElement = null) {
             console.error(error);
             if (errorElement) {
