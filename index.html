@@ -270,6 +270,24 @@
         let searchMask = null;
 
         document.addEventListener('DOMContentLoaded', () => {
+            // --- НАЧАЛО ИЗМЕНЕНИЙ (СЕССИЯ) ---
+            function checkActiveSession() {
+                const savedSession = localStorage.getItem('crm_session');
+                if (!savedSession) return;
+
+                const session = JSON.parse(savedSession);
+                const oneDay = 24 * 60 * 60 * 1000;
+                const isSessionExpired = (new Date().getTime() - session.loginTime) > oneDay;
+
+                if (isSessionExpired) {
+                    localStorage.removeItem('crm_session');
+                    return;
+                }
+                onLoginSuccess({ login: session.user, role: session.role });
+            }
+            checkActiveSession();
+            // --- КОНЕЦ ИЗМЕНЕНИЙ (СЕССИЯ) ---
+
             datePicker = new Litepicker({
                 element: document.getElementById('dateRangeFilter'),
                 singleMode: false,
@@ -429,6 +447,16 @@
         function onLoginSuccess(result) {
             currentUser = result.login;
             const userRole = result.role;
+
+            // --- НАЧАЛО ИЗМЕНЕНИЙ (СЕССИЯ) ---
+            const session = {
+                user: currentUser,
+                role: userRole,
+                loginTime: new Date().getTime()
+            };
+            localStorage.setItem('crm_session', JSON.stringify(session));
+            // --- КОНЕЦ ИЗМЕНЕНИЙ (СЕССИЯ) ---
+            
             document.getElementById('login-screen').classList.add(HIDDEN_CLASS);
             if (userRole === 'admin') {
                 document.getElementById('admin-header').textContent = `Администратор: ${currentUser}`;
@@ -444,7 +472,12 @@
             }
         }
 
-        function handleLogout() { window.location.reload(); }
+        function handleLogout() {
+            // --- НАЧАЛО ИЗМЕНЕНИЙ (СЕССИЯ) ---
+            localStorage.removeItem('crm_session');
+            // --- КОНЕЦ ИЗМЕНЕНИЙ (СЕССИЯ) ---
+            window.location.reload(); 
+        }
         
         async function loadAdminStats() {
             const statsContainer = document.getElementById('stats-container');
