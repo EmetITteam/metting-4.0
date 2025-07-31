@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+    <script src="https://unpkg.com/imask"></script>
     <style>
         body {
             background-color: #f8f9fa;
@@ -51,17 +52,16 @@
             margin-left: 5px;
         }
         .skeleton-card {
-    background-color: #e9ecef;
-    border-radius: 0.375rem;
-    height: 200px;
-    animation: pulse 1.5s infinite ease-in-out;
-}
-
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
-}
+            background-color: #e9ecef;
+            border-radius: 0.375rem;
+            height: 200px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 
@@ -215,103 +215,10 @@
         </div>
     </div>
 
-    <div class="modal fade" id="reportModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="reportModalTitle">Отчет по клиенту</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" id="reportModalBody"></div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="outcomeModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5">Итоги встречи</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <nav>
-                        <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#nav-potential" type="button">Потенциал</button>
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-comments" type="button">Комментарии и Вопросы</button>
-                        </div>
-                    </nav>
-                    <div class="tab-content p-3 border border-top-0 rounded-bottom">
-                        <div class="tab-pane fade show active" id="nav-potential" role="tabpanel">
-                            <div id="potentialCategories"></div>
-                        </div>
-                        <div class="tab-pane fade" id="nav-comments" role="tabpanel">
-                            <div class="mb-3">
-                                <label for="meetingComment" class="form-label">Общий комментарий:</label>
-                                <textarea class="form-control" id="meetingComment" rows="3"></textarea>
-                            </div>
-                            <hr>
-                            <h6>Ответы на вопросы:</h6>
-                            <div id="surveyQuestions"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                    <button type="button" class="btn btn-primary" id="saveOutcomeBtn">Сохранить итоги</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="rescheduleModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5">Перенос встречи</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Укажите новую дату и время.</p>
-                    <div class="mb-3">
-                        <label for="newMeetingDate" class="form-label">Новая дата</label>
-                        <input type="date" class="form-control" id="newMeetingDate" required>
-                    </div>
-                    <div>
-                        <label for="newMeetingTime" class="form-label">Новое время</label>
-                        <input type="time" class="form-control" id="newMeetingTime" required>
-                    </div>
-                    <div id="rescheduleError" class="text-danger mt-2 d-none"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                    <button type="button" class="btn btn-primary" id="saveRescheduleBtn">Перенести</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="cancelConfirmModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5">Подтверждение</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Вы уверены, что хотите отменить изменения?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Остаться</button>
-                    <button type="button" class="btn btn-danger" id="confirmCancelBtn">Отменить изменения</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <div class="modal fade" id="reportModal" tabindex="-1">...</div>
+    <div class="modal fade" id="outcomeModal" tabindex="-1">...</div>
+    <div class="modal fade" id="rescheduleModal" tabindex="-1">...</div>
+    <div class="modal fade" id="cancelConfirmModal" tabindex="-1">...</div>
     <div class="modal fade" id="clientSearchModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -337,7 +244,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
-    <script src="https://unpkg.com/imask"></script>
     <script>
         const API_URL = "/api/handler";
         const HIDDEN_CLASS = 'd-none';
@@ -357,8 +263,11 @@
         const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
         const clientSearchModal = new bootstrap.Modal(document.getElementById('clientSearchModal'));
         const appToast = new bootstrap.Toast(document.getElementById('appToast'));
+        
         let datePicker = null;
         let adminDatePicker = null;
+        let phoneMask = null;
+        let searchMask = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             datePicker = new Litepicker({
@@ -383,13 +292,11 @@
                 lang: 'ru-RU'
             });
 
-            // Основные обработчики
+            // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
             document.getElementById('login-form').addEventListener('submit', handleLogin);
             document.getElementById('logout-btn').addEventListener('click', handleLogout);
             document.getElementById('admin-logout-btn').addEventListener('click', handleLogout);
             document.getElementById('show-add-form-btn').addEventListener('click', showAddForm);
-            
-            // Обработчики формы встречи
             document.getElementById('meeting-form').addEventListener('submit', handleFormSubmit);
             document.getElementById('cancel-btn').addEventListener('click', handleCancelClick);
             document.getElementById('confirmCancelBtn').addEventListener('click', () => {
@@ -398,142 +305,101 @@
             });
             document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
             document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
-            
-            // Обработчики фильтров и других кнопок
             document.getElementById('searchInput').addEventListener('input', filterAndGroupMeetings);
             document.getElementById('resetFiltersBtn').addEventListener('click', () => {
                 document.getElementById('searchInput').value = '';
                 datePicker.setDateRange(new Date(), new Date());
             });
-            
-            // Обработчики модальных окон
             document.getElementById('get-location-btn').addEventListener('click', handleGetLocationClick);
             document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
             document.getElementById('saveOutcomeBtn').addEventListener('click', handleSaveOutcome);
             document.getElementById('adminRefreshBtn').addEventListener('click', loadAdminStats);
-
-            // Обработчики для поиска клиента
             document.getElementById('show-client-search-btn').addEventListener('click', () => {
                 document.getElementById('clientSearchInput').value = '';
                 document.getElementById('clientSearchResult').innerHTML = '';
+                searchMask.updateValue();
                 clientSearchModal.show();
             });
             document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
-            document.getElementById('clientSearchInput').addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    handleClientSearch();
-                }
+            document.getElementById('clientSearchInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleClientSearch();
             });
-            // --- НАЧАЛО ИЗМЕНЕНИЙ ---
-// Активация маски для поля телефона
-const phoneInput = document.getElementById('phone');
-const phoneMask = IMask(phoneInput, {
-    mask: '+{38} (000) 000-00-00'
-});
-// --- КОНЕЦ ИЗМЕНЕНИЙ ---
+
+            // --- АКТИВАЦИЯ МАСОК ---
+            const phoneInput = document.getElementById('phone');
+            phoneMask = IMask(phoneInput, {
+                mask: '+{38} (000) 000-00-00'
+            });
+
+            const searchInput = document.getElementById('clientSearchInput');
+            searchMask = IMask(searchInput, {
+                mask: [
+                    {
+                        mask: '+{38} (000) 000-00-00',
+                        startsWith: '380',
+                        lazy: false
+                    },
+                    {
+                        mask: /.*/
+                    }
+                ]
+            });
         });
-        // ... существующий код маски для поля 'phone'
 
-// Активация "умной" маски для поля поиска
-const searchInput = document.getElementById('clientSearchInput');
-const searchMask = IMask(searchInput, {
-    mask: [
-        {
-            // Эта маска применяется, если ввод начинается с цифры или знака +
-            mask: '+{38} (000) 000-00-00',
-            startsWith: '380',
-            lazy: false
-        },
-        {
-            // Эта маска применяется для любого другого ввода (ФИО)
-            mask: /.*/
-        }
-    ]
-});
-
-        // --- Утилиты ---
+        // --- УТИЛИТЫ ---
         function getTodayDateString() { return formatDateToYYYYMMDD(new Date()); }
-        function getTomorrowDateString() { const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); return formatDateToYYYYMMDD(tomorrow); }
+        function getTomorrowDateString() { const t = new Date(); t.setDate(t.getDate() + 1); return formatDateToYYYYMMDD(t); }
         function formatDateToYYYYMMDD(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
         }
         function toggleButtonSpinner(btn, show) {
             if (show) {
                 btn.disabled = true;
                 btn.dataset.originalText = btn.innerHTML;
-                btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>`;
             } else {
                 btn.disabled = false;
-                btn.innerHTML = btn.dataset.originalText;
+                btn.innerHTML = btn.dataset.originalText || '';
             }
         }
         function showToast(message) {
             document.querySelector('#appToast .toast-body').textContent = message;
             appToast.show();
         }
-        /**
- * Возвращает цвет для категории клиента.
- * @param {string} categoryName - Название категории.
- * @returns {string} - HEX-код цвета.
- */
-function getCategoryColor(categoryName) {
-    // Приводим название к нижнему регистру для удобства сравнения
-    const lowerCategory = categoryName.toLowerCase();
-
-    // Задаем цвета для известных категорий
-    if (lowerCategory.includes('vip')) {
-        return '#ffc107'; // Золотой
-    }
-    if (lowerCategory.includes('новый')) {
-        return '#0d6efd'; // Синий
-    }
-    if (lowerCategory.includes('постоянный')) {
-        return '#198754'; // Зеленый
-    }
-    if (lowerCategory.includes('проблемный')) {
-        return '#dc3545'; // Красный
-    }
-
-    // Возвращаем серый цвет по умолчанию для всех остальных категорий
-    return '#6c757d';
-}
+        function getCategoryColor(categoryName) {
+            if (!categoryName) return '#6c757d';
+            const lowerCategory = categoryName.toLowerCase();
+            if (lowerCategory.includes('vip')) return '#ffc107';
+            if (lowerCategory.includes('новый')) return '#0d6efd';
+            if (lowerCategory.includes('постоянный')) return '#198754';
+            if (lowerCategory.includes('проблемный')) return '#dc3545';
+            return '#6c757d';
+        }
 
         // --- API ---
         async function callApi(action, payload) {
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action, payload })
-        });
-
-        // Пытаемся прочитать ответ сервера в формате JSON
-        const result = await response.json();
-
-        // Если ответ сервера НЕ успешный (например, ошибка 401 или 500)
-        if (!response.ok) {
-            // Используем сообщение об ошибке из ответа 1С, если оно есть
-            throw new Error(result.message || `Ошибка сервера: ${response.status}`);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, payload })
+                });
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.message || `Ошибка сервера: ${response.status}`);
+                }
+                if (result.status === 'error') {
+                    throw new Error(result.message);
+                }
+                return result.data;
+            } catch (e) {
+                console.error("API call failed:", e);
+                throw e.message ? e : new Error('Ошибка сети или ответа сервера.');
+            }
         }
-
-        // Если ответ успешный, но 1С вернула свою ошибку
-        if (result.status === 'error') {
-            throw new Error(result.message);
-        }
-
-        // Если все хорошо
-        return result.data;
-
-    } catch (e) {
-        // Этот блок сработает, если нарушена связь или ответ - не JSON
-        console.error("API call failed:", e);
-        // Передаем дальше текст ошибки, если он есть, или общее сообщение
-        throw e.message ? e : new Error('Ошибка сети или ответа сервера.');
-    }
-}
         function onFailure(error, errorElement = null) {
             console.error(error);
             if (errorElement) {
@@ -544,17 +410,14 @@ function getCategoryColor(categoryName) {
             }
         }
 
-        // --- Основная логика ---
+        // --- ОСНОВНАЯ ЛОГИКА ---
         function handleLogin(e) {
             e.preventDefault();
             const loginBtn = document.getElementById('login-button');
             toggleButtonSpinner(loginBtn, true);
             const loginError = document.getElementById('login-error');
             loginError.classList.add(HIDDEN_CLASS);
-            const payload = {
-                login: document.getElementById('username').value,
-                password: document.getElementById('password').value
-            };
+            const payload = { login: document.getElementById('username').value, password: document.getElementById('password').value };
             callApi('login', payload).then(onLoginSuccess).catch(err => {
                 onFailure(err, loginError);
                 document.getElementById('password').value = '';
@@ -581,62 +444,30 @@ function getCategoryColor(categoryName) {
             }
         }
 
-        function handleLogout() {
-            window.location.reload();
+        function handleLogout() { window.location.reload(); }
+
+        // --- ЗАГРУЗКА И ОТОБРАЖЕНИЕ ДАННЫХ ---
+        function loadInitialData(startDateString, endDateString) {
+            let skeletonHTML = '';
+            for (let i = 0; i < 4; i++) {
+                skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
+            }
+            meetingsList.innerHTML = skeletonHTML;
+            const payload = { login: currentUser, startDateString, endDateString };
+            callApi('getInitialData', payload)
+                .then(onDataLoaded)
+                .catch(err => {
+                    onFailure(err);
+                    meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
+                });
         }
-        // --- ВСТАВЬТЕ ЭТОТ БЛОК КОДА ---
-async function loadAdminStats() {
-    const statsContainer = document.getElementById('stats-container');
-    statsContainer.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
-    const startDate = adminDatePicker.getStartDate()?.toJSDate();
-    const endDate = adminDatePicker.getEndDate()?.toJSDate();
-    if (!startDate || !endDate) {
-        statsContainer.innerHTML = '<p class="text-center text-danger">Выберите период</p>';
-        return;
-    }
-    try {
-        const payload = {
-            startDateString: formatDateToYYYYMMDD(startDate),
-            endDateString: formatDateToYYYYMMDD(endDate)
-        };
-        const stats = await callApi('getAdminStats', payload);
-        displayAdminStats(stats);
-    } catch (e) {
-        onFailure(e);
-    }
-}
-// --- КОНЕЦ БЛОКА ---
-        
-        // --- Отображение данных ---
-   function loadInitialData(startDateString, endDateString) {
-    let skeletonHTML = '';
-    for (let i = 0; i < 4; i++) {
-        skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
-    }
-    meetingsList.innerHTML = skeletonHTML;
 
-    const payload = { login: currentUser, startDateString, endDateString };
-
-    callApi('getInitialData', payload)
-        .then(onDataLoaded)
-        .catch(err => {
-            onFailure(err);
-            meetingsList.innerHTML = `
-                <div class="col-12 text-center p-5 bg-light rounded-3">
-                    <h4>Не удалось загрузить встречи</h4>
-                    <p class="text-muted">${err.message}</p>
-                    <button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">
-                        Попробовать снова
-                    </button>
-                </div>`;
-        });
-}
         function onDataLoaded(data) {
             allMeetings = data.meetings;
             questions = data.questions || [];
             potentialCategories = data.potentialCategories || [];
             populatePurposes(data.purposes);
-    
+            filterAndGroupMeetings();
         }
 
         function populatePurposes(purposes) {
@@ -649,7 +480,7 @@ async function loadAdminStats() {
             }
         }
 
-        function filterAndGroupMeetings () {
+        function filterAndGroupMeetings() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
             const dateGroups = {};
@@ -696,26 +527,16 @@ async function loadAdminStats() {
                             }
                             const statusColors = { 'В работе': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray' };
                             const statusColor = statusColors[m.Status] || 'gray';
+                            
+                            let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
+                            if (m.ClientCategory) {
+                                const categoryColor = getCategoryColor(m.ClientCategory);
+                                clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
+                            }
+
                             const cardWrapper = document.createElement('div');
                             cardWrapper.className = "col-12 col-md-6";
-                           // ...
-// --- НАЧАЛО ИЗМЕНЕНИЙ ---
-let clientTitle = `<span>${m.Time} - ${m.Client}</span>`;
-// Проверяем, пришла ли категория от 1С
-if (m.ClientCategory) {
-    // Получаем цвет с помощью нашей новой функции
-    const categoryColor = getCategoryColor(m.ClientCategory);
-    // Формируем красивый значок (badge)
-    clientTitle = `
-        <div class="d-flex align-items-center">
-            <span>${m.Time} - ${m.Client}</span>
-            <span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span>
-        </div>`;
-}
-
-cardWrapper.innerHTML = `<div class="card meeting-card shadow-sm"><div class="card-body d-flex flex-column"><a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a><div class="flex-grow-1"><h5 class="card-title d-flex justify-content-between align-items-center">${clientTitle}<button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button></h5>...`;
-// --- КОНЕЦ ИЗМЕНЕНИЙ ---
-// ...
+                            cardWrapper.innerHTML = `<div class="card meeting-card shadow-sm"><div class="card-body d-flex flex-column"><a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a><div class="flex-grow-1"><h5 class="card-title d-flex justify-content-between align-items-center">${clientTitle}<button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button></h5><p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p><p class="card-text mb-1"><small class="text-muted">Адрес: ${m.Location || 'Не указан'}</small></p><p class="card-text mt-3"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>${rescheduleInfo}</div><div class="d-flex gap-2 mt-3 flex-wrap">${bottomButtons}</div></div></div>`;
                             meetingsList.appendChild(cardWrapper);
                         });
                     }
@@ -731,7 +552,7 @@ cardWrapper.innerHTML = `<div class="card meeting-card shadow-sm"><div class="ca
             window.scrollTo(0, 0);
         }
 
-        // --- Формы и Модальные окна ---
+        // --- УПРАВЛЕНИЕ ФОРМАМИ И МОДАЛЬНЫМИ ОКНАМИ ---
         function handleFormSubmit(e) {
             e.preventDefault();
             const saveBtn = document.getElementById('save-button');
@@ -761,16 +582,13 @@ cardWrapper.innerHTML = `<div class="card meeting-card shadow-sm"><div class="ca
             }
             const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
             const payload = isUpdating ? { newData: data, oldData: currentEditingMeeting } : data;
-            // ...
-callApi(action, payload).then(() => {
-    // --- НАЧАЛО ИЗМЕНЕНИЙ ---
-    showToast(`Встреча с клиентом "${data.Client}" на ${data.Time} успешно сохранена.`);
-    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
-    loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-    onActionComplete();
-}).catch(onFailure).finally(() => {
-    toggleButtonSpinner(saveBtn, false);
-});
+            callApi(action, payload).then(() => {
+                showToast(`Встреча с клиентом "${data.Client}" на ${data.Time} успешно сохранена.`);
+                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+                onActionComplete();
+            }).catch(onFailure).finally(() => {
+                toggleButtonSpinner(saveBtn, false);
+            });
         }
         
         function handleEditClick(event) {
@@ -786,6 +604,7 @@ callApi(action, payload).then(() => {
             document.getElementById('client-name').value = currentEditingMeeting.Client;
             document.getElementById('purpose').value = currentEditingMeeting.Purpose;
             document.getElementById('phone').value = currentEditingMeeting.Phone;
+            phoneMask.updateValue();
             document.getElementById('location').value = currentEditingMeeting.Location;
             document.getElementById('location-lat').value = currentEditingMeeting.LocationLat || '';
             document.getElementById('location-lon').value = currentEditingMeeting.LocationLon || '';
@@ -818,7 +637,6 @@ callApi(action, payload).then(() => {
             }
         }
         
-        // --- Логика встречи ---
         function handleRescheduleClick(event) {
             const meetingId = event.target.dataset.id;
             const meetingData = allMeetings.find(m => m.ID === meetingId);
@@ -856,6 +674,7 @@ callApi(action, payload).then(() => {
                 toggleButtonSpinner(saveBtn, false);
             }
         }
+
         function handleOutcomeClick(event) {
             activeMeetingId = event.target.dataset.id;
             const meeting = allMeetings.find(m => m.ID === activeMeetingId);
@@ -881,6 +700,7 @@ callApi(action, payload).then(() => {
             });
             outcomeModal.show();
         }
+
         async function handleSaveOutcome() {
             const btn = document.getElementById('saveOutcomeBtn');
             toggleButtonSpinner(btn, true);
@@ -901,8 +721,7 @@ callApi(action, payload).then(() => {
                 toggleButtonSpinner(btn, false);
             }
         }
-
-        // --- Геолокация ---
+        
         async function handleGetLocationClick() {
             const btn = document.getElementById('get-location-btn');
             toggleButtonSpinner(btn, true);
@@ -959,8 +778,7 @@ callApi(action, payload).then(() => {
                 }, () => reject(new Error("Нет доступа к геолокации")), { timeout: 10000 });
             });
         }
-
-        // --- Отчеты и Поиск ---
+        
         async function handleReportClick(event) {
             event.preventDefault();
             const clientName = event.currentTarget.dataset.client;
@@ -981,6 +799,7 @@ callApi(action, payload).then(() => {
             const meetingsHtml = data.lastMeetings.map(m => `<li>${m.date} - ${m.status} (${m.purpose})</li>`).join('');
             reportModalBody.innerHTML = `<h4>${data.clientInfo.name}</h4><div class="row"><div class="col-md-6"><ul class="list-group"><li class="list-group-item"><strong>Общие продажи:</strong> ${data.clientInfo.totalSales}</li><li class="list-group-item"><strong>Средний чек:</strong> ${data.clientInfo.averageCheck}</li><li class="list-group-item"><strong>Последний контакт:</strong> ${data.clientInfo.lastContactDate}</li></ul></div><div class="col-md-6"><h6>Последние встречи:</h6><ul>${meetingsHtml}</ul></div></div>`;
         }
+        
         async function handleClientSearch() {
             const searchInput = document.getElementById('clientSearchInput');
             const resultContainer = document.getElementById('clientSearchResult');
@@ -1006,11 +825,11 @@ callApi(action, payload).then(() => {
             }
         }
 
-        // --- Управление отображением ---
         function showAddForm() {
             currentEditingMeeting = null;
             document.getElementById('form-title').textContent = "Новая встреча";
             document.getElementById('meeting-form').reset();
+            phoneMask.updateValue();
             document.getElementById('meeting-date').value = getTodayDateString();
             document.getElementById('meeting-id').value = '';
             document.getElementById('status').value = 'В работе';
