@@ -270,24 +270,8 @@
         let searchMask = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // --- НАЧАЛО ИЗМЕНЕНИЙ (СЕССИЯ) ---
-            function checkActiveSession() {
-                const savedSession = localStorage.getItem('crm_session');
-                if (!savedSession) return;
-
-                const session = JSON.parse(savedSession);
-                const oneDay = 24 * 60 * 60 * 1000;
-                const isSessionExpired = (new Date().getTime() - session.loginTime) > oneDay;
-
-                if (isSessionExpired) {
-                    localStorage.removeItem('crm_session');
-                    return;
-                }
-                onLoginSuccess({ login: session.user, role: session.role });
-            }
-            checkActiveSession();
-            // --- КОНЕЦ ИЗМЕНЕНИЙ (СЕССИЯ) ---
-
+            // --- НАЧАЛО ИЗМЕНЕНИЙ (ИСПРАВЛЕНИЕ ОШИБКИ) ---
+            // 1. Сначала создаем все необходимые компоненты
             datePicker = new Litepicker({
                 element: document.getElementById('dateRangeFilter'),
                 singleMode: false,
@@ -309,6 +293,42 @@
                 format: 'DD.MM.YYYY',
                 lang: 'ru-RU'
             });
+             const phoneInput = document.getElementById('phone');
+            phoneMask = IMask(phoneInput, {
+                mask: '+{38} (000) 000-00-00'
+            });
+            const searchInput = document.getElementById('clientSearchInput');
+            searchMask = IMask(searchInput, {
+                mask: [
+                    {
+                        mask: '+{38} (000) 000-00-00',
+                        startsWith: '380',
+                        lazy: false
+                    },
+                    {
+                        mask: /.*/
+                    }
+                ]
+            });
+
+            // 2. А уже потом проверяем сессию, когда все готово
+            function checkActiveSession() {
+                const savedSession = localStorage.getItem('crm_session');
+                if (!savedSession) return;
+
+                const session = JSON.parse(savedSession);
+                const oneDay = 24 * 60 * 60 * 1000;
+                const isSessionExpired = (new Date().getTime() - session.loginTime) > oneDay;
+
+                if (isSessionExpired) {
+                    localStorage.removeItem('crm_session');
+                    return;
+                }
+                onLoginSuccess({ login: session.user, role: session.role });
+            }
+            checkActiveSession();
+            // --- КОНЕЦ ИЗМЕНЕНИЙ (ИСПРАВЛЕНИЕ ОШИБКИ) ---
+
 
             // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
             document.getElementById('login-form').addEventListener('submit', handleLogin);
@@ -341,26 +361,6 @@
             document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
             document.getElementById('clientSearchInput').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') handleClientSearch();
-            });
-
-            // --- АКТИВАЦИЯ МАСОК ---
-            const phoneInput = document.getElementById('phone');
-            phoneMask = IMask(phoneInput, {
-                mask: '+{38} (000) 000-00-00'
-            });
-
-            const searchInput = document.getElementById('clientSearchInput');
-            searchMask = IMask(searchInput, {
-                mask: [
-                    {
-                        mask: '+{38} (000) 000-00-00',
-                        startsWith: '380',
-                        lazy: false
-                    },
-                    {
-                        mask: /.*/
-                    }
-                ]
             });
         });
 
@@ -448,14 +448,12 @@
             currentUser = result.login;
             const userRole = result.role;
 
-            // --- НАЧАЛО ИЗМЕНЕНИЙ (СЕССИЯ) ---
             const session = {
                 user: currentUser,
                 role: userRole,
                 loginTime: new Date().getTime()
             };
             localStorage.setItem('crm_session', JSON.stringify(session));
-            // --- КОНЕЦ ИЗМЕНЕНИЙ (СЕССИЯ) ---
             
             document.getElementById('login-screen').classList.add(HIDDEN_CLASS);
             if (userRole === 'admin') {
@@ -473,9 +471,7 @@
         }
 
         function handleLogout() {
-            // --- НАЧАЛО ИЗМЕНЕНИЙ (СЕССИЯ) ---
             localStorage.removeItem('crm_session');
-            // --- КОНЕЦ ИЗМЕНЕНИЙ (СЕССИЯ) ---
             window.location.reload(); 
         }
         
@@ -864,7 +860,7 @@
             const searchInput = document.getElementById('clientSearchInput');
             const resultContainer = document.getElementById('clientSearchResult');
             const searchBtn = document.getElementById('clientSearchBtn');
-            const searchTerm = searchMask.unmaskedValue || searchInput.value; // Используем или чистое значение, или как есть
+            const searchTerm = searchMask.unmaskedValue || searchInput.value;
             if (!searchTerm) {
                 resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
                 return;
