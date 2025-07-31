@@ -215,18 +215,10 @@
         </div>
     </div>
 
-    <div class="modal fade" id="reportModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5" id="reportModalTitle">Отчет по клиенту</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="reportModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div>
-    </div>
-    <div class="modal fade" id="outcomeModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Итоги встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><nav><div class="nav nav-tabs" id="nav-tab" role="tablist"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#nav-potential" type="button">Потенциал</button><button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-comments" type="button">Комментарии и Вопросы</button></div></nav><div class="tab-content p-3 border border-top-0 rounded-bottom"><div class="tab-pane fade show active" id="nav-potential" role="tabpanel"><div id="potentialCategories"></div></div><div class="tab-pane fade" id="nav-comments" role="tabpanel"><div class="mb-3"><label for="meetingComment" class="form-label">Общий комментарий:</label><textarea class="form-control" id="meetingComment" rows="3"></textarea></div><hr><h6>Ответы на вопросы:</h6><div id="surveyQuestions"></div></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveOutcomeBtn">Сохранить итоги</button></div></div></div>
-    </div>
-    <div class="modal fade" id="rescheduleModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Перенос встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Укажите новую дату и время.</p><div class="mb-3"><label for="newMeetingDate" class="form-label">Новая дата</label><input type="date" class="form-control" id="newMeetingDate" required></div><div><label for="newMeetingTime" class="form-label">Новое время</label><input type="time" class="form-control" id="newMeetingTime" required></div><div id="rescheduleError" class="text-danger mt-2 d-none"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveRescheduleBtn">Перенести</button></div></div></div>
-    </div>
-    <div class="modal fade" id="cancelConfirmModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Подтверждение</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Вы уверены, что хотите отменить изменения?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Остаться</button><button type="button" class="btn btn-danger" id="confirmCancelBtn">Отменить изменения</button></div></div></div>
-    </div>
+    <div class="modal fade" id="reportModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5" id="reportModalTitle">Отчет по клиенту</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="reportModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
+    <div class="modal fade" id="outcomeModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Итоги встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><nav><div class="nav nav-tabs" id="nav-tab" role="tablist"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#nav-potential" type="button">Потенциал</button><button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-comments" type="button">Комментарии и Вопросы</button></div></nav><div class="tab-content p-3 border border-top-0 rounded-bottom"><div class="tab-pane fade show active" id="nav-potential" role="tabpanel"><div id="potentialCategories"></div></div><div class="tab-pane fade" id="nav-comments" role="tabpanel"><div class="mb-3"><label for="meetingComment" class="form-label">Общий комментарий:</label><textarea class="form-control" id="meetingComment" rows="3"></textarea></div><hr><h6>Ответы на вопросы:</h6><div id="surveyQuestions"></div></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveOutcomeBtn">Сохранить итоги</button></div></div></div></div>
+    <div class="modal fade" id="rescheduleModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Перенос встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Укажите новую дату и время.</p><div class="mb-3"><label for="newMeetingDate" class="form-label">Новая дата</label><input type="date" class="form-control" id="newMeetingDate" required></div><div><label for="newMeetingTime" class="form-label">Новое время</label><input type="time" class="form-control" id="newMeetingTime" required></div><div id="rescheduleError" class="text-danger mt-2 d-none"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveRescheduleBtn">Перенести</button></div></div></div></div>
+    <div class="modal fade" id="cancelConfirmModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Подтверждение</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Вы уверены, что хотите отменить изменения?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Остаться</button><button type="button" class="btn btn-danger" id="confirmCancelBtn">Отменить изменения</button></div></div></div></div>
     <div class="modal fade" id="clientSearchModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -325,7 +317,7 @@
             document.getElementById('show-client-search-btn').addEventListener('click', () => {
                 document.getElementById('clientSearchInput').value = '';
                 document.getElementById('clientSearchResult').innerHTML = '';
-                searchMask.updateValue();
+                if (searchMask) searchMask.updateValue();
                 clientSearchModal.show();
             });
             document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
@@ -639,7 +631,7 @@
             document.getElementById('client-name').value = currentEditingMeeting.Client;
             document.getElementById('purpose').value = currentEditingMeeting.Purpose;
             document.getElementById('phone').value = currentEditingMeeting.Phone;
-            phoneMask.updateValue();
+            if (phoneMask) phoneMask.updateValue();
             document.getElementById('location').value = currentEditingMeeting.Location;
             document.getElementById('location-lat').value = currentEditingMeeting.LocationLat || '';
             document.getElementById('location-lon').value = currentEditingMeeting.LocationLon || '';
@@ -839,7 +831,7 @@
             const searchInput = document.getElementById('clientSearchInput');
             const resultContainer = document.getElementById('clientSearchResult');
             const searchBtn = document.getElementById('clientSearchBtn');
-            const searchTerm = searchMask.unmaskedValue;
+            const searchTerm = searchMask.unmaskedValue || searchInput.value; // Используем или чистое значение, или как есть
             if (!searchTerm) {
                 resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
                 return;
@@ -864,7 +856,7 @@
             currentEditingMeeting = null;
             document.getElementById('form-title').textContent = "Новая встреча";
             document.getElementById('meeting-form').reset();
-            phoneMask.updateValue();
+            if(phoneMask) phoneMask.updateValue();
             document.getElementById('meeting-date').value = getTodayDateString();
             document.getElementById('meeting-id').value = '';
             document.getElementById('status').value = 'В работе';
@@ -881,4 +873,3 @@
 </body>
 
 </html>
-
