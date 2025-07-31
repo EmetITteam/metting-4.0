@@ -50,6 +50,18 @@
             vertical-align: middle;
             margin-left: 5px;
         }
+        .skeleton-card {
+    background-color: #e9ecef;
+    border-radius: 0.375rem;
+    height: 200px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
     </style>
 </head>
 
@@ -325,6 +337,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
+    <script src="https://unpkg.com/imask"></script>
     <script>
         const API_URL = "/api/handler";
         const HIDDEN_CLASS = 'd-none';
@@ -411,6 +424,13 @@
                     handleClientSearch();
                 }
             });
+            // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+// Активация маски для поля телефона
+const phoneInput = document.getElementById('phone');
+const phoneMask = IMask(phoneInput, {
+    mask: '+{38} (000) 000-00-00'
+});
+// --- КОНЕЦ ИЗМЕНЕНИЙ ---
         });
 
         // --- Утилиты ---
@@ -436,6 +456,32 @@
             document.querySelector('#appToast .toast-body').textContent = message;
             appToast.show();
         }
+        /**
+ * Возвращает цвет для категории клиента.
+ * @param {string} categoryName - Название категории.
+ * @returns {string} - HEX-код цвета.
+ */
+function getCategoryColor(categoryName) {
+    // Приводим название к нижнему регистру для удобства сравнения
+    const lowerCategory = categoryName.toLowerCase();
+
+    // Задаем цвета для известных категорий
+    if (lowerCategory.includes('vip')) {
+        return '#ffc107'; // Золотой
+    }
+    if (lowerCategory.includes('новый')) {
+        return '#0d6efd'; // Синий
+    }
+    if (lowerCategory.includes('постоянный')) {
+        return '#198754'; // Зеленый
+    }
+    if (lowerCategory.includes('проблемный')) {
+        return '#dc3545'; // Красный
+    }
+
+    // Возвращаем серый цвет по умолчанию для всех остальных категорий
+    return '#6c757d';
+}
 
         // --- API ---
         async function callApi(action, payload) {
@@ -544,17 +590,21 @@ async function loadAdminStats() {
 // --- КОНЕЦ БЛОКА ---
         
         // --- Отображение данных ---
-        function loadInitialData(startDateString, endDateString) {
-    meetingsList.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
+      function loadInitialData(startDateString, endDateString) {
+    // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+    let skeletonHTML = '';
+    for (let i = 0; i < 4; i++) {
+        skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
+    }
+    meetingsList.innerHTML = skeletonHTML;
+    // --- КОНЕЦ ИZМЕНЕНИЙ ---
+
     const payload = { login: currentUser, startDateString, endDateString };
 
     callApi('getInitialData', payload)
         .then(onDataLoaded)
         .catch(err => {
-            // Показываем ошибку в виде всплывающего уведомления
             onFailure(err); 
-            
-            // А также выводим сообщение в основном окне с кнопкой "Повторить"
             meetingsList.innerHTML = `
                 <div class="col-12 text-center p-5 bg-light rounded-3">
                     <h4>Не удалось загрузить встречи</h4>
@@ -571,7 +621,7 @@ async function loadAdminStats() {
             questions = data.questions || [];
             potentialCategories = data.potentialCategories || [];
             populatePurposes(data.purposes);
-            filterAndGroupMeetings();
+            ();
         }
 
         function populatePurposes(purposes) {
@@ -584,7 +634,7 @@ async function loadAdminStats() {
             }
         }
 
-        function filterAndGroupMeetings() {
+        function () {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
             const dateGroups = {};
@@ -633,7 +683,24 @@ async function loadAdminStats() {
                             const statusColor = statusColors[m.Status] || 'gray';
                             const cardWrapper = document.createElement('div');
                             cardWrapper.className = "col-12 col-md-6";
-                            cardWrapper.innerHTML = `<div class="card meeting-card shadow-sm"><div class="card-body d-flex flex-column"><a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a><div class="flex-grow-1"><h5 class="card-title d-flex justify-content-between align-items-center"><span>${m.Time} - ${m.Client}</span><button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button></h5><p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p><p class="card-text mb-1"><small class="text-muted">Адрес: ${m.Location || 'Не указан'}</small></p><p class="card-text mt-3"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>${rescheduleInfo}</div><div class="d-flex gap-2 mt-3 flex-wrap">${bottomButtons}</div></div></div>`;
+                           // ...
+// --- НАЧАЛО ИЗМЕНЕНИЙ ---
+let clientTitle = `<span>${m.Time} - ${m.Client}</span>`;
+// Проверяем, пришла ли категория от 1С
+if (m.ClientCategory) {
+    // Получаем цвет с помощью нашей новой функции
+    const categoryColor = getCategoryColor(m.ClientCategory);
+    // Формируем красивый значок (badge)
+    clientTitle = `
+        <div class="d-flex align-items-center">
+            <span>${m.Time} - ${m.Client}</span>
+            <span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span>
+        </div>`;
+}
+
+cardWrapper.innerHTML = `<div class="card meeting-card shadow-sm"><div class="card-body d-flex flex-column"><a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a><div class="flex-grow-1"><h5 class="card-title d-flex justify-content-between align-items-center">${clientTitle}<button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button></h5>...`;
+// --- КОНЕЦ ИЗМЕНЕНИЙ ---
+// ...
                             meetingsList.appendChild(cardWrapper);
                         });
                     }
@@ -679,13 +746,16 @@ async function loadAdminStats() {
             }
             const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
             const payload = isUpdating ? { newData: data, oldData: currentEditingMeeting } : data;
-            callApi(action, payload).then(() => {
-                showToast("Встреча сохранена");
-                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-                onActionComplete();
-            }).catch(onFailure).finally(() => {
-                toggleButtonSpinner(saveBtn, false);
-            });
+            // ...
+callApi(action, payload).then(() => {
+    // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+    showToast(`Встреча с клиентом "${data.Client}" на ${data.Time} успешно сохранена.`);
+    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+    loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+    onActionComplete();
+}).catch(onFailure).finally(() => {
+    toggleButtonSpinner(saveBtn, false);
+});
         }
         
         function handleEditClick(event) {
