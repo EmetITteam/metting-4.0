@@ -355,20 +355,17 @@
                 ]
             });
             searchMask.updateValue();
-            // --- НАЧАЛО ИЗМЕНЕНИЙ (ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ) ---
-// Принудительная синхронизация при клике на поле
-phoneInput.addEventListener('focus', () => {
-    setTimeout(() => {
-        phoneMask.updateValue();
-    }, 100); // Небольшая задержка в 100мс
+        
+// --- НАЧАЛО ИЗМЕНЕНИЙ (САМЫЙ НАДЕЖНЫЙ СПОСОБ) ---
+// Синхронизация маски при любом изменении значения поля
+phoneInput.addEventListener('input', () => {
+    phoneMask.updateValue();
 });
 
-searchInput.addEventListener('focus', () => {
-    setTimeout(() => {
-        searchMask.updateValue();
-    }, 100); // Небольшая задержка в 100мс
+searchInput.addEventListener('input', () => {
+    searchMask.updateValue();
 });
-// --- КОНЕЦ ИЗМЕНЕНИЙ (ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ) ---
+// --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
             function checkActiveSession() {
                 const savedSession = localStorage.getItem('crm_session');
