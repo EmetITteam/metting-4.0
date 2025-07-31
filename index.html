@@ -215,10 +215,18 @@
         </div>
     </div>
 
-    <div class="modal fade" id="reportModal" tabindex="-1">...</div>
-    <div class="modal fade" id="outcomeModal" tabindex="-1">...</div>
-    <div class="modal fade" id="rescheduleModal" tabindex="-1">...</div>
-    <div class="modal fade" id="cancelConfirmModal" tabindex="-1">...</div>
+    <div class="modal fade" id="reportModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5" id="reportModalTitle">Отчет по клиенту</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="reportModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div>
+    </div>
+    <div class="modal fade" id="outcomeModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Итоги встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><nav><div class="nav nav-tabs" id="nav-tab" role="tablist"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#nav-potential" type="button">Потенциал</button><button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-comments" type="button">Комментарии и Вопросы</button></div></nav><div class="tab-content p-3 border border-top-0 rounded-bottom"><div class="tab-pane fade show active" id="nav-potential" role="tabpanel"><div id="potentialCategories"></div></div><div class="tab-pane fade" id="nav-comments" role="tabpanel"><div class="mb-3"><label for="meetingComment" class="form-label">Общий комментарий:</label><textarea class="form-control" id="meetingComment" rows="3"></textarea></div><hr><h6>Ответы на вопросы:</h6><div id="surveyQuestions"></div></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveOutcomeBtn">Сохранить итоги</button></div></div></div>
+    </div>
+    <div class="modal fade" id="rescheduleModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Перенос встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Укажите новую дату и время.</p><div class="mb-3"><label for="newMeetingDate" class="form-label">Новая дата</label><input type="date" class="form-control" id="newMeetingDate" required></div><div><label for="newMeetingTime" class="form-label">Новое время</label><input type="time" class="form-control" id="newMeetingTime" required></div><div id="rescheduleError" class="text-danger mt-2 d-none"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveRescheduleBtn">Перенести</button></div></div></div>
+    </div>
+    <div class="modal fade" id="cancelConfirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Подтверждение</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Вы уверены, что хотите отменить изменения?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Остаться</button><button type="button" class="btn btn-danger" id="confirmCancelBtn">Отменить изменения</button></div></div></div>
+    </div>
     <div class="modal fade" id="clientSearchModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -445,6 +453,33 @@
         }
 
         function handleLogout() { window.location.reload(); }
+        
+        async function loadAdminStats() {
+            const statsContainer = document.getElementById('stats-container');
+            statsContainer.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
+            const startDate = adminDatePicker.getStartDate()?.toJSDate();
+            const endDate = adminDatePicker.getEndDate()?.toJSDate();
+            if (!startDate || !endDate) {
+                statsContainer.innerHTML = '<p class="text-center text-danger">Выберите период</p>';
+                return;
+            }
+            try {
+                const payload = {
+                    startDateString: formatDateToYYYYMMDD(startDate),
+                    endDateString: formatDateToYYYYMMDD(endDate)
+                };
+                const stats = await callApi('getAdminStats', payload);
+                displayAdminStats(stats);
+            } catch (e) {
+                onFailure(e);
+            }
+        }
+
+        function displayAdminStats(stats) {
+            const statsContainer = document.getElementById('stats-container');
+            statsContainer.innerHTML = `<div class="col-md-4"><div class="card text-center h-100"><div class="card-body"><h5 class="card-title">Всего встреч</h5><p class="card-text fs-1 fw-bold">${stats.totalMeetings}</p></div></div></div><div class="col-md-4"><div class="card h-100"><div class="card-header">По статусам</div><ul class="list-group list-group-flush">${Object.entries(stats.statusCounts).map(([status, count]) => `<li class="list-group-item d-flex justify-content-between align-items-center">${status}<span class="badge bg-primary rounded-pill">${count}</span></li>`).join('')}</ul></div></div><div class="col-md-4"><div class="card h-100"><div class="card-header">По менеджерам</div><ul class="list-group list-group-flush">${Object.entries(stats.managerCounts).map(([manager, count]) => `<li class="list-group-item d-flex justify-content-between align-items-center">${manager}<span class="badge bg-primary rounded-pill">${count}</span></li>`).join('')}</ul></div></div>`;
+        }
+
 
         // --- ЗАГРУЗКА И ОТОБРАЖЕНИЕ ДАННЫХ ---
         function loadInitialData(startDateString, endDateString) {
@@ -565,7 +600,7 @@
                 Time: document.getElementById('meeting-time').value,
                 Client: document.getElementById('client-name').value,
                 Purpose: document.getElementById('purpose').value,
-                Phone: document.getElementById('phone').value,
+                Phone: phoneMask.unmaskedValue,
                 Location: document.getElementById('location').value,
                 Status: document.getElementById('status').value,
                 ManagerLogin: currentUser,
@@ -804,7 +839,7 @@
             const searchInput = document.getElementById('clientSearchInput');
             const resultContainer = document.getElementById('clientSearchResult');
             const searchBtn = document.getElementById('clientSearchBtn');
-            const searchTerm = searchInput.value.trim();
+            const searchTerm = searchMask.unmaskedValue;
             if (!searchTerm) {
                 resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
                 return;
@@ -846,3 +881,4 @@
 </body>
 
 </html>
+ошибка, код не находит телефон
