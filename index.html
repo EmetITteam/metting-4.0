@@ -979,19 +979,27 @@
     phoneMask = IMask(phoneInput, { mask: '+{380} (00) 000-00-00' });
     phoneInput.addEventListener('input', () => { phoneMask.updateValue(); });
 
-    // --- НАЧАЛО ИСПРАВЛЕНИЯ: Возвращаем правильную маску поиска ---
-    const searchInput = document.getElementById('clientSearchInput');
-    searchMask = IMask(searchInput, {
-        mask: /.*/, // Маска по умолчанию
-        dispatch: function (appended, dynamicMasked) {
-            if (/^\d/.test(dynamicMasked.unmaskedValue)) {
-                return { mask: '+{38} (000) 000-00-00', lazy: false };
-            }
-            return { mask: /.*/ };
+   // --- Финальная, самая чистая версия маски для поиска ---
+
+const searchInput = document.getElementById('clientSearchInput');
+searchMask = IMask(searchInput, {
+    mask: /.*/, // Маска по умолчанию для ФИО
+    dispatch: function (appended, dynamicMasked) {
+        // Если ввод начинается с цифры, переключаемся на маску телефона
+        if (/^\d/.test(dynamicMasked.unmaskedValue)) {
+            return {
+                mask: '+{38} (000) 000-00-00',
+                lazy: false
+            };
         }
-    });
-    searchInput.addEventListener('input', () => { searchMask.updateValue(); });
-    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+        // Иначе оставляем текстовую маску
+        return {
+            mask: /.*/
+        };
+    }
+});
+
+// --- Конец блока ---
 
     // 2. Проверка активной сессии
     function checkActiveSession() {
