@@ -41,10 +41,11 @@
             border-radius: 50%;
             margin-right: 8px;
         }
-        .status-blue { background-color: #0d6efd; }
-        .status-green { background-color: #198754; }
-        .status-orange { background-color: #fd7e14; }
-        .status-gray { background-color: #6c757d; }
+        .status-blue { background-color: #0d6efd; } /* Для "Запланировано" */
+.status-green { background-color: #198754; }
+.status-orange { background-color: #fd7e14; }
+.status-gray { background-color: #6c757d; }
+.status-red { background-color: #dc3545; } /* Для "Просрочено" */
         .report-btn-icon {
             font-size: 0.8em;
             vertical-align: middle;
@@ -556,18 +557,32 @@
     const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
     
     const dateGroups = {};
-    const validStatuses = ['В работе', 'Перенос', 'Запланировано', 'Отменено', 'Завершено', 'Просрочено'];
+    // --- ИЗМЕНЕНИЕ: Добавлены новые статусы ---
+    const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
 
     filtered.forEach(m => {
         let status = m.Status ? m.Status.trim() : '';
+
+        // --- ИЗМЕНЕНИЕ: Добавлена нормализация для новых статусов ---
+        if (status === 'Завершено') status = 'Завершена';
+        if (status === 'Отменено') status = 'Отмена';
+
         if (!validStatuses.includes(status)) {
             status = 'В работе';
         }
 
+        // --- ИЗМЕНЕНИЕ: Добавлены ключи для новых статусов ---
         if (!dateGroups[m.Date]) {
-            dateGroups[m.Date] = { 'В работе': [], 'Перенос': [], 'Завершена': [], 'Отмена': [] };
+            dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершена': [], 'Отмена': [], 'Просрочено': [] };
         }
-        dateGroups[m.Date][status].push(m);
+        
+        // Корректно добавляем встречу в нужную группу
+        if (dateGroups[m.Date][status]) {
+            dateGroups[m.Date][status].push(m);
+        } else {
+             // На случай, если статус прошел валидацию, но его нет в инициализации (защита)
+            dateGroups[m.Date]['В работе'].push(m);
+        }
     });
 
     meetingsList.innerHTML = '';
@@ -591,7 +606,9 @@
         dateTitle.textContent = date;
         meetingsList.appendChild(dateTitle);
         const groups = dateGroups[date];
-        const groupOrder = ['В работе', 'Перенос', 'Завершена', 'Отмена'];
+        // --- ИЗМЕНЕНИЕ: Новый порядок отображения групп ---
+        const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершена', 'Отмена'];
+        
         groupOrder.forEach(status => {
             if (groups[status] && groups[status].length > 0) {
                 const groupTitle = document.createElement('h4');
@@ -602,10 +619,9 @@
                     let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
                     dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
                     
-                    // --- НАЧАЛО ИЗМЕНЕНИЙ: Очищаем статус перед проверкой ---
                     const cleanStatus = m.Status ? m.Status.trim() : '';
-                    if (cleanStatus !== 'Завершена' && cleanStatus !== 'Отмена') {
-                    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+                    // --- ИЗМЕНЕНИЕ: Кнопки скрываются и для статуса "Просрочено" ---
+                    if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
                         dropdownItems += '<li><hr class="dropdown-divider"></li>';
                         dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
                         dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
@@ -624,8 +640,9 @@
                     if (m.Status === 'Перенос' && m.Comment) {
                         rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
                     }
-                    const statusColors = { 'В работе': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray' };
-                    const statusColor = statusColors[cleanStatus] || 'gray'; // Используем очищенный статус
+                    // --- ИЗМЕНЕНИЕ: Добавлены цвета для новых статусов ---
+                    const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
+                    const statusColor = statusColors[cleanStatus] || 'gray';
                     
                     let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
                     if (m.ClientCategory) {
