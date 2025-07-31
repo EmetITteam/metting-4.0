@@ -340,6 +340,7 @@
             phoneMask = IMask(phoneInput, {
                 mask: '+{38} (000) 000-00-00'
             });
+            phoneMask.updateValue();
             const searchInput = document.getElementById('clientSearchInput');
             searchMask = IMask(searchInput, {
                 mask: [
@@ -353,6 +354,7 @@
                     }
                 ]
             });
+            searchMask.updateValue();
 
             function checkActiveSession() {
                 const savedSession = localStorage.getItem('crm_session');
