@@ -338,22 +338,22 @@
             });
              const phoneInput = document.getElementById('phone');
             phoneMask = IMask(phoneInput, {
-                mask: '+{38} (000) 000-00-00'
-            });
+    mask: '+{380} (00) 000-00-00' // <--- ИСПРАВЛЕНО
+});
             phoneMask.updateValue();
             const searchInput = document.getElementById('clientSearchInput');
             searchMask = IMask(searchInput, {
-                mask: [
-                    {
-                        mask: '+{38} (000) 000-00-00',
-                        startsWith: '380',
-                        lazy: false
-                    },
-                    {
-                        mask: /.*/
-                    }
-                ]
-            });
+    mask: [
+        {
+            mask: '+{380} (00) 000-00-00', // <--- ИСПРАВЛЕНО
+            startsWith: '380',
+            lazy: false
+        },
+        {
+            mask: /.*/
+        }
+    ]
+});
             searchMask.updateValue();
         
 // --- НАЧАЛО ИЗМЕНЕНИЙ (САМЫЙ НАДЕЖНЫЙ СПОСОБ) ---
