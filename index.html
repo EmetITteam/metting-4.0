@@ -25,13 +25,12 @@
             width: auto;
         }
         .edit-icon-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 1.3rem;
-            color: #6c757d;
-            text-decoration: none;
-        }
+    /* Убираем позиционирование, так как теперь этим будет управлять контейнер */
+    font-size: 1.3rem;
+    color: #6c757d;
+    text-decoration: none;
+    line-height: 1; /* Для лучшего выравнивания */
+}
         .edit-icon-btn:hover {
             color: #0d6efd;
         }
@@ -63,6 +62,14 @@
             100% { opacity: 1; }
         }
         /* --- НАЧАЛО ИЗМЕНЕНИЙ (СТИЛИ) --- */
+        .card-actions-container {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* Отступ между кнопками */
+}
         .date-header {
             position: sticky;
             top: -1px;
@@ -631,24 +638,27 @@
                     const cardWrapper = document.createElement('div');
                     cardWrapper.className = "col-12 col-md-6";
                     cardWrapper.innerHTML = `
-                        <div class="card meeting-card">
-                            <div class="card-body d-flex flex-column">
-                                <a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
-                                <div class="flex-grow-1">
-                                    <h5 class="card-title d-flex justify-content-between align-items-center">
-                                        ${clientTitle}
-                                        <button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button>
-                                    </h5>
-                                    <p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>
-                                    <p class="card-text mb-1"><small class="text-muted">Адрес: ${m.Location || 'Не указан'}</small></p>
-                                    <p class="card-text mt-3"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
-                                    ${rescheduleInfo}
-                                </div>
-                                <div class="d-flex justify-content-end mt-3">
-                                    ${actionsMenu}
-                                </div>
-                            </div>
-                        </div>`;
+    <div class="card meeting-card">
+        <div class="card-body">
+            
+            <div class="card-actions-container">
+                <a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
+                ${actionsMenu}
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="card-title d-flex justify-content-between align-items-center">
+                    ${clientTitle}
+                    <button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button>
+                </h5>
+                
+                ${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}
+
+                <p class="card-text mb-1"><small class="text-muted">Адрес: ${m.Location || 'Не указан'}</small></p>
+                <p class="card-text mt-3"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
+                ${rescheduleInfo}
+            </div>
+        </div>
+    </div>`;
                     meetingsList.appendChild(cardWrapper);
                 });
             }
