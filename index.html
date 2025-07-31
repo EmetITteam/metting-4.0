@@ -9,48 +9,14 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
     <script src="https://unpkg.com/imask"></script>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* --- НАЧАЛО ИЗМЕНЕНИЙ (СТИЛИ) --- */
-        :root {
-            --bs-primary: #2ECC71;
-            --bs-primary-rgb: 46, 204, 113;
-        }
-
         body {
-            font-family: 'Inter', sans-serif;
             background-color: #f8f9fa;
         }
-
-        .btn-primary {
-             box-shadow: 0 2px 8px -1px rgba(var(--bs-primary-rgb), 0.4);
-        }
-
         .meeting-card {
             height: 100%;
             position: relative;
-            border: none;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.07);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
-
-        .meeting-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-content {
-            background-color: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 0.75rem;
-        }
-        /* --- КОНЕЦ ИЗМЕНЕНИЙ (СТИЛИ) --- */
-
         .toast-container {
             z-index: 1100;
         }
@@ -67,7 +33,7 @@
             text-decoration: none;
         }
         .edit-icon-btn:hover {
-            color: var(--bs-primary);
+            color: #0d6efd;
         }
         .status-dot {
             display: inline-block;
@@ -96,6 +62,7 @@
             50% { opacity: 0.5; }
             100% { opacity: 1; }
         }
+        /* --- НАЧАЛО ИЗМЕНЕНИЙ (СТИЛИ) --- */
         .date-header {
             position: sticky;
             top: -1px;
@@ -107,6 +74,7 @@
         .actions-dropdown .dropdown-toggle::after {
             display: none;
         }
+        /* --- КОНЕЦ ИЗМЕНЕНИЙ (СТИЛИ) --- */
     </style>
 </head>
 
@@ -338,50 +306,21 @@
             });
              const phoneInput = document.getElementById('phone');
             phoneMask = IMask(phoneInput, {
-    mask: '+{380} (00) 000-00-00' // <--- ИСПРАВЛЕНО
-});
-            phoneMask.updateValue();
-           // --- НАЧАЛО ИЗМЕНЕНИЙ (НАДЕЖНЫЙ ДИСПЕТЧЕР МАСОК) ---
-
-const searchInput = document.getElementById('clientSearchInput');
-searchMask = IMask(searchInput, {
-    // Используем функцию-диспетчер для выбора маски
-    dispatch: function (appended, dynamicMasked) {
-        // Проверяем, начинается ли вводимое значение с цифры
-        if (/^\d/.test(dynamicMasked.unmaskedValue)) {
-            // Если да, то это номер телефона — применяем маску для телефона
-            return {
-                mask: '+{38} (000) 000-00-00',
-                lazy: false,
-            };
-        }
-        // Если нет (начинается с буквы), то это ФИО — разрешаем любой ввод
-        return {
-            mask: /.*/
-        };
-    }
-});
-
-// Синхронизация при клике на поле (оставляем для надежности)
-searchInput.addEventListener('focus', () => {
-    setTimeout(() => {
-        searchMask.updateValue();
-    }, 100);
-});
-
-searchInput.addEventListener('input', () => {
-    searchMask.updateValue();
-});
-
-// --- КОНЕЦ ИЗМЕНЕНИЙ ---
-phoneInput.addEventListener('input', () => {
-    phoneMask.updateValue();
-});
-
-searchInput.addEventListener('input', () => {
-    searchMask.updateValue();
-});
-// --- КОНЕЦ ИЗМЕНЕНИЙ ---
+                mask: '+{38} (000) 000-00-00'
+            });
+            const searchInput = document.getElementById('clientSearchInput');
+            searchMask = IMask(searchInput, {
+                mask: [
+                    {
+                        mask: '+{38} (000) 000-00-00',
+                        startsWith: '380',
+                        lazy: false
+                    },
+                    {
+                        mask: /.*/
+                    }
+                ]
+            });
 
             function checkActiveSession() {
                 const savedSession = localStorage.getItem('crm_session');
@@ -588,20 +527,12 @@ searchInput.addEventListener('input', () => {
         }
 
         function onDataLoaded(data) {
-    // --- НАЧАЛО ИЗМЕНЕНИЙ ---
-    if (!data || !Array.isArray(data.meetings)) {
-        console.error("Получены некорректные данные от сервера:", data);
-        allMeetings = []; // Устанавливаем пустой массив, чтобы избежать сбоя
-    } else {
-        allMeetings = data.meetings;
-        questions = data.questions || [];
-        potentialCategories = data.potentialCategories || [];
-        populatePurposes(data.purposes);
-    }
-    // Вызываем в любом случае, чтобы отобразить либо встречи, либо пустой экран
-    filterAndGroupMeetings(); 
-    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
-}
+            allMeetings = data.meetings;
+            questions = data.questions || [];
+            potentialCategories = data.potentialCategories || [];
+            populatePurposes(data.purposes);
+            filterAndGroupMeetings();
+        }
 
         function populatePurposes(purposes) {
             const purposeSelect = document.getElementById('purpose');
@@ -628,6 +559,7 @@ searchInput.addEventListener('input', () => {
             meetingsList.innerHTML = '';
             const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(a.split('.').reverse().join('-')) - new Date(b.split('.').reverse().join('-')));
             
+            // --- НАЧАЛО ИЗМЕНЕНИЙ (УЛУЧШЕННЫЙ ПУСТОЙ ЭКРАН) ---
             if (sortedDates.length === 0) {
                 meetingsList.innerHTML = `
                     <div class="col-12 text-center p-5">
@@ -639,10 +571,13 @@ searchInput.addEventListener('input', () => {
                 document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
                 return;
             }
+            // --- КОНЕЦ ИЗМЕНЕНИЙ (УЛУЧШЕННЫЙ ПУСТОЙ ЭКРАН) ---
 
             sortedDates.forEach(date => {
                 const dateTitle = document.createElement('h3');
+                // --- НАЧАЛО ИЗМЕНЕНИЙ (STICKY HEADER) ---
                 dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
+                // --- КОНЕЦ ИЗМЕНЕНИЙ (STICKY HEADER) ---
                 dateTitle.textContent = date;
                 meetingsList.appendChild(dateTitle);
                 const groups = dateGroups[date];
@@ -654,6 +589,9 @@ searchInput.addEventListener('input', () => {
                         groupTitle.textContent = status;
                         meetingsList.appendChild(groupTitle);
                         groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
+                            const hasOutcomeData = (m.SurveyAnswers && m.SurveyAnswers.length > 2) || (m.PotentialData && m.PotentialData.length > 2);
+                            
+                            // --- НАЧАЛО ИЗМЕНЕНИЙ (КОНТЕКСТНОЕ МЕНЮ) ---
                             let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
                             dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
                             if (m.Status !== 'Завершена' && m.Status !== 'Отмена') {
@@ -670,6 +608,7 @@ searchInput.addEventListener('input', () => {
                                         ${dropdownItems}
                                     </ul>
                                 </div>`;
+                            // --- КОНЕЦ ИЗМЕНЕНИЙ (КОНТЕКСТНОЕ МЕНЮ) ---
 
                             let rescheduleInfo = '';
                             if (m.Status === 'Перенос' && m.Comment) {
@@ -686,8 +625,9 @@ searchInput.addEventListener('input', () => {
 
                             const cardWrapper = document.createElement('div');
                             cardWrapper.className = "col-12 col-md-6";
+                            // --- НАЧАЛО ИЗМЕНЕНИЙ (ОБНОВЛЕНИЕ РАЗМЕТКИ КАРТОЧКИ) ---
                             cardWrapper.innerHTML = `
-                                <div class="card meeting-card">
+                                <div class="card meeting-card shadow-sm">
                                     <div class="card-body d-flex flex-column">
                                         <a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
                                         <div class="flex-grow-1">
@@ -705,11 +645,13 @@ searchInput.addEventListener('input', () => {
                                         </div>
                                     </div>
                                 </div>`;
+                             // --- КОНЕЦ ИЗМЕНЕНИЙ (ОБНОВЛЕНИЕ РАЗМЕТКИ КАРТОЧКИ) ---
                             meetingsList.appendChild(cardWrapper);
                         });
                     }
                 });
             });
+            // Переназначаем обработчики событий для новых кнопок
             document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
             document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
             document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
@@ -780,7 +722,7 @@ searchInput.addEventListener('input', () => {
         }
 
         async function handleCompleteClick(event) {
-            event.preventDefault();
+            event.preventDefault(); // Для ссылок в меню
             const btn = event.currentTarget;
             const meetingId = btn.dataset.id;
             const oldData = allMeetings.find(m => m.ID === meetingId);
@@ -798,7 +740,7 @@ searchInput.addEventListener('input', () => {
         }
         
         function handleRescheduleClick(event) {
-            event.preventDefault();
+            event.preventDefault(); // Для ссылок в меню
             const meetingId = event.currentTarget.dataset.id;
             const meetingData = allMeetings.find(m => m.ID === meetingId);
             if (!meetingData) return;
@@ -837,7 +779,7 @@ searchInput.addEventListener('input', () => {
         }
 
         function handleOutcomeClick(event) {
-            event.preventDefault();
+            event.preventDefault(); // Для ссылок в меню
             activeMeetingId = event.currentTarget.dataset.id;
             const meeting = allMeetings.find(m => m.ID === activeMeetingId);
             if (!meeting) return;
@@ -900,7 +842,7 @@ searchInput.addEventListener('input', () => {
             }
         }
         async function handleGeoClick(event) {
-            event.preventDefault();
+            event.preventDefault(); // Для ссылок в меню
             const btn = event.currentTarget;
             const meetingId = btn.dataset.id;
             const oldData = allMeetings.find(m => m.ID === meetingId);
@@ -974,6 +916,7 @@ searchInput.addEventListener('input', () => {
             try {
                 const result = await callApi('findClient', { searchTerm });
                 if (result.found) {
+                    // --- НАЧАЛО ИЗМЕНЕНИЙ (КНОПКА СОЗДАНИЯ ВСТРЕЧИ) ---
                     resultContainer.innerHTML = `
                         <div class="alert alert-success">
                             <h5 class="alert-heading">Клиент найден!</h5>
@@ -987,6 +930,7 @@ searchInput.addEventListener('input', () => {
                         showAddForm();
                         document.getElementById('client-name').value = result.clientName;
                     });
+                    // --- КОНЕЦ ИЗМЕНЕНИЙ (КНОПКА СОЗДАНИЯ ВСТРЕЧИ) ---
                 } else {
                     resultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
                 }
