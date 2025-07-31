@@ -559,10 +559,7 @@
     const validStatuses = ['В работе', 'Перенос', 'Завершена', 'Отмена'];
 
     filtered.forEach(m => {
-        // --- НАЧАЛО ИЗМЕНЕНИЙ: Очищаем статус от пробелов ---
         let status = m.Status ? m.Status.trim() : '';
-        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
-
         if (!validStatuses.includes(status)) {
             status = 'В работе';
         }
@@ -570,7 +567,6 @@
         if (!dateGroups[m.Date]) {
             dateGroups[m.Date] = { 'В работе': [], 'Перенос': [], 'Завершена': [], 'Отмена': [] };
         }
-
         dateGroups[m.Date][status].push(m);
     });
 
@@ -605,7 +601,11 @@
                 groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
                     let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
                     dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
-                    if (m.Status !== 'Завершена' && m.Status !== 'Отмена') {
+                    
+                    // --- НАЧАЛО ИЗМЕНЕНИЙ: Очищаем статус перед проверкой ---
+                    const cleanStatus = m.Status ? m.Status.trim() : '';
+                    if (cleanStatus !== 'Завершена' && cleanStatus !== 'Отмена') {
+                    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
                         dropdownItems += '<li><hr class="dropdown-divider"></li>';
                         dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
                         dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
@@ -625,7 +625,7 @@
                         rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
                     }
                     const statusColors = { 'В работе': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray' };
-                    const statusColor = statusColors[m.Status] || 'gray';
+                    const statusColor = statusColors[cleanStatus] || 'gray'; // Используем очищенный статус
                     
                     let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
                     if (m.ClientCategory) {
