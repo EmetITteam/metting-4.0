@@ -952,122 +952,67 @@
         function handleCancelClick() { cancelConfirmModal.show(); }
         
         document.addEventListener('DOMContentLoaded', () => {
-    // 1. Инициализация компонентов
-    datePicker = new Litepicker({
-        element: document.getElementById('dateRangeFilter'),
-        singleMode: false,
-        format: 'DD.MM.YYYY',
-        lang: 'ru-RU',
-        setup: (picker) => {
-            picker.on('selected', (date1, date2) => {
-                if (date1 && date2) {
-                    const startDate = formatDateToYYYYMMDD(date1.toJSDate());
-                    const endDate = formatDateToYYYYMMDD(date2.toJSDate());
-                    loadInitialData(startDate, endDate);
-                }
+            datePicker = new Litepicker({ element: document.getElementById('dateRangeFilter'), singleMode: false, format: 'DD.MM.YYYY', lang: 'ru-RU', setup: (picker) => { picker.on('selected', (date1, date2) => { if (date1 && date2) { const startDate = formatDateToYYYYMMDD(date1.toJSDate()); const endDate = formatDateToYYYYMMDD(date2.toJSDate()); loadInitialData(startDate, endDate); } }); } });
+            adminDatePicker = new Litepicker({ element: document.getElementById('adminDateRangeFilter'), singleMode: false, format: 'DD.MM.YYYY', lang: 'ru-RU' });
+            
+            const phoneInput = document.getElementById('phone');
+            phoneMask = IMask(phoneInput, { mask: '+{380} (00) 000-00-00' });
+            phoneInput.addEventListener('input', () => { phoneMask.updateValue(); });
+
+            const searchInput = document.getElementById('clientSearchInput');
+            searchMask = IMask(searchInput, { mask: /.*/, dispatch: function (appended, dynamicMasked) { if (/^\d/.test(dynamicMasked.unmaskedValue)) { return { mask: '+{38} (000) 000-00-00', lazy: false, }; } return { mask: /.*/ }; } });
+            searchInput.addEventListener('input', () => { searchMask.updateValue(); });
+
+            function checkActiveSession() {
+                const savedSession = localStorage.getItem('crm_session');
+                if (!savedSession) return;
+                const session = JSON.parse(savedSession);
+                const oneDay = 24 * 60 * 60 * 1000;
+                const isSessionExpired = (new Date().getTime() - session.loginTime) > oneDay;
+                if (isSessionExpired) { localStorage.removeItem('crm_session'); return; }
+                onLoginSuccess({ login: session.user, role: session.role });
+            }
+            checkActiveSession();
+
+            const clientSearchModalEl = document.getElementById('clientSearchModal');
+            document.getElementById('show-client-search-btn').addEventListener('click', (e) => {
+                clientSearchModalTrigger = e.currentTarget;
+                document.getElementById('clientSearchInput').value = '';
+                document.getElementById('clientSearchResult').innerHTML = '';
+                if (searchMask) searchMask.updateValue();
+                clientSearchModal.show();
             });
-        }
-    });
-    adminDatePicker = new Litepicker({
-        element: document.getElementById('adminDateRangeFilter'),
-        singleMode: false,
-        format: 'DD.MM.YYYY',
-        lang: 'ru-RU'
-    });
+            clientSearchModalEl.addEventListener('hidden.bs.modal', () => { if (clientSearchModalTrigger) { clientSearchModalTrigger.focus(); } });
 
-    const phoneInput = document.getElementById('phone');
-    phoneMask = IMask(phoneInput, { mask: '+{380} (00) 000-00-00' });
-    phoneInput.addEventListener('input', () => { phoneMask.updateValue(); });
-
-   // --- Финальная, самая чистая версия маски для поиска ---
-// --- ДОБАВЬТЕ ЭТОТ БЛОК ---
-const clientSearchModalEl = document.getElementById('clientSearchModal');
-const searchInput = document.getElementById('clientSearchInput');
-
-// Создаем маску, когда модальное окно открывается
-clientSearchModalEl.addEventListener('shown.bs.modal', () => {
-    if (!searchMask) { // Создаем, только если ее еще нет
-        searchMask = IMask(searchInput, {
-            mask: /.*/,
-            dispatch: function (appended, dynamicMasked) {
-                if (/^\d/.test(dynamicMasked.unmaskedValue)) {
-                    return { mask: '+{38} (000) 000-00-00', lazy: false };
-                }
-                return { mask: /.*/ };
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            document.getElementById('admin-logout-btn').addEventListener('click', handleLogout);
+            document.getElementById('show-add-form-btn').addEventListener('click', showAddForm);
+            document.getElementById('meeting-form').addEventListener('submit', handleFormSubmit);
+            document.getElementById('cancel-btn').addEventListener('click', handleCancelClick);
+            document.getElementById('confirmCancelBtn').addEventListener('click', () => { cancelConfirmModal.hide(); showForm(false); });
+            document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
+            document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
+            document.getElementById('searchInput').addEventListener('input', filterAndGroupMeetings);
+            document.getElementById('resetFiltersBtn').addEventListener('click', () => { document.getElementById('searchInput').value = ''; datePicker.setDateRange(new Date(), new Date()); });
+            document.getElementById('get-location-btn').addEventListener('click', handleGetLocationClick);
+            document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
+            document.getElementById('saveOutcomeBtn').addEventListener('click', handleSaveOutcome);
+            document.getElementById('adminRefreshBtn').addEventListener('click', loadAdminStats);
+            document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
+            document.getElementById('clientSearchInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleClientSearch(); });
+            
+            const header = document.querySelector('#main-app > header');
+            if (header) {
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 10) {
+                        header.classList.add('header-scrolled');
+                    } else {
+                        header.classList.remove('header-scrolled');
+                    }
+                });
             }
         });
-    }
-});
-
-// Уничтожаем маску, когда модальное окно закрывается, чтобы избежать утечек памяти
-clientSearchModalEl.addEventListener('hidden.bs.modal', () => {
-    if (searchMask) {
-        searchMask.destroy();
-        searchMask = null;
-    }
-});
-// --- КОНЕЦ БЛОКА ---
-
-
-// --- Конец блока ---
-
-    // 2. Проверка активной сессии
-    function checkActiveSession() {
-        const savedSession = localStorage.getItem('crm_session');
-        if (!savedSession) return;
-        const session = JSON.parse(savedSession);
-        const oneDay = 24 * 60 * 60 * 1000;
-        const isSessionExpired = (new Date().getTime() - session.loginTime) > oneDay;
-        if (isSessionExpired) {
-            localStorage.removeItem('crm_session');
-            return;
-        }
-        onLoginSuccess({ login: session.user, role: session.role });
-    }
-    checkActiveSession();
-
-    // 3. Назначение всех обработчиков событий
-    document.getElementById('login-form').addEventListener('submit', handleLogin);
-    document.getElementById('logout-btn').addEventListener('click', handleLogout);
-    document.getElementById('admin-logout-btn').addEventListener('click', handleLogout);
-    document.getElementById('show-add-form-btn').addEventListener('click', showAddForm);
-    document.getElementById('meeting-form').addEventListener('submit', handleFormSubmit);
-    document.getElementById('cancel-btn').addEventListener('click', handleCancelClick);
-    document.getElementById('confirmCancelBtn').addEventListener('click', () => { cancelConfirmModal.hide(); showForm(false); });
-    document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
-    document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
-    document.getElementById('searchInput').addEventListener('input', filterAndGroupMeetings);
-    document.getElementById('resetFiltersBtn').addEventListener('click', () => { document.getElementById('searchInput').value = ''; datePicker.setDateRange(new Date(), new Date()); });
-    document.getElementById('get-location-btn').addEventListener('click', handleGetLocationClick);
-    document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
-    document.getElementById('saveOutcomeBtn').addEventListener('click', handleSaveOutcome);
-    document.getElementById('adminRefreshBtn').addEventListener('click', loadAdminStats);
-    document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
-    document.getElementById('clientSearchInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleClientSearch(); });
-    
-    // --- НАЧАЛО ИСПРАВЛЕНИЯ: Возвращаем код для управления фокусом модального окна ---
-    const clientSearchModalEl = document.getElementById('clientSearchModal');
-    document.getElementById('show-client-search-btn').addEventListener('click', (e) => {
-        clientSearchModalTrigger = e.currentTarget;
-        document.getElementById('clientSearchInput').value = '';
-        document.getElementById('clientSearchResult').innerHTML = '';
-        if (searchMask) searchMask.updateValue();
-        clientSearchModal.show();
-    });
-    clientSearchModalEl.addEventListener('hidden.bs.modal', () => { if (clientSearchModalTrigger) { clientSearchModalTrigger.focus(); } });
-    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
-
-    const header = document.querySelector('#main-app > header');
-    if (header) {
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 10) {
-                header.classList.add('header-scrolled');
-            } else {
-                header.classList.remove('header-scrolled');
-            }
-        });
-    }
-});
     </script>
 </body>
 
