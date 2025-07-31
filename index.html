@@ -341,23 +341,39 @@
     mask: '+{380} (00) 000-00-00' // <--- ИСПРАВЛЕНО
 });
             phoneMask.updateValue();
-            const searchInput = document.getElementById('clientSearchInput');
-            searchMask = IMask(searchInput, {
-    mask: [
-        {
-            mask: '+{38}0 (00) 000-00-00', // <--- ИСПРАВЛЕННЫЙ ШАБЛОН
-            startsWith: '0',              // <--- ИСПРАВЛЕННОЕ УСЛОВИЕ
-            lazy: false
-        },
-        {
-            mask: /.*/
+           // --- НАЧАЛО ИЗМЕНЕНИЙ (НАДЕЖНЫЙ ДИСПЕТЧЕР МАСОК) ---
+
+const searchInput = document.getElementById('clientSearchInput');
+searchMask = IMask(searchInput, {
+    // Используем функцию-диспетчер для выбора маски
+    dispatch: function (appended, dynamicMasked) {
+        // Проверяем, начинается ли вводимое значение с цифры
+        if (/^\d/.test(dynamicMasked.unmaskedValue)) {
+            // Если да, то это номер телефона — применяем маску для телефона
+            return {
+                mask: '+{38} (000) 000-00-00',
+                lazy: false,
+            };
         }
-    ]
+        // Если нет (начинается с буквы), то это ФИО — разрешаем любой ввод
+        return {
+            mask: /.*/
+        };
+    }
 });
-            searchMask.updateValue();
-        
-// --- НАЧАЛО ИЗМЕНЕНИЙ (САМЫЙ НАДЕЖНЫЙ СПОСОБ) ---
-// Синхронизация маски при любом изменении значения поля
+
+// Синхронизация при клике на поле (оставляем для надежности)
+searchInput.addEventListener('focus', () => {
+    setTimeout(() => {
+        searchMask.updateValue();
+    }, 100);
+});
+
+searchInput.addEventListener('input', () => {
+    searchMask.updateValue();
+});
+
+// --- КОНЕЦ ИЗМЕНЕНИЙ ---
 phoneInput.addEventListener('input', () => {
     phoneMask.updateValue();
 });
