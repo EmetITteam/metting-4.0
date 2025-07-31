@@ -432,6 +432,24 @@ const phoneMask = IMask(phoneInput, {
 });
 // --- КОНЕЦ ИЗМЕНЕНИЙ ---
         });
+        // ... существующий код маски для поля 'phone'
+
+// Активация "умной" маски для поля поиска
+const searchInput = document.getElementById('clientSearchInput');
+const searchMask = IMask(searchInput, {
+    mask: [
+        {
+            // Эта маска применяется, если ввод начинается с цифры или знака +
+            mask: '+{38} (000) 000-00-00',
+            startsWith: '380',
+            lazy: false
+        },
+        {
+            // Эта маска применяется для любого другого ввода (ФИО)
+            mask: /.*/
+        }
+    ]
+});
 
         // --- Утилиты ---
         function getTodayDateString() { return formatDateToYYYYMMDD(new Date()); }
