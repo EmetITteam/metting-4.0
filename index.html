@@ -555,26 +555,24 @@
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
     
-    // --- НАЧАЛО ИЗМЕНЕНИЙ (ИСПРАВЛЕНИЕ ЛОГИКИ ГРУППИРОВКИ) ---
     const dateGroups = {};
     const validStatuses = ['В работе', 'Перенос', 'Завершена', 'Отмена'];
 
     filtered.forEach(m => {
-        // Проверяем статус встречи. Если он некорректный или пустой, считаем его "В работе".
-        let status = m.Status;
+        // --- НАЧАЛО ИЗМЕНЕНИЙ: Очищаем статус от пробелов ---
+        let status = m.Status ? m.Status.trim() : '';
+        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+
         if (!validStatuses.includes(status)) {
             status = 'В работе';
         }
 
-        // Инициализируем группу для даты, если ее еще нет
         if (!dateGroups[m.Date]) {
             dateGroups[m.Date] = { 'В работе': [], 'Перенос': [], 'Завершена': [], 'Отмена': [] };
         }
 
-        // Добавляем встречу в соответствующую группу по статусу
         dateGroups[m.Date][status].push(m);
     });
-    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
     meetingsList.innerHTML = '';
     const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(a.split('.').reverse().join('-')) - new Date(b.split('.').reverse().join('-')));
@@ -599,7 +597,7 @@
         const groups = dateGroups[date];
         const groupOrder = ['В работе', 'Перенос', 'Завершена', 'Отмена'];
         groupOrder.forEach(status => {
-            if (groups[status] && groups[status].length > 0) { // Добавлена проверка на существование группы
+            if (groups[status] && groups[status].length > 0) {
                 const groupTitle = document.createElement('h4');
                 groupTitle.className = 'col-12 mt-3 text-muted';
                 groupTitle.textContent = status;
@@ -638,27 +636,24 @@
                     const cardWrapper = document.createElement('div');
                     cardWrapper.className = "col-12 col-md-6";
                     cardWrapper.innerHTML = `
-    <div class="card meeting-card">
-        <div class="card-body">
-            
-            <div class="card-actions-container">
-                <a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
-                ${actionsMenu}
-            </div>
-            <div class="flex-grow-1">
-                <h5 class="card-title d-flex justify-content-between align-items-center">
-                    ${clientTitle}
-                    <button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button>
-                </h5>
-                
-                ${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}
-
-                <p class="card-text mb-1"><small class="text-muted">Адрес: ${m.Location || 'Не указан'}</small></p>
-                <p class="card-text mt-3"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
-                ${rescheduleInfo}
-            </div>
-        </div>
-    </div>`;
+                        <div class="card meeting-card">
+                            <div class="card-body">
+                                <div class="card-actions-container">
+                                    <a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
+                                    ${actionsMenu}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title d-flex justify-content-between align-items-center">
+                                        ${clientTitle}
+                                        <button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button>
+                                    </h5>
+                                    ${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}
+                                    <p class="card-text mb-1"><small class="text-muted">Адрес: ${m.Location || 'Не указан'}</small></p>
+                                    <p class="card-text mt-3"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
+                                    ${rescheduleInfo}
+                                </div>
+                            </div>
+                        </div>`;
                     meetingsList.appendChild(cardWrapper);
                 });
             }
