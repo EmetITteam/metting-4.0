@@ -631,7 +631,7 @@ async function loadAdminStats() {
             }
         }
 
-        function () {
+        function filterAndGroupMeetings () {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
             const dateGroups = {};
