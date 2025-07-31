@@ -62,6 +62,19 @@
             50% { opacity: 0.5; }
             100% { opacity: 1; }
         }
+        /* --- НАЧАЛО ИЗМЕНЕНИЙ (СТИЛИ) --- */
+        .date-header {
+            position: sticky;
+            top: -1px;
+            background-color: #f8f9fa;
+            z-index: 10;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        .actions-dropdown .dropdown-toggle::after {
+            display: none;
+        }
+        /* --- КОНЕЦ ИЗМЕНЕНИЙ (СТИЛИ) --- */
     </style>
 </head>
 
@@ -270,8 +283,6 @@
         let searchMask = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // --- НАЧАЛО ИЗМЕНЕНИЙ (ИСПРАВЛЕНИЕ ОШИБКИ) ---
-            // 1. Сначала создаем все необходимые компоненты
             datePicker = new Litepicker({
                 element: document.getElementById('dateRangeFilter'),
                 singleMode: false,
@@ -311,7 +322,6 @@
                 ]
             });
 
-            // 2. А уже потом проверяем сессию, когда все готово
             function checkActiveSession() {
                 const savedSession = localStorage.getItem('crm_session');
                 if (!savedSession) return;
@@ -327,8 +337,6 @@
                 onLoginSuccess({ login: session.user, role: session.role });
             }
             checkActiveSession();
-            // --- КОНЕЦ ИЗМЕНЕНИЙ (ИСПРАВЛЕНИЕ ОШИБКИ) ---
-
 
             // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
             document.getElementById('login-form').addEventListener('submit', handleLogin);
@@ -550,14 +558,26 @@
             });
             meetingsList.innerHTML = '';
             const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(a.split('.').reverse().join('-')) - new Date(b.split('.').reverse().join('-')));
+            
+            // --- НАЧАЛО ИЗМЕНЕНИЙ (УЛУЧШЕННЫЙ ПУСТОЙ ЭКРАН) ---
             if (sortedDates.length === 0) {
-                meetingsList.innerHTML = '<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Встреч не найдено</h4><p class="text-muted">Попробуйте изменить фильтры или создать новую встречу.</p><button class="btn btn-primary btn-sm" id="emptyStateCreateBtn">Создать встречу</button></div>';
+                meetingsList.innerHTML = `
+                    <div class="col-12 text-center p-5">
+                        <i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>
+                        <h4 class="mt-3">Встреч не найдено</h4>
+                        <p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p>
+                        <button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button>
+                    </div>`;
                 document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
                 return;
             }
+            // --- КОНЕЦ ИЗМЕНЕНИЙ (УЛУЧШЕННЫЙ ПУСТОЙ ЭКРАН) ---
+
             sortedDates.forEach(date => {
                 const dateTitle = document.createElement('h3');
-                dateTitle.className = 'col-12 mt-4 border-bottom pb-2';
+                // --- НАЧАЛО ИЗМЕНЕНИЙ (STICKY HEADER) ---
+                dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
+                // --- КОНЕЦ ИЗМЕНЕНИЙ (STICKY HEADER) ---
                 dateTitle.textContent = date;
                 meetingsList.appendChild(dateTitle);
                 const groups = dateGroups[date];
@@ -570,13 +590,26 @@
                         meetingsList.appendChild(groupTitle);
                         groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
                             const hasOutcomeData = (m.SurveyAnswers && m.SurveyAnswers.length > 2) || (m.PotentialData && m.PotentialData.length > 2);
-                            const outcomeBtnClass = hasOutcomeData ? 'btn-outline-primary' : 'btn-primary';
-                            let bottomButtons = `<button class="btn btn-sm ${outcomeBtnClass} outcome-btn" data-id="${m.ID}">Итоги встречи</button>`;
-                            bottomButtons += `<button class="btn btn-sm btn-outline-info geo-btn" data-id="${m.ID}">📍 Geo</button>`;
+                            
+                            // --- НАЧАЛО ИЗМЕНЕНИЙ (КОНТЕКСТНОЕ МЕНЮ) ---
+                            let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
+                            dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
                             if (m.Status !== 'Завершена' && m.Status !== 'Отмена') {
-                                bottomButtons += `<button class="btn btn-sm btn-outline-warning reschedule-btn" data-id="${m.ID}">Перенести</button>`;
-                                bottomButtons += `<button class="btn btn-sm btn-success complete-btn" data-id="${m.ID}">Завершить</button>`;
+                                dropdownItems += '<li><hr class="dropdown-divider"></li>';
+                                dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
+                                dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
                             }
+                            const actionsMenu = `
+                                <div class="dropdown actions-dropdown">
+                                    <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        ${dropdownItems}
+                                    </ul>
+                                </div>`;
+                            // --- КОНЕЦ ИЗМЕНЕНИЙ (КОНТЕКСТНОЕ МЕНЮ) ---
+
                             let rescheduleInfo = '';
                             if (m.Status === 'Перенос' && m.Comment) {
                                 rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
@@ -592,7 +625,27 @@
 
                             const cardWrapper = document.createElement('div');
                             cardWrapper.className = "col-12 col-md-6";
-                            cardWrapper.innerHTML = `<div class="card meeting-card shadow-sm"><div class="card-body d-flex flex-column"><a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a><div class="flex-grow-1"><h5 class="card-title d-flex justify-content-between align-items-center">${clientTitle}<button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button></h5><p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p><p class="card-text mb-1"><small class="text-muted">Адрес: ${m.Location || 'Не указан'}</small></p><p class="card-text mt-3"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>${rescheduleInfo}</div><div class="d-flex gap-2 mt-3 flex-wrap">${bottomButtons}</div></div></div>`;
+                            // --- НАЧАЛО ИЗМЕНЕНИЙ (ОБНОВЛЕНИЕ РАЗМЕТКИ КАРТОЧКИ) ---
+                            cardWrapper.innerHTML = `
+                                <div class="card meeting-card shadow-sm">
+                                    <div class="card-body d-flex flex-column">
+                                        <a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
+                                        <div class="flex-grow-1">
+                                            <h5 class="card-title d-flex justify-content-between align-items-center">
+                                                ${clientTitle}
+                                                <button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button>
+                                            </h5>
+                                            <p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>
+                                            <p class="card-text mb-1"><small class="text-muted">Адрес: ${m.Location || 'Не указан'}</small></p>
+                                            <p class="card-text mt-3"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
+                                            ${rescheduleInfo}
+                                        </div>
+                                        <div class="d-flex justify-content-end mt-3">
+                                            ${actionsMenu}
+                                        </div>
+                                    </div>
+                                </div>`;
+                             // --- КОНЕЦ ИЗМЕНЕНИЙ (ОБНОВЛЕНИЕ РАЗМЕТКИ КАРТОЧКИ) ---
                             meetingsList.appendChild(cardWrapper);
                         });
                     }
@@ -669,18 +722,13 @@
         }
 
         async function handleCompleteClick(event) {
-            const btn = event.target;
-            toggleButtonSpinner(btn, true);
+            event.preventDefault(); // Для ссылок в меню
+            const btn = event.currentTarget;
             const meetingId = btn.dataset.id;
             const oldData = allMeetings.find(m => m.ID === meetingId);
-            if (!oldData) {
-                toggleButtonSpinner(btn, false);
-                return;
-            }
-            if (!confirm(`Завершить встречу с клиентом "${oldData.Client}"?`)) {
-                toggleButtonSpinner(btn, false);
-                return;
-            }
+            if (!oldData) return;
+            if (!confirm(`Завершить встречу с клиентом "${oldData.Client}"?`)) return;
+            
             const newData = { ...oldData, Status: 'Завершена' };
             try {
                 await callApi('updateMeeting', { newData, oldData });
@@ -688,13 +736,12 @@
                 loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
             } catch(e) {
                 onFailure(e);
-            } finally {
-                if (btn.disabled) { toggleButtonSpinner(btn, false); }
             }
         }
         
         function handleRescheduleClick(event) {
-            const meetingId = event.target.dataset.id;
+            event.preventDefault(); // Для ссылок в меню
+            const meetingId = event.currentTarget.dataset.id;
             const meetingData = allMeetings.find(m => m.ID === meetingId);
             if (!meetingData) return;
             meetingToReschedule = { ...meetingData, Status: 'Перенос' };
@@ -732,7 +779,8 @@
         }
 
         function handleOutcomeClick(event) {
-            activeMeetingId = event.target.dataset.id;
+            event.preventDefault(); // Для ссылок в меню
+            activeMeetingId = event.currentTarget.dataset.id;
             const meeting = allMeetings.find(m => m.ID === activeMeetingId);
             if (!meeting) return;
             const potentialContainer = document.getElementById('potentialCategories');
@@ -794,8 +842,8 @@
             }
         }
         async function handleGeoClick(event) {
-            const btn = event.target;
-            toggleButtonSpinner(btn, true);
+            event.preventDefault(); // Для ссылок в меню
+            const btn = event.currentTarget;
             const meetingId = btn.dataset.id;
             const oldData = allMeetings.find(m => m.ID === meetingId);
             if (!oldData) return;
@@ -807,8 +855,6 @@
                 loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
             } catch (error) {
                 alert(error.message);
-            } finally {
-                toggleButtonSpinner(btn, false);
             }
         }
         async function getAddressFromGeolocation() {
@@ -870,7 +916,21 @@
             try {
                 const result = await callApi('findClient', { searchTerm });
                 if (result.found) {
-                    resultContainer.innerHTML = `<div class="alert alert-success"><h5 class="alert-heading">Клиент найден!</h5><p class="mb-1"><strong>Наименование:</strong> ${result.clientName}</p><p class="mb-0"><strong>Закрепленный менеджер:</strong> ${result.managerName}</p></div>`;
+                    // --- НАЧАЛО ИЗМЕНЕНИЙ (КНОПКА СОЗДАНИЯ ВСТРЕЧИ) ---
+                    resultContainer.innerHTML = `
+                        <div class="alert alert-success">
+                            <h5 class="alert-heading">Клиент найден!</h5>
+                            <p class="mb-1"><strong>Наименование:</strong> ${result.clientName}</p>
+                            <p class="mb-0"><strong>Закрепленный менеджер:</strong> ${result.managerName}</p>
+                            <hr>
+                            <button class="btn btn-sm btn-success" id="create-meeting-from-search-btn">Создать встречу для этого клиента</button>
+                        </div>`;
+                    document.getElementById('create-meeting-from-search-btn').addEventListener('click', () => {
+                        clientSearchModal.hide();
+                        showAddForm();
+                        document.getElementById('client-name').value = result.clientName;
+                    });
+                    // --- КОНЕЦ ИЗМЕНЕНИЙ (КНОПКА СОЗДАНИЯ ВСТРЕЧИ) ---
                 } else {
                     resultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
                 }
