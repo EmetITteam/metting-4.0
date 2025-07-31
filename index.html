@@ -355,6 +355,16 @@
                 ]
             });
             searchMask.updateValue();
+            // --- НАЧАЛО ИЗМЕНЕНИЙ (ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ) ---
+// Принудительная синхронизация при клике на поле
+phoneInput.addEventListener('focus', () => {
+    phoneMask.updateValue();
+});
+
+searchInput.addEventListener('focus', () => {
+    searchMask.updateValue();
+});
+// --- КОНЕЦ ИЗМЕНЕНИЙ (ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ) ---
 
             function checkActiveSession() {
                 const savedSession = localStorage.getItem('crm_session');
