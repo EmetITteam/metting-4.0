@@ -960,7 +960,7 @@
             phoneInput.addEventListener('input', () => { phoneMask.updateValue(); });
 
             const searchInput = document.getElementById('clientSearchInput');
-            searchMask = IMask(searchInput, { dispatch: function (appended, dynamicMasked) { if (/^\d/.test(dynamicMasked.unmaskedValue)) { return { mask: '+{38} (000) 000-00-00', lazy: false, }; } return { mask: /.*/ }; } });
+            searchMask = IMask(searchInput, { mask: /.*/, dispatch: function (appended, dynamicMasked) { if (/^\d/.test(dynamicMasked.unmaskedValue)) { return { mask: '+{38} (000) 000-00-00', lazy: false, }; } return { mask: /.*/ }; } });
             searchInput.addEventListener('input', () => { searchMask.updateValue(); });
 
             function checkActiveSession() {
