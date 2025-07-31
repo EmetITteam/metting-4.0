@@ -358,11 +358,15 @@
             // --- НАЧАЛО ИЗМЕНЕНИЙ (ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ) ---
 // Принудительная синхронизация при клике на поле
 phoneInput.addEventListener('focus', () => {
-    phoneMask.updateValue();
+    setTimeout(() => {
+        phoneMask.updateValue();
+    }, 100); // Небольшая задержка в 100мс
 });
 
 searchInput.addEventListener('focus', () => {
-    searchMask.updateValue();
+    setTimeout(() => {
+        searchMask.updateValue();
+    }, 100); // Небольшая задержка в 100мс
 });
 // --- КОНЕЦ ИЗМЕНЕНИЙ (ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ) ---
 
@@ -571,12 +575,20 @@ searchInput.addEventListener('focus', () => {
         }
 
         function onDataLoaded(data) {
-            allMeetings = data.meetings;
-            questions = data.questions || [];
-            potentialCategories = data.potentialCategories || [];
-            populatePurposes(data.purposes);
-            filterAndGroupMeetings();
-        }
+    // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+    if (!data || !Array.isArray(data.meetings)) {
+        console.error("Получены некорректные данные от сервера:", data);
+        allMeetings = []; // Устанавливаем пустой массив, чтобы избежать сбоя
+    } else {
+        allMeetings = data.meetings;
+        questions = data.questions || [];
+        potentialCategories = data.potentialCategories || [];
+        populatePurposes(data.purposes);
+    }
+    // Вызываем в любом случае, чтобы отобразить либо встречи, либо пустой экран
+    filterAndGroupMeetings(); 
+    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+}
 
         function populatePurposes(purposes) {
             const purposeSelect = document.getElementById('purpose');
