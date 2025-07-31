@@ -9,12 +9,13 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
     <script src="https://unpkg.com/imask"></script>
+    <script src="https://cdn.lordicon.com/lordicon.js"></script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
-        /* --- ОБЩИЙ ДИЗАЙН --- */
         :root {
             --bs-primary: #0d6efd;
             --bs-primary-rgb: 13, 110, 253;
@@ -22,9 +23,24 @@
             --bs-border-color: #dee2e6;
         }
 
+        /* --- ОБЩИЙ ДИЗАЙН И КОМПОНОВКА --- */
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bs-body-bg);
+        }
+
+        #main-app, #admin-dashboard, #login-screen .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.07);
+        }
+        
+        #login-screen .card {
+            border: none;
+        }
+
+        .btn-primary {
+             box-shadow: 0 2px 8px -1px rgba(var(--bs-primary-rgb), 0.4);
         }
 
         /* --- КАРТОЧКИ --- */
@@ -66,9 +82,42 @@
         .status-gray { background-color: #6c757d; }
         .status-red { background-color: #dc3545; }
 
+        /* --- ДИНАМИЧЕСКИЙ ЗАГОЛОВОК --- */
+        #main-app > header, #admin-dashboard > header {
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            transition: all 0.3s ease-in-out;
+            padding-top: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        .header-scrolled {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 0 !important;
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+        }
+        .header-scrolled .app-logo {
+            max-height: 40px;
+        }
+
+        /* --- ПЕРЕХОДЫ МЕЖДУ ЭКРАНАМИ --- */
+        .view-section {
+            transition: opacity 0.25s ease-in-out;
+        }
+        .view-section.is-hiding {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
         /* --- ПРОЧИЕ СТИЛИ --- */
         .toast-container { z-index: 1100; }
-        .app-logo { max-height: 50px; width: auto; }
+        .app-logo { max-height: 50px; width: auto; transition: max-height 0.3s ease-in-out; }
         .card-actions-container { position: absolute; top: 1rem; right: 1rem; display: flex; align-items: center; gap: 0.5rem; }
         .edit-icon-btn { font-size: 1.3rem; color: #6c757d; text-decoration: none; line-height: 1; }
         .edit-icon-btn:hover { color: var(--bs-primary); }
@@ -93,8 +142,8 @@
         <div id="login-screen">
             <div class="row justify-content-center">
                 <div class="col-12 col-md-8 col-lg-6">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body p-4">
+                    <div class="card p-2 p-md-4">
+                        <div class="card-body">
                             <h1 class="card-title text-center h3 mb-4">Вход в систему</h1>
                             <form id="login-form">
                                 <div class="mb-3">
@@ -105,7 +154,10 @@
                                     <label for="password" class="form-label">Пароль:</label>
                                     <input type="password" id="password" class="form-control" required>
                                 </div>
-                                <button type="submit" id="login-button" class="btn btn-primary w-100 py-2">Войти</button>
+                                <button type="submit" id="login-button" class="btn btn-primary w-100 py-2 d-inline-flex align-items-center justify-content-center">
+                                    <span class="btn-text">Войти</span>
+                                    <lord-icon class="d-none ms-2" src="https://cdn.lordicon.com/sync-top-left-round.json" trigger="loop" delay="100" colors="primary:#ffffff" style="width:25px;height:25px"></lord-icon>
+                                </button>
                                 <p id="login-error" class="text-danger text-center mt-3 d-none"></p>
                             </form>
                         </div>
@@ -114,7 +166,7 @@
             </div>
         </div>
 
-        <div id="main-app" class="d-none">
+        <div id="main-app" class="d-none p-3 p-md-4">
             <header class="mb-4 pb-3 border-bottom">
                 <div class="text-center mb-4">
                     <img src="https://links.emet.in.ua/wp-content/uploads/2025/07/logo_dark-scaled.png" alt="Логотип" class="app-logo">
@@ -130,7 +182,7 @@
                 </div>
             </header>
 
-            <main id="view-meetings">
+            <main id="view-meetings" class="view-section">
                 <div class="row g-3 mb-4 p-3 bg-white border rounded-3 align-items-end">
                     <div class="col-lg-5">
                         <label for="searchInput" class="form-label">Поиск по клиенту</label>
@@ -147,7 +199,7 @@
                 <div id="meetings-list" class="row g-3"></div>
             </main>
 
-            <section id="form-section" class="d-none mt-4">
+            <section id="form-section" class="d-none mt-4 view-section">
                 <h2 id="form-title" class="h3 mb-3 text-center">Новая встреча</h2>
                 <form id="meeting-form" class="p-4 bg-light border rounded-3">
                     <input type="hidden" id="meeting-id">
@@ -202,14 +254,17 @@
                         </div>
                     </div>
                     <div class="d-flex gap-2 mt-4">
-                        <button type="submit" id="save-button" class="btn btn-primary">Сохранить</button>
+                         <button type="submit" id="save-button" class="btn btn-primary d-inline-flex align-items-center justify-content-center">
+                            <span class="btn-text">Сохранить</span>
+                            <lord-icon class="d-none ms-2" src="https://cdn.lordicon.com/sync-top-left-round.json" trigger="loop" delay="100" colors="primary:#ffffff" style="width:25px;height:25px"></lord-icon>
+                        </button>
                         <button type="button" id="cancel-btn" class="btn btn-secondary">Отмена</button>
                     </div>
                 </form>
             </section>
         </div>
 
-        <div id="admin-dashboard" class="d-none">
+        <div id="admin-dashboard" class="d-none p-3 p-md-4">
             <header class="mb-4 pb-3 border-bottom">
                 <div class="text-center mb-4">
                     <img src="https://links.emet.in.ua/wp-content/uploads/2025/07/logo_dark-scaled.png" alt="Логотип" class="app-logo">
@@ -261,6 +316,7 @@
         </div>
     </div>
 
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
     <script>
@@ -299,13 +355,17 @@
             return `${y}-${m}-${d}`;
         }
         function toggleButtonSpinner(btn, show) {
+            const lordIcon = btn.querySelector('lord-icon');
+            const originalText = btn.querySelector('.btn-text');
+
             if (show) {
                 btn.disabled = true;
-                btn.dataset.originalText = btn.innerHTML;
-                btn.innerHTML = `<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>`;
+                if (originalText) originalText.classList.add('d-none');
+                if (lordIcon) lordIcon.classList.remove('d-none');
             } else {
                 btn.disabled = false;
-                btn.innerHTML = btn.dataset.originalText || '';
+                if (originalText) originalText.classList.remove('d-none');
+                if (lordIcon) lordIcon.classList.add('d-none');
             }
         }
         function showToast(message) {
@@ -320,6 +380,36 @@
             if (lowerCategory.includes('постоянный')) return '#198754';
             if (lowerCategory.includes('проблемный')) return '#dc3545';
             return '#6c757d';
+        }
+
+        function showForm(show) {
+            const viewMeetings = document.getElementById('view-meetings');
+            const formSection = document.getElementById('form-section');
+            const header = document.querySelector('#main-app header');
+
+            const sectionToShow = show ? formSection : viewMeetings;
+            const sectionToHide = show ? viewMeetings : formSection;
+            
+            if(header) {
+                header.style.transition = 'opacity 0.25s ease-in-out';
+                header.classList.toggle('is-hiding', show);
+            }
+
+            sectionToHide.classList.add('is-hiding');
+            
+            const handleTransitionEnd = () => {
+                sectionToHide.classList.add('d-none');
+                
+                sectionToShow.classList.remove('d-none');
+                setTimeout(() => {
+                    sectionToHide.classList.remove('is-hiding');
+                    sectionToShow.classList.remove('is-hiding');
+                }, 20);
+
+                sectionToHide.removeEventListener('transitionend', handleTransitionEnd);
+            };
+
+            sectionToHide.addEventListener('transitionend', handleTransitionEnd);
         }
 
         async function callApi(action, payload) {
@@ -467,9 +557,11 @@
                 if (!validStatuses.includes(status)) {
                     status = 'В работе';
                 }
+
                 if (!dateGroups[m.Date]) {
                     dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершена': [], 'Отмена': [], 'Просрочено': [] };
                 }
+                
                 if (dateGroups[m.Date][status]) {
                     dateGroups[m.Date][status].push(m);
                 } else {
