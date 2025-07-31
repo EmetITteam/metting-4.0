@@ -310,6 +310,7 @@
         </div>
     </div>
 
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
     <script>
@@ -350,7 +351,6 @@
         function toggleButtonSpinner(btn, show) {
             const lordIcon = btn.querySelector('lord-icon');
             const originalText = btn.querySelector('.btn-text');
-
             if (show) {
                 btn.disabled = true;
                 if (originalText) originalText.classList.add('d-none');
