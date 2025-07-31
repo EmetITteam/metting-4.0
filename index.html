@@ -556,7 +556,7 @@
     const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
     
     const dateGroups = {};
-    const validStatuses = ['В работе', 'Перенос', 'Завершена', 'Отмена'];
+    const validStatuses = ['В работе', 'Перенос', 'Запланировано', 'Отменено', 'Завершено', 'Просрочено'];
 
     filtered.forEach(m => {
         let status = m.Status ? m.Status.trim() : '';
