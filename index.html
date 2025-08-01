@@ -450,27 +450,39 @@
             });
         }
 
-        function onLoginSuccess(result) {
-            currentUser = result.login;
-            console.log("Ответ от сервера при логине:", result); // <-- ДОБАВЬТЕ ЭТУ СТРОКУ
-            const userRole = result.role;
-            const session = { user: currentUser, role: userRole, loginTime: new Date().getTime() };
-            localStorage.setItem('crm_session', JSON.stringify(session));
-            document.getElementById('login-screen').classList.add(HIDDEN_CLASS);
-            if (userRole === 'admin') {
-                document.getElementById('admin-header').textContent = `Администратор: ${currentUser}`;
-                document.getElementById('main-app').classList.add(HIDDEN_CLASS);
-                document.getElementById('admin-dashboard').classList.remove(HIDDEN_CLASS);
-                adminDatePicker.setDateRange(new Date(), new Date());
-                loadAdminStats();
-            } else {
-                document.getElementById('manager-header').textContent = `Менеджер: ${currentUser}`;
-                document.getElementById('admin-dashboard').classList.add(HIDDEN_CLASS);
-                document.getElementById('main-app').classList.remove(HIDDEN_CLASS);
-                datePicker.setDateRange(new Date(), new Date());
-            }
-        }
+       function onLoginSuccess(result) {
+    console.log("Ответ от сервера при логине:", result);
 
+    // --- НАЧАЛО ИСПРАВЛЕНИЯ: Проверка на пустые данные ---
+    if (!result || !result.login) {
+        onFailure(
+            new Error("Авторизация не удалась: сервер вернул некорректные данные."),
+            document.getElementById('login-error')
+        );
+        toggleButtonSpinner(document.getElementById('login-button'), false);
+        return; // Прерываем выполнение
+    }
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
+    currentUser = result.login;
+    const userRole = result.role;
+    const session = { user: currentUser, role: userRole, loginTime: new Date().getTime() };
+    localStorage.setItem('crm_session', JSON.stringify(session));
+    
+    document.getElementById('login-screen').classList.add(HIDDEN_CLASS);
+    if (userRole === 'admin') {
+        document.getElementById('admin-header').textContent = `Администратор: ${currentUser}`;
+        document.getElementById('main-app').classList.add(HIDDEN_CLASS);
+        document.getElementById('admin-dashboard').classList.remove(HIDDEN_CLASS);
+        adminDatePicker.setDateRange(new Date(), new Date());
+        loadAdminStats();
+    } else {
+        document.getElementById('manager-header').textContent = `Менеджер: ${currentUser}`;
+        document.getElementById('admin-dashboard').classList.add(HIDDEN_CLASS);
+        document.getElementById('main-app').classList.remove(HIDDEN_CLASS);
+        datePicker.setDateRange(new Date(), new Date());
+    }
+}
         function handleLogout() {
             localStorage.removeItem('crm_session');
             window.location.reload(); 
