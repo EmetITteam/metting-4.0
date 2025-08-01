@@ -35,22 +35,24 @@
         .edit-icon-btn:hover {
             color: #0d6efd;
         }
-        .status-dot {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 8px;
-            .card-body {
-        /* Добавляем отступ сверху, чтобы было место для кнопок */
+        .card-body {
+        /* Добавляем отступы сверху и снизу для кнопок */
         padding-top: 50px;
+        padding-bottom: 50px; 
     }
-    .card-actions-container {
+
+    /* Стиль для кнопки редактирования в правом верхнем углу */
+    .card-edit-btn-top-right {
         position: absolute;
         top: 0.75rem;
         right: 0.75rem;
-        display: flex;
-        gap: 0.5rem; /* Расстояние между кнопками */
+    }
+    
+    /* Стиль для меню "три точки" в правом нижнем углу */
+    .card-actions-bottom-right {
+        position: absolute;
+        bottom: 0.75rem;
+        right: 0.75rem;
     }
         }
         .status-blue { background-color: #0d6efd; } /* Для "Запланировано" */
@@ -656,16 +658,14 @@
     <div class="card meeting-card shadow-sm border-0">
         <div class="card-body">
 
-            <div class="card-actions-container">
-                <a href="#" class="btn btn-sm btn-light edit-btn" title="Редактировать" data-id="${m.ID}">
-                    <i class="bi bi-pencil-square"></i>
-                </a>
-                ${actionsMenu}
-            </div>
+            <a href="#" class="btn btn-light edit-btn card-edit-btn-top-right" title="Редактировать" data-id="${m.ID}">
+                <i class="bi bi-pencil-square"></i>
+            </a>
+            
             <div class="flex-grow-1">
                 <h5 class="card-title">
                     ${clientTitle}
-                    </h5>
+                </h5>
 
                 ${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}
                 <p class="card-text mb-1"><small class="text-muted">Место встречи: ${m.Location || 'Не указано'}</small></p>
@@ -677,7 +677,12 @@
                         <i class="bi bi-file-text me-2"></i>Данные по клиенту
                     </button>
                 </div>
-                </div>
+            </div>
+
+            <div class="card-actions-bottom-right">
+                ${actionsMenu}
+            </div>
+
         </div>
     </div>`;
                         meetingsList.appendChild(cardWrapper);
