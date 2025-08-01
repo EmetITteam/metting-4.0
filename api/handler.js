@@ -6,7 +6,11 @@ export default async function handler(request, response) {
         return response.status(405).json({ message: 'Only POST requests allowed' });
     }
 
-  const dataToSendToOneC = request.body;
+    // Эта строка извлекает action и payload для использования внутри этой функции
+    const { action, payload } = request.body;
+    
+    // Эта строка гарантирует, что в 1С будет отправлен ВЕСЬ исходный запрос
+    const dataToSendToOneC = request.body;
 
     try {
         console.log(`Отправка в 1С для действия "${action}":`, JSON.stringify(dataToSendToOneC, null, 2));
@@ -29,8 +33,6 @@ export default async function handler(request, response) {
         }
     }
 }
-
-// --- Остальные функции (forwardRequestToOneC, getGoogleAuth, и т.д.) остаются БЕЗ ИЗМЕНЕНИЙ ---
 
 async function forwardRequestToOneC(requestBody) {
     const ONEC_API_URL = process.env.ONEC_API_URL;
