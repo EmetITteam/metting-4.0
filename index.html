@@ -147,60 +147,69 @@
                 <div id="meetings-list" class="row g-3"></div>
             </main>
 
-            <section id="form-section" class="d-none mt-4">
-                <h2 id="form-title" class="h3 mb-3 text-center">Новая встреча</h2>
-                <form id="meeting-form" class="p-4 bg-light border rounded-3">
-                    <input type="hidden" id="meeting-id">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label for="meeting-date" class="form-label">Дата:</label>
-                            <div class="input-group">
-                                <input type="date" id="meeting-date" class="form-control" required>
-                                <button type="button" class="btn btn-outline-secondary" id="todayBtn">Сегодня</button>
-                                <button type="button" class="btn btn-outline-secondary" id="tomorrowBtn">Завтра</button>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <label for="meeting-time" class="form-label">Время:</label>
-                            <input type="time" id="meeting-time" class="form-control" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="client-name" class="form-label">Клиент:</label>
-                            <input type="text" id="client-name" class="form-control" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="purpose" class="form-label">Цель:</label>
-                            <select id="purpose" class="form-select" required></select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="phone" class="form-label">Телефон:</label>
-                            <input type="tel" id="phone" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="status" class="form-label">Статус:</label>
-                            <select id="status" class="form-select">
-                                <option value="В работе">В работе</option>
-                                <option value="Завершена">Завершена</option>
-                                <option value="Перенос">Перенос</option>
-                                <option value="Отмена">Отмена</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label for="location" class="form-label">Геолокация:</label>
-                            <div class="input-group">
-                                <input type="text" id="location" class="form-control">
-                                <button class="btn btn-outline-secondary" type="button" id="get-location-btn">📍 Определить</button>
-                            </div>
-                            <input type="hidden" id="location-lat">
-                            <input type="hidden" id="location-lon">
-                        </div>
-                    </div>
-                    <div class="d-flex gap-2 mt-4">
-                        <button type="submit" id="save-button" class="btn btn-primary">Сохранить</button>
-                        <button type="button" id="cancel-btn" class="btn btn-secondary">Отмена</button>
-                    </div>
-                </form>
-            </section>
+            <section id="form-section" class="d-none mt-4 view-section">
+    <h2 id="form-title" class="h3 mb-3 text-center">Новая встреча</h2>
+    <form id="meeting-form" class="p-4 bg-light border rounded-3">
+        <input type="hidden" id="meeting-id">
+        <div class="row g-3">
+            <div class="col-12">
+                <label for="meeting-date" class="form-label">Дата:</label>
+                <div class="input-group">
+                    <input type="date" id="meeting-date" class="form-control" required>
+                    <button type="button" class="btn btn-outline-secondary" id="todayBtn">Сегодня</button>
+                    <button type="button" class="btn btn-outline-secondary" id="tomorrowBtn">Завтра</button>
+                </div>
+            </div>
+            <div class="col-12">
+                <label for="meeting-time" class="form-label">Время:</label>
+                <input type="time" id="meeting-time" class="form-control" required>
+            </div>
+            <div class="col-12">
+                <label for="client-name" class="form-label">Клиент:</label>
+                <input type="text" id="client-name" class="form-control" required>
+            </div>
+            <div class="col-12">
+                <label for="purpose" class="form-label">Цель:</label>
+                <select id="purpose" class="form-select" required></select>
+            </div>
+            <div class="col-md-6">
+                <label for="phone" class="form-label">Телефон:</label>
+                <input type="tel" id="phone" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+                <label for="status" class="form-label">Статус:</label>
+                <select id="status" class="form-select">
+                    <option value="В работе">В работе</option>
+                    <option value="Запланировано">Запланировано</option>
+                    <option value="Завершена">Завершена</option>
+                    <option value="Перенос">Перенос</option>
+                    <option value="Отмена">Отмена</option>
+                    <option value="Просрочено">Просрочено</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <label for="address" class="form-label">Адрес:</label>
+                <input type="text" id="address" class="form-control" placeholder="Например, ул. Соборная, 7">
+            </div>
+            <div class="col-12">
+                <label for="geolocation" class="form-label">Геолокация:</label>
+                <div class="input-group">
+                    <input type="text" id="geolocation" class="form-control" readonly placeholder="Не определена">
+                    <button class="btn btn-outline-secondary" type="button" id="get-location-btn">📍 Определить</button>
+                </div>
+                <input type="hidden" id="location-lat">
+                <input type="hidden" id="location-lon">
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-4">
+             <button type="submit" id="save-button" class="btn btn-primary d-inline-flex align-items-center justify-content-center">
+                <span class="btn-text">Сохранить</span>
+                <lord-icon class="d-none ms-2" src="https://cdn.lordicon.com/lupuorrc.json" trigger="loop" delay="100" colors="primary:#ffffff" style="width:25px;height:25px"></lord-icon>
+            </button>
+            <button type="button" id="cancel-btn" class="btn btn-secondary">Отмена</button>
+        </div>
+    </form>
+</section>
         </div>
 
         <div id="admin-dashboard" class="d-none">
@@ -545,35 +554,28 @@
             }
         }
 
-        function filterAndGroupMeetings() {
+       function filterAndGroupMeetings() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
     
     const dateGroups = {};
-    // --- ИЗМЕНЕНИЕ: Добавлены новые статусы ---
     const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
 
     filtered.forEach(m => {
         let status = m.Status ? m.Status.trim() : '';
-
-        // --- ИЗМЕНЕНИЕ: Добавлена нормализация для новых статусов ---
         if (status === 'Завершено') status = 'Завершена';
         if (status === 'Отменено') status = 'Отмена';
-
         if (!validStatuses.includes(status)) {
             status = 'В работе';
         }
 
-        // --- ИЗМЕНЕНИЕ: Добавлены ключи для новых статусов ---
         if (!dateGroups[m.Date]) {
             dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершена': [], 'Отмена': [], 'Просрочено': [] };
         }
         
-        // Корректно добавляем встречу в нужную группу
         if (dateGroups[m.Date][status]) {
             dateGroups[m.Date][status].push(m);
         } else {
-             // На случай, если статус прошел валидацию, но его нет в инициализации (защита)
             dateGroups[m.Date]['В работе'].push(m);
         }
     });
@@ -599,7 +601,6 @@
         dateTitle.textContent = date;
         meetingsList.appendChild(dateTitle);
         const groups = dateGroups[date];
-        // --- ИЗМЕНЕНИЕ: Новый порядок отображения групп ---
         const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершена', 'Отмена'];
         
         groupOrder.forEach(status => {
@@ -610,11 +611,10 @@
                 meetingsList.appendChild(groupTitle);
                 groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
                     let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
-                    dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
                     
                     const cleanStatus = m.Status ? m.Status.trim() : '';
-                    // --- ИЗМЕНЕНИЕ: Кнопки скрываются и для статуса "Просрочено" ---
                     if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
+                        dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
                         dropdownItems += '<li><hr class="dropdown-divider"></li>';
                         dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
                         dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
@@ -633,14 +633,13 @@
                     if (m.Status === 'Перенос' && m.Comment) {
                         rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
                     }
-                    // --- ИЗМЕНЕНИЕ: Добавлены цвета для новых статусов ---
                     const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
                     const statusColor = statusColors[cleanStatus] || 'gray';
                     
-                    let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
+                    let clientTitle = `<div class="d-flex align-items-center"><span class="card-title">${m.Time} - ${m.Client}</span></div>`;
                     if (m.ClientCategory) {
                         const categoryColor = getCategoryColor(m.ClientCategory);
-                        clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
+                        clientTitle = `<div class="d-flex align-items-center"><span class="card-title">${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
                     }
 
                     const cardWrapper = document.createElement('div');
@@ -653,13 +652,14 @@
                                     ${actionsMenu}
                                 </div>
                                 <div class="flex-grow-1">
-                                    <h5 class="card-title d-flex justify-content-between align-items-center">
+                                    <h5 class="d-flex justify-content-between align-items-center">
                                         ${clientTitle}
                                         <button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button>
                                     </h5>
                                     ${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}
-                                    <p class="card-text mb-1"><small class="text-muted">Адрес: ${m.Location || 'Не указан'}</small></p>
-                                    <p class="card-text mt-3"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
+                                    ${m.Location ? `<p class="card-text mb-1"><small class="text-muted"><i class="bi bi-signpost-split"></i> Адрес: ${m.Location}</small></p>` : ''}
+                                    ${m.Geolocation ? `<p class="card-text mb-1"><small class="text-muted"><i class="bi bi-geo-alt-fill"></i> Геолокация: ${m.Geolocation}</small></p>` : ''}
+                                    <p class="card-text mt-3"><strong>Статус: <span class="status-badge status-${statusColor}">${m.Status || 'Не указан'}</span></strong></p>
                                     ${rescheduleInfo}
                                 </div>
                             </div>
@@ -680,81 +680,81 @@
 
         // --- УПРАВЛЕНИЕ ФОРМАМИ И МОДАЛЬНЫМИ ОКНАМИ ---
         function handleFormSubmit(e) {
-            e.preventDefault();
-            const saveBtn = document.getElementById('save-button');
-            toggleButtonSpinner(saveBtn, true);
-            const meetingId = document.getElementById('meeting-id').value;
-            const isUpdating = !!meetingId;
-            const data = {
-                ID: isUpdating ? meetingId : `m${Date.now()}`,
-                Date: document.getElementById('meeting-date').value.split('-').reverse().join('.'),
-                Time: document.getElementById('meeting-time').value,
-                Client: document.getElementById('client-name').value,
-                Purpose: document.getElementById('purpose').value,
-                Phone: phoneMask.unmaskedValue,
-                Location: document.getElementById('location').value,
-                Status: document.getElementById('status').value,
-                ManagerLogin: currentUser,
-                Comment: isUpdating ? currentEditingMeeting.Comment : '',
-                LocationLat: document.getElementById('location-lat').value,
-                LocationLon: document.getElementById('location-lon').value
-            };
-            if (isUpdating && data.Status === 'Перенос') {
-                meetingToReschedule = data;
-                currentEditingMeeting = allMeetings.find(m => m.ID === data.ID);
-                rescheduleModal.show();
-                toggleButtonSpinner(saveBtn, false);
-                return;
-            }
-            const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
-            const payload = isUpdating ? { newData: data, oldData: currentEditingMeeting } : data;
-            callApi(action, payload).then(() => {
-                showToast(`Встреча с клиентом "${data.Client}" на ${data.Time} успешно сохранена.`);
-                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-                onActionComplete();
-            }).catch(onFailure).finally(() => {
-                toggleButtonSpinner(saveBtn, false);
-            });
-        }
+    e.preventDefault();
+    const saveBtn = document.getElementById('save-button');
+    toggleButtonSpinner(saveBtn, true);
+    const meetingId = document.getElementById('meeting-id').value;
+    const isUpdating = !!meetingId;
+    const data = {
+        ID: isUpdating ? meetingId : `m${Date.now()}`,
+        Date: document.getElementById('meeting-date').value.split('-').reverse().join('.'),
+        Time: document.getElementById('meeting-time').value,
+        Client: document.getElementById('client-name').value,
+        Purpose: document.getElementById('purpose').value,
+        Phone: phoneMask.unmaskedValue,
+        Location: document.getElementById('address').value,
+        Geolocation: document.getElementById('geolocation').value,
+        Status: document.getElementById('status').value,
+        ManagerLogin: currentUser,
+        Comment: isUpdating ? currentEditingMeeting.Comment : '',
+        LocationLat: document.getElementById('location-lat').value,
+        LocationLon: document.getElementById('location-lon').value
+    };
+    if (isUpdating && data.Status === 'Перенос') {
+        meetingToReschedule = data;
+        currentEditingMeeting = allMeetings.find(m => m.ID === data.ID);
+        rescheduleModal.show();
+        toggleButtonSpinner(saveBtn, false);
+        return;
+    }
+    const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
+    const payload = isUpdating ? { newData: data, oldData: currentEditingMeeting } : data;
+    callApi(action, payload).then(() => {
+        showToast(`Встреча с клиентом "${data.Client}" на ${data.Time} успешно сохранена.`);
+        loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+        onActionComplete();
+    }).catch(onFailure).finally(() => {
+        toggleButtonSpinner(saveBtn, false);
+    });
+}
         
-        function handleEditClick(event) {
-            event.preventDefault();
-            const meetingId = event.currentTarget.dataset.id;
-            currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
-            if (!currentEditingMeeting) return;
-            document.getElementById('form-title').textContent = "Редактирование встречи";
-            const dateParts = currentEditingMeeting.Date.split('.');
-            document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-            document.getElementById('meeting-time').value = currentEditingMeeting.Time;
-            document.getElementById('meeting-id').value = currentEditingMeeting.ID;
-            document.getElementById('client-name').value = currentEditingMeeting.Client;
-            document.getElementById('purpose').value = currentEditingMeeting.Purpose;
-            document.getElementById('phone').value = currentEditingMeeting.Phone;
-            if (phoneMask) phoneMask.updateValue();
-            document.getElementById('location').value = currentEditingMeeting.Location;
-            document.getElementById('location-lat').value = currentEditingMeeting.LocationLat || '';
-            document.getElementById('location-lon').value = currentEditingMeeting.LocationLon || '';
-            document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
-            showForm(true);
-        }
+       function handleEditClick(event) {
+    event.preventDefault();
+    const meetingId = event.currentTarget.dataset.id;
+    currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
+    if (!currentEditingMeeting) return;
+    document.getElementById('form-title').textContent = "Редактирование встречи";
+    const dateParts = currentEditingMeeting.Date.split('.');
+    document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+    document.getElementById('meeting-time').value = currentEditingMeeting.Time;
+    document.getElementById('meeting-id').value = currentEditingMeeting.ID;
+    document.getElementById('client-name').value = currentEditingMeeting.Client;
+    document.getElementById('purpose').value = currentEditingMeeting.Purpose;
+    document.getElementById('phone').value = currentEditingMeeting.Phone;
+    if (phoneMask) phoneMask.updateValue();
+    document.getElementById('address').value = currentEditingMeeting.Location;
+    document.getElementById('geolocation').value = currentEditingMeeting.Geolocation || '';
+    document.getElementById('location-lat').value = currentEditingMeeting.LocationLat || '';
+    document.getElementById('location-lon').value = currentEditingMeeting.LocationLon || '';
+    document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
+    showForm(true);
+}
 
-        async function handleCompleteClick(event) {
-            event.preventDefault(); // Для ссылок в меню
-            const btn = event.currentTarget;
-            const meetingId = btn.dataset.id;
-            const oldData = allMeetings.find(m => m.ID === meetingId);
-            if (!oldData) return;
-            if (!confirm(`Завершить встречу с клиентом "${oldData.Client}"?`)) return;
-            
-            const newData = { ...oldData, Status: 'Завершена' };
-            try {
-                await callApi('updateMeeting', { newData, oldData });
-                showToast("Встреча завершена");
-                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-            } catch(e) {
-                onFailure(e);
-            }
-        }
+        async function handleGetLocationClick() {
+    const btn = document.getElementById('get-location-btn');
+    toggleButtonSpinner(btn, true);
+    try {
+        const { address, lat, lon } = await getAddressFromGeolocation();
+        document.getElementById('geolocation').value = address;
+        document.getElementById('location-lat').value = lat;
+        document.getElementById('location-lon').value = lon;
+        showToast("Геолокация определена");
+    } catch (error) {
+        alert(error.message);
+    } finally {
+        toggleButtonSpinner(btn, false);
+    }
+}
         
         function handleRescheduleClick(event) {
             event.preventDefault(); // Для ссылок в меню
@@ -859,21 +859,21 @@
             }
         }
         async function handleGeoClick(event) {
-            event.preventDefault(); // Для ссылок в меню
-            const btn = event.currentTarget;
-            const meetingId = btn.dataset.id;
-            const oldData = allMeetings.find(m => m.ID === meetingId);
-            if (!oldData) return;
-            try {
-                const { address, lat, lon } = await getAddressFromGeolocation();
-                const newData = { ...oldData, Location: address, LocationLat: lat, LocationLon: lon };
-                await callApi('updateMeeting', { newData, oldData });
-                showToast("Геолокация сохранена");
-                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-            } catch (error) {
-                alert(error.message);
-            }
-        }
+    event.preventDefault();
+    const btn = event.currentTarget;
+    const meetingId = btn.dataset.id;
+    const oldData = allMeetings.find(m => m.ID === meetingId);
+    if (!oldData) return;
+    try {
+        const { address, lat, lon } = await getAddressFromGeolocation();
+        const newData = { ...oldData, Geolocation: address, LocationLat: lat, LocationLon: lon };
+        await callApi('updateMeeting', { newData, oldData });
+        showToast("Геолокация сохранена");
+        loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+    } catch (error) {
+        alert(error.message);
+    }
+}
         async function getAddressFromGeolocation() {
             if (!navigator.geolocation) throw new Error("Геолокация не поддерживается");
             return new Promise((resolve, reject) => {
