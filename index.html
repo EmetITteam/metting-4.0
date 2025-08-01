@@ -450,39 +450,36 @@
             });
         }
 
-       function onLoginSuccess(result) {
-    console.log("Ответ от сервера при логине:", result);
+        function onLoginSuccess(result) {
+            console.log("Ответ от сервера при логине:", result);
+            if (!result || !result.login) {
+                onFailure(
+                    new Error("Авторизация не удалась: сервер вернул некорректные данные."),
+                    document.getElementById('login-error')
+                );
+                toggleButtonSpinner(document.getElementById('login-button'), false);
+                return;
+            }
 
-    // --- НАЧАЛО ИСПРАВЛЕНИЯ: Проверка на пустые данные ---
-    if (!result || !result.login) {
-        onFailure(
-            new Error("Авторизация не удалась: сервер вернул некорректные данные."),
-            document.getElementById('login-error')
-        );
-        toggleButtonSpinner(document.getElementById('login-button'), false);
-        return; // Прерываем выполнение
-    }
-    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+            currentUser = result.login;
+            const userRole = result.role;
+            const session = { user: currentUser, role: userRole, loginTime: new Date().getTime() };
+            localStorage.setItem('crm_session', JSON.stringify(session));
+            document.getElementById('login-screen').classList.add(HIDDEN_CLASS);
+            if (userRole === 'admin') {
+                document.getElementById('admin-header').textContent = `Администратор: ${currentUser}`;
+                document.getElementById('main-app').classList.add(HIDDEN_CLASS);
+                document.getElementById('admin-dashboard').classList.remove(HIDDEN_CLASS);
+                adminDatePicker.setDateRange(new Date(), new Date());
+                loadAdminStats();
+            } else {
+                document.getElementById('manager-header').textContent = `Менеджер: ${currentUser}`;
+                document.getElementById('admin-dashboard').classList.add(HIDDEN_CLASS);
+                document.getElementById('main-app').classList.remove(HIDDEN_CLASS);
+                datePicker.setDateRange(new Date(), new Date());
+            }
+        }
 
-    currentUser = result.login;
-    const userRole = result.role;
-    const session = { user: currentUser, role: userRole, loginTime: new Date().getTime() };
-    localStorage.setItem('crm_session', JSON.stringify(session));
-    
-    document.getElementById('login-screen').classList.add(HIDDEN_CLASS);
-    if (userRole === 'admin') {
-        document.getElementById('admin-header').textContent = `Администратор: ${currentUser}`;
-        document.getElementById('main-app').classList.add(HIDDEN_CLASS);
-        document.getElementById('admin-dashboard').classList.remove(HIDDEN_CLASS);
-        adminDatePicker.setDateRange(new Date(), new Date());
-        loadAdminStats();
-    } else {
-        document.getElementById('manager-header').textContent = `Менеджер: ${currentUser}`;
-        document.getElementById('admin-dashboard').classList.add(HIDDEN_CLASS);
-        document.getElementById('main-app').classList.remove(HIDDEN_CLASS);
-        datePicker.setDateRange(new Date(), new Date());
-    }
-}
         function handleLogout() {
             localStorage.removeItem('crm_session');
             window.location.reload(); 
@@ -512,27 +509,20 @@
         }
 
         function loadInitialData(startDateString, endDateString) {
-    let skeletonHTML = '';
-    for (let i = 0; i < 4; i++) {
-        skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
-    }
-    meetingsList.innerHTML = skeletonHTML;
+            let skeletonHTML = '';
+            for (let i = 0; i < 4; i++) {
+                skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
+            }
+            meetingsList.innerHTML = skeletonHTML;
+            const payload = { login: currentUser, startDateString: startDateString, endDateString: endDateString };
+            callApi('getInitialData', payload)
+                .then(onDataLoaded)
+                .catch(err => {
+                    onFailure(err);
+                    meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
+                });
+        }
 
-    // --- НАЧАЛО ИСПРАВЛЕНИЯ: Добавляем login в запрос ---
-    const payload = { 
-        login: currentUser, 
-        startDateString: startDateString, 
-        endDateString: endDateString 
-    };
-    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
-    
-    callApi('getInitialData', payload)
-        .then(onDataLoaded)
-        .catch(err => {
-            onFailure(err);
-            meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
-        });
-}
         function onDataLoaded(data) {
             if (!data || !Array.isArray(data.meetings)) {
                 console.error("Получены некорректные данные от сервера:", data);
@@ -970,97 +960,11 @@
         }
         function onActionComplete() { showForm(false); }
         function handleCancelClick() { cancelConfirmModal.show(); }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            datePicker = new Litepicker({ element: document.getElementById('dateRangeFilter'), singleMode: false, format: 'DD.MM.YYYY', lang: 'ru-RU', setup: (picker) => { picker.on('selected', (date1, date2) => { if (date1 && date2) { const startDate = formatDateToYYYYMMDD(date1.toJSDate()); const endDate = formatDateToYYYYMMDD(date2.toJSDate()); loadInitialData(startDate, endDate); } }); } });
-            adminDatePicker = new Litepicker({ element: document.getElementById('adminDateRangeFilter'), singleMode: false, format: 'DD.MM.YYYY', lang: 'ru-RU' });
-            
-            const phoneInput = document.getElementById('phone');
-            phoneMask = IMask(phoneInput, { mask: '+{380} (00) 000-00-00' });
-            phoneInput.addEventListener('input', () => { phoneMask.updateValue(); });
-
-            // В этом блоке мы оставляем только объявление переменной,
-            // сама маска будет создаваться при открытии окна
-            const searchInput = document.getElementById('clientSearchInput');
-            searchInput.addEventListener('input', () => { searchMask.updateValue(); });
-
-            function checkActiveSession() {
-                const savedSession = localStorage.getItem('crm_session');
-                if (!savedSession) return;
-                const session = JSON.parse(savedSession);
-                const oneDay = 24 * 60 * 60 * 1000;
-                const isSessionExpired = (new Date().getTime() - session.loginTime) > oneDay;
-                if (isSessionExpired) { localStorage.removeItem('crm_session'); return; }
-                onLoginSuccess({ login: session.user, role: session.role });
-            }
-            checkActiveSession();
-
-            const clientSearchModalEl = document.getElementById('clientSearchModal');
-
-// 1. При клике на кнопку "Поиск контрагента"
-document.getElementById('show-client-search-btn').addEventListener('click', (e) => {
-    clientSearchModalTrigger = e.currentTarget; // Запоминаем кнопку
-    searchInput.value = '';
-    document.getElementById('clientSearchResult').innerHTML = '';
-    clientSearchModal.show();
-});
-
-// 2. Когда окно ПОЛНОСТЬЮ ПОКАЗАЛОСЬ - создаем маску
-clientSearchModalEl.addEventListener('shown.bs.modal', () => {
-    if (!searchMask) { // Создаем, только если ее еще нет
-        searchMask = IMask(searchInput, {
-            mask: /.*/,
-            dispatch: function (appended, dynamicMasked) {
-                if (/^\d/.test(dynamicMasked.unmaskedValue)) {
-                    return { mask: '+{38} (000) 000-00-00', lazy: false };
-                }
-                return { mask: /.*/ };
-            }
-        });
-    }
-});
-
-// 3. Когда окно ПОЛНОСТЬЮ СКРЫЛОСЬ - уничтожаем маску и возвращаем фокус
-clientSearchModalEl.addEventListener('hidden.bs.modal', () => {
-    if (searchMask) {
-        searchMask.destroy();
-        searchMask = null;
-    }
-    if (clientSearchModalTrigger) {
-        clientSearchModalTrigger.focus();
-    }
-});
-            clientSearchModalEl.addEventListener('hidden.bs.modal', () => { if (clientSearchModalTrigger) { clientSearchModalTrigger.focus(); } });
-
-            document.getElementById('login-form').addEventListener('submit', handleLogin);
-            document.getElementById('logout-btn').addEventListener('click', handleLogout);
-            document.getElementById('admin-logout-btn').addEventListener('click', handleLogout);
-            document.getElementById('show-add-form-btn').addEventListener('click', showAddForm);
-            document.getElementById('meeting-form').addEventListener('submit', handleFormSubmit);
-            document.getElementById('cancel-btn').addEventListener('click', handleCancelClick);
-            document.getElementById('confirmCancelBtn').addEventListener('click', () => { cancelConfirmModal.hide(); showForm(false); });
-            document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
-            document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
-            document.getElementById('searchInput').addEventListener('input', filterAndGroupMeetings);
-            document.getElementById('resetFiltersBtn').addEventListener('click', () => { document.getElementById('searchInput').value = ''; datePicker.setDateRange(new Date(), new Date()); });
-            document.getElementById('get-location-btn').addEventListener('click', handleGetLocationClick);
-            document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
-            document.getElementById('saveOutcomeBtn').addEventListener('click', handleSaveOutcome);
-            document.getElementById('adminRefreshBtn').addEventListener('click', loadAdminStats);
-            document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
-            document.getElementById('clientSearchInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleClientSearch(); });
-            
-            const header = document.querySelector('#main-app > header');
-            if (header) {
-                window.addEventListener('scroll', () => {
-                    if (window.scrollY > 10) {
-                        header.classList.add('header-scrolled');
-                    } else {
-                        header.classList.remove('header-scrolled');
-                    }
-                });
-            }
-        });
+        function showForm(show) {
+            document.getElementById('view-meetings').classList.toggle(HIDDEN_CLASS, show);
+            document.getElementById('form-section').classList.toggle(HIDDEN_CLASS, !show);
+            document.querySelector('header').classList.toggle(HIDDEN_CLASS, show);
+        }
     </script>
 </body>
 
