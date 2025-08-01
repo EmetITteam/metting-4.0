@@ -924,7 +924,7 @@
     const resultContainer = document.getElementById('clientSearchResult');
     const searchBtn = document.getElementById('clientSearchBtn');
     const searchTerm = searchMask.unmaskedValue || searchInput.value;
-
+    
     if (!searchTerm) {
         resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
         return;
@@ -933,13 +933,12 @@
     toggleButtonSpinner(searchBtn, true);
     resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
 
-    // --- НАЧАЛО ИЗМЕНЕНИЙ: Логика для обработки массива ---
-    // Удаляем старые обработчики, чтобы не было дублей
+    // Заменяем контейнер, чтобы очистить старые обработчики событий
     resultContainer.replaceWith(resultContainer.cloneNode(true));
-    const newResultContainer = document.getElementById('clientSearchResult'); // Получаем ссылку на новый элемент
+    const newResultContainer = document.getElementById('clientSearchResult');
 
     try {
-        const result = await callApi('findClient', { searchTerm }); // callApi теперь возвращает весь объект
+        const result = await callApi('findClient', { searchTerm });
         const data = result.data; // Получаем data из ответа
 
         if (data && data.found && data.clients && data.clients.length > 0) {
@@ -958,7 +957,7 @@
 
             newResultContainer.innerHTML = `<ul class="list-group">${clientsHtml}</ul>`;
 
-        } else {
+        } else { // "else" теперь находится в правильном месте
             newResultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
         }
     } catch (e) {
@@ -967,7 +966,7 @@
         toggleButtonSpinner(searchBtn, false);
     }
 
-    // Используем делегирование событий для обработки кликов на кнопках "Создать"
+    // Обработчик для кнопок "Создать"
     newResultContainer.addEventListener('click', (e) => {
         if (e.target && e.target.classList.contains('create-meeting-from-search-btn')) {
             const clientName = e.target.dataset.clientName;
@@ -976,17 +975,7 @@
             document.getElementById('client-name').value = clientName;
         }
     });
-    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 }
-            else {
-                    resultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
-                }
-            } catch (e) {
-                resultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
-            } finally {
-                toggleButtonSpinner(searchBtn, false);
-            }
-        }
 
         function showAddForm() {
             currentEditingMeeting = null;
