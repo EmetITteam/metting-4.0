@@ -452,6 +452,7 @@
 
         function onLoginSuccess(result) {
             currentUser = result.login;
+            console.log("Ответ от сервера при логине:", result); // <-- ДОБАВЬТЕ ЭТУ СТРОКУ
             const userRole = result.role;
             const session = { user: currentUser, role: userRole, loginTime: new Date().getTime() };
             localStorage.setItem('crm_session', JSON.stringify(session));
