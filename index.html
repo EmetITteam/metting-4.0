@@ -9,116 +9,73 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
     <script src="https://unpkg.com/imask"></script>
-    <script src="https://cdn.lordicon.com/lordicon.js"></script>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-
     <style>
-        :root {
-            --bs-primary: #0d6efd;
-            --bs-primary-rgb: 13, 110, 253;
-            --bs-body-bg: #f7f9fc;
-            --bs-border-color: #dee2e6;
-        }
-
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bs-body-bg);
+            background-color: #f8f9fa;
         }
-
-        #main-app, #admin-dashboard, #login-screen .card {
-            background-color: #ffffff;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.07);
-        }
-        
-        #login-screen .card {
-            border: none;
-        }
-
-        .btn-primary {
-             box-shadow: 0 2px 8px -1px rgba(var(--bs-primary-rgb), 0.4);
-        }
-
         .meeting-card {
             height: 100%;
             position: relative;
-            background-color: #ffffff;
-            border: 1px solid var(--bs-border-color);
-            border-top: 4px solid var(--bs-primary);
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
-        .meeting-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        .toast-container {
+            z-index: 1100;
         }
-        .card-title {
-            color: #212529;
-            font-weight: 500;
+        .app-logo {
+            max-height: 50px;
+            width: auto;
         }
-
-        .status-badge {
+        .edit-icon-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.3rem;
+            color: #6c757d;
+            text-decoration: none;
+        }
+        .edit-icon-btn:hover {
+            color: #0d6efd;
+        }
+        .status-dot {
             display: inline-block;
-            padding: 0.35em 0.65em;
-            font-size: .75em;
-            font-weight: 700;
-            line-height: 1;
-            color: #fff;
-            text-align: center;
-            white-space: nowrap;
-            vertical-align: baseline;
-            border-radius: 0.375rem;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
         }
-        .status-blue { background-color: #0d6efd; }
+        .status-blue { background-color: #0d6efd; } /* Для "Запланировано" */
         .status-green { background-color: #198754; }
         .status-orange { background-color: #fd7e14; }
         .status-gray { background-color: #6c757d; }
-        .status-red { background-color: #dc3545; }
-
-        #main-app > header, #admin-dashboard > header {
+        .status-red { background-color: #dc3545; } /* Для "Просрочено" */
+        .report-btn-icon {
+            font-size: 0.8em;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+        .skeleton-card {
+            background-color: #e9ecef;
+            border-radius: 0.375rem;
+            height: 200px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        /* --- НАЧАЛО ИЗМЕНЕНИЙ (СТИЛИ) --- */
+        .date-header {
             position: sticky;
-            top: 0;
-            z-index: 1020;
-            transition: all 0.3s ease-in-out;
-            padding-top: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
+            top: -1px;
+            background-color: #f8f9fa;
+            z-index: 10;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
         }
-        .header-scrolled {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-            background-color: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 0 !important;
-            padding-top: 0.5rem !important;
-            padding-bottom: 0.5rem !important;
+        .actions-dropdown .dropdown-toggle::after {
+            display: none;
         }
-        .header-scrolled .app-logo {
-            max-height: 40px;
-        }
-
-        .view-section {
-            transition: opacity 0.25s ease-in-out;
-        }
-        .view-section.is-hiding {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        .toast-container { z-index: 1100; }
-        .app-logo { max-height: 50px; width: auto; transition: max-height 0.3s ease-in-out; }
-        .card-actions-container { position: absolute; top: 1rem; right: 1rem; display: flex; align-items: center; gap: 0.5rem; }
-        .edit-icon-btn { font-size: 1.3rem; color: #6c757d; text-decoration: none; line-height: 1; }
-        .edit-icon-btn:hover { color: var(--bs-primary); }
-        .skeleton-card { background-color: #e9ecef; border-radius: 0.375rem; height: 200px; animation: pulse 1.5s infinite ease-in-out; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        .date-header { position: sticky; top: -1px; background-color: var(--bs-body-bg); z-index: 10; padding-top: 0.5rem; padding-bottom: 0.5rem; }
-        .actions-dropdown .dropdown-toggle::after { display: none; }
+        /* --- КОНЕЦ ИЗМЕНЕНИЙ (СТИЛИ) --- */
     </style>
 </head>
 
@@ -136,8 +93,8 @@
         <div id="login-screen">
             <div class="row justify-content-center">
                 <div class="col-12 col-md-8 col-lg-6">
-                    <div class="card p-2 p-md-4">
-                        <div class="card-body">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-4">
                             <h1 class="card-title text-center h3 mb-4">Вход в систему</h1>
                             <form id="login-form">
                                 <div class="mb-3">
@@ -148,10 +105,7 @@
                                     <label for="password" class="form-label">Пароль:</label>
                                     <input type="password" id="password" class="form-control" required>
                                 </div>
-                                <button type="submit" id="login-button" class="btn btn-primary w-100 py-2 d-inline-flex align-items-center justify-content-center">
-                                    <span class="btn-text">Войти</span>
-                                    <lord-icon class="d-none ms-2" src="https://cdn.lordicon.com/lupuorrc.json" trigger="loop" delay="100" colors="primary:#ffffff" style="width:25px;height:25px"></lord-icon>
-                                </button>
+                                <button type="submit" id="login-button" class="btn btn-primary w-100 py-2">Войти</button>
                                 <p id="login-error" class="text-danger text-center mt-3 d-none"></p>
                             </form>
                         </div>
@@ -160,7 +114,7 @@
             </div>
         </div>
 
-        <div id="main-app" class="d-none p-3 p-md-4">
+        <div id="main-app" class="d-none">
             <header class="mb-4 pb-3 border-bottom">
                 <div class="text-center mb-4">
                     <img src="https://links.emet.in.ua/wp-content/uploads/2025/07/logo_dark-scaled.png" alt="Логотип" class="app-logo">
@@ -176,8 +130,8 @@
                 </div>
             </header>
 
-            <main id="view-meetings" class="view-section">
-                <div class="row g-3 mb-4 p-3 bg-white border rounded-3 align-items-end">
+            <main id="view-meetings">
+                <div class="row g-3 mb-4 p-3 bg-light border rounded-3 align-items-end">
                     <div class="col-lg-5">
                         <label for="searchInput" class="form-label">Поиск по клиенту</label>
                         <input type="text" id="searchInput" class="form-control">
@@ -193,7 +147,7 @@
                 <div id="meetings-list" class="row g-3"></div>
             </main>
 
-            <section id="form-section" class="d-none mt-4 view-section">
+            <section id="form-section" class="d-none mt-4">
                 <h2 id="form-title" class="h3 mb-3 text-center">Новая встреча</h2>
                 <form id="meeting-form" class="p-4 bg-light border rounded-3">
                     <input type="hidden" id="meeting-id">
@@ -226,21 +180,15 @@
                             <label for="status" class="form-label">Статус:</label>
                             <select id="status" class="form-select">
                                 <option value="В работе">В работе</option>
-                                <option value="Запланировано">Запланировано</option>
                                 <option value="Завершена">Завершена</option>
                                 <option value="Перенос">Перенос</option>
                                 <option value="Отмена">Отмена</option>
-                                <option value="Просрочено">Просрочено</option>
                             </select>
                         </div>
                         <div class="col-12">
-                            <label for="address" class="form-label">Адрес:</label>
-                            <input type="text" id="address" class="form-control" placeholder="Например, ул. Соборная, 7">
-                        </div>
-                        <div class="col-12">
-                            <label for="geolocation" class="form-label">Геолокация:</label>
+                            <label for="location" class="form-label">Геолокация:</label>
                             <div class="input-group">
-                                <input type="text" id="geolocation" class="form-control" readonly placeholder="Не определена">
+                                <input type="text" id="location" class="form-control">
                                 <button class="btn btn-outline-secondary" type="button" id="get-location-btn">📍 Определить</button>
                             </div>
                             <input type="hidden" id="location-lat">
@@ -248,17 +196,14 @@
                         </div>
                     </div>
                     <div class="d-flex gap-2 mt-4">
-                         <button type="submit" id="save-button" class="btn btn-primary d-inline-flex align-items-center justify-content-center">
-                            <span class="btn-text">Сохранить</span>
-                            <lord-icon class="d-none ms-2" src="https://cdn.lordicon.com/lupuorrc.json" trigger="loop" delay="100" colors="primary:#ffffff" style="width:25px;height:25px"></lord-icon>
-                        </button>
+                        <button type="submit" id="save-button" class="btn btn-primary">Сохранить</button>
                         <button type="button" id="cancel-btn" class="btn btn-secondary">Отмена</button>
                     </div>
                 </form>
             </section>
         </div>
 
-        <div id="admin-dashboard" class="d-none p-3 p-md-4">
+        <div id="admin-dashboard" class="d-none">
             <header class="mb-4 pb-3 border-bottom">
                 <div class="text-center mb-4">
                     <img src="https://links.emet.in.ua/wp-content/uploads/2025/07/logo_dark-scaled.png" alt="Логотип" class="app-logo">
@@ -310,6 +255,7 @@
         </div>
     </div>
 
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
     <script>
@@ -323,8 +269,6 @@
             activeMeetingId = null;
         let questions = [],
             potentialCategories = [];
-        
-        let clientSearchModalTrigger = null;
 
         const meetingsList = document.getElementById('meetings-list');
         const rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
@@ -339,6 +283,97 @@
         let phoneMask = null;
         let searchMask = null;
 
+        document.addEventListener('DOMContentLoaded', () => {
+            datePicker = new Litepicker({
+                element: document.getElementById('dateRangeFilter'),
+                singleMode: false,
+                format: 'DD.MM.YYYY',
+                lang: 'ru-RU',
+                setup: (picker) => {
+                    picker.on('selected', (date1, date2) => {
+                        if (date1 && date2) {
+                            const startDate = formatDateToYYYYMMDD(date1.toJSDate());
+                            const endDate = formatDateToYYYYMMDD(date2.toJSDate());
+                            loadInitialData(startDate, endDate);
+                        }
+                    });
+                }
+            });
+            adminDatePicker = new Litepicker({
+                element: document.getElementById('adminDateRangeFilter'),
+                singleMode: false,
+                format: 'DD.MM.YYYY',
+                lang: 'ru-RU'
+            });
+             const phoneInput = document.getElementById('phone');
+            phoneMask = IMask(phoneInput, {
+                mask: '+{38} (000) 000-00-00'
+            });
+            const searchInput = document.getElementById('clientSearchInput');
+            searchMask = IMask(searchInput, {
+                mask: [
+                    {
+                        mask: '+{38} (000) 000-00-00',
+                        startsWith: '380',
+                        lazy: false
+                    },
+                    {
+                        mask: /.*/
+                    }
+                ]
+            });
+
+            function checkActiveSession() {
+                const savedSession = localStorage.getItem('crm_session');
+                if (!savedSession) return;
+
+                const session = JSON.parse(savedSession);
+                const oneDay = 24 * 60 * 60 * 1000;
+                const isSessionExpired = (new Date().getTime() - session.loginTime) > oneDay;
+
+                if (isSessionExpired) {
+                    localStorage.removeItem('crm_session');
+                    return;
+                }
+                onLoginSuccess({ login: session.user, role: session.role });
+            }
+            checkActiveSession();
+
+            // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            document.getElementById('admin-logout-btn').addEventListener('click', handleLogout);
+            document.getElementById('show-add-form-btn').addEventListener('click', showAddForm);
+            document.getElementById('meeting-form').addEventListener('submit', handleFormSubmit);
+            document.getElementById('cancel-btn').addEventListener('click', handleCancelClick);
+            document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+                cancelConfirmModal.hide();
+                showForm(false);
+            });
+            document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
+            document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
+            document.getElementById('searchInput').addEventListener('input', filterAndGroupMeetings);
+            document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+                document.getElementById('searchInput').value = '';
+                datePicker.setDateRange(new Date(), new Date());
+            });
+            document.getElementById('get-location-btn').addEventListener('click', handleGetLocationClick);
+            document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
+            document.getElementById('saveOutcomeBtn').addEventListener('click', handleSaveOutcome);
+            document.getElementById('adminRefreshBtn').addEventListener('click', loadAdminStats);
+            document.getElementById('show-client-search-btn').addEventListener('click', () => {
+                document.getElementById('clientSearchInput').value = '';
+                document.getElementById('clientSearchResult').innerHTML = '';
+                if (searchMask) searchMask.updateValue();
+                clientSearchModal.show();
+            });
+            document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
+            document.getElementById('clientSearchInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleClientSearch();
+            });
+        });
+
+        // --- УТИЛИТЫ ---
         function getTodayDateString() { return formatDateToYYYYMMDD(new Date()); }
         function getTomorrowDateString() { const t = new Date(); t.setDate(t.getDate() + 1); return formatDateToYYYYMMDD(t); }
         function formatDateToYYYYMMDD(date) {
@@ -348,16 +383,13 @@
             return `${y}-${m}-${d}`;
         }
         function toggleButtonSpinner(btn, show) {
-            const lordIcon = btn.querySelector('lord-icon');
-            const originalText = btn.querySelector('.btn-text');
             if (show) {
                 btn.disabled = true;
-                if (originalText) originalText.classList.add('d-none');
-                if (lordIcon) lordIcon.classList.remove('d-none');
+                btn.dataset.originalText = btn.innerHTML;
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>`;
             } else {
                 btn.disabled = false;
-                if (originalText) originalText.classList.remove('d-none');
-                if (lordIcon) lordIcon.classList.add('d-none');
+                btn.innerHTML = btn.dataset.originalText || '';
             }
         }
         function showToast(message) {
@@ -374,31 +406,7 @@
             return '#6c757d';
         }
 
-        function showForm(show) {
-            const viewMeetings = document.getElementById('view-meetings');
-            const formSection = document.getElementById('form-section');
-            const header = document.querySelector('#main-app header');
-            const sectionToShow = show ? formSection : viewMeetings;
-            const sectionToHide = show ? viewMeetings : formSection;
-            
-            if(header) {
-                header.style.transition = 'opacity 0.25s ease-in-out';
-                header.classList.toggle('is-hiding', show);
-            }
-            sectionToHide.classList.add('is-hiding');
-            
-            const handleTransitionEnd = () => {
-                sectionToHide.classList.add('d-none');
-                sectionToShow.classList.remove('d-none');
-                setTimeout(() => {
-                    sectionToHide.classList.remove('is-hiding');
-                    sectionToShow.classList.remove('is-hiding');
-                }, 20);
-                sectionToHide.removeEventListener('transitionend', handleTransitionEnd);
-            };
-            sectionToHide.addEventListener('transitionend', handleTransitionEnd);
-        }
-
+        // --- API ---
         async function callApi(action, payload) {
             try {
                 const response = await fetch(API_URL, {
@@ -429,6 +437,7 @@
             }
         }
 
+        // --- ОСНОВНАЯ ЛОГИКА ---
         function handleLogin(e) {
             e.preventDefault();
             const loginBtn = document.getElementById('login-button');
@@ -445,18 +454,16 @@
         }
 
         function onLoginSuccess(result) {
-            if (!result || !result.login) {
-                onFailure(
-                    new Error("Авторизация не удалась: сервер вернул некорректные данные."),
-                    document.getElementById('login-error')
-                );
-                toggleButtonSpinner(document.getElementById('login-button'), false);
-                return;
-            }
             currentUser = result.login;
             const userRole = result.role;
-            const session = { user: currentUser, role: userRole, loginTime: new Date().getTime() };
+
+            const session = {
+                user: currentUser,
+                role: userRole,
+                loginTime: new Date().getTime()
+            };
             localStorage.setItem('crm_session', JSON.stringify(session));
+            
             document.getElementById('login-screen').classList.add(HIDDEN_CLASS);
             if (userRole === 'admin') {
                 document.getElementById('admin-header').textContent = `Администратор: ${currentUser}`;
@@ -487,7 +494,10 @@
                 return;
             }
             try {
-                const payload = { startDateString: formatDateToYYYYMMDD(startDate), endDateString: formatDateToYYYYMMDD(endDate) };
+                const payload = {
+                    startDateString: formatDateToYYYYMMDD(startDate),
+                    endDateString: formatDateToYYYYMMDD(endDate)
+                };
                 const stats = await callApi('getAdminStats', payload);
                 displayAdminStats(stats);
             } catch (e) {
@@ -500,13 +510,15 @@
             statsContainer.innerHTML = `<div class="col-md-4"><div class="card text-center h-100"><div class="card-body"><h5 class="card-title">Всего встреч</h5><p class="card-text fs-1 fw-bold">${stats.totalMeetings}</p></div></div></div><div class="col-md-4"><div class="card h-100"><div class="card-header">По статусам</div><ul class="list-group list-group-flush">${Object.entries(stats.statusCounts).map(([status, count]) => `<li class="list-group-item d-flex justify-content-between align-items-center">${status}<span class="badge bg-primary rounded-pill">${count}</span></li>`).join('')}</ul></div></div><div class="col-md-4"><div class="card h-100"><div class="card-header">По менеджерам</div><ul class="list-group list-group-flush">${Object.entries(stats.managerCounts).map(([manager, count]) => `<li class="list-group-item d-flex justify-content-between align-items-center">${manager}<span class="badge bg-primary rounded-pill">${count}</span></li>`).join('')}</ul></div></div>`;
         }
 
+
+        // --- ЗАГРУЗКА И ОТОБРАЖЕНИЕ ДАННЫХ ---
         function loadInitialData(startDateString, endDateString) {
             let skeletonHTML = '';
             for (let i = 0; i < 4; i++) {
                 skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
             }
             meetingsList.innerHTML = skeletonHTML;
-            const payload = { login: currentUser, startDateString: startDateString, endDateString: endDateString };
+            const payload = { login: currentUser, startDateString, endDateString };
             callApi('getInitialData', payload)
                 .then(onDataLoaded)
                 .catch(err => {
@@ -516,15 +528,10 @@
         }
 
         function onDataLoaded(data) {
-            if (!data || !Array.isArray(data.meetings)) {
-                console.error("Получены некорректные данные от сервера:", data);
-                allMeetings = [];
-            } else {
-                allMeetings = data.meetings;
-                questions = data.questions || [];
-                potentialCategories = data.potentialCategories || [];
-                populatePurposes(data.purposes);
-            }
+            allMeetings = data.meetings;
+            questions = data.questions || [];
+            potentialCategories = data.potentialCategories || [];
+            populatePurposes(data.purposes);
             filterAndGroupMeetings();
         }
 
@@ -539,127 +546,139 @@
         }
 
         function filterAndGroupMeetings() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
-            
-            const dateGroups = {};
-            const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
+    
+    const dateGroups = {};
+    // --- ИЗМЕНЕНИЕ: Добавлены новые статусы ---
+    const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
 
-            filtered.forEach(m => {
-                let status = m.Status ? m.Status.trim() : '';
-                if (status === 'Завершено') status = 'Завершена';
-                if (status === 'Отменено') status = 'Отмена';
-                if (!validStatuses.includes(status)) {
-                    status = 'В работе';
-                }
-                if (!dateGroups[m.Date]) {
-                    dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершена': [], 'Отмена': [], 'Просрочено': [] };
-                }
-                
-                if (dateGroups[m.Date][status]) {
-                    dateGroups[m.Date][status].push(m);
-                } else {
-                    dateGroups[m.Date]['В работе'].push(m);
-                }
-            });
+    filtered.forEach(m => {
+        let status = m.Status ? m.Status.trim() : '';
 
-            meetingsList.innerHTML = '';
-            const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(a.split('.').reverse().join('-')) - new Date(b.split('.').reverse().join('-')));
-            
-            if (sortedDates.length === 0) {
-                meetingsList.innerHTML = `
-                    <div class="col-12 text-center p-5">
-                        <i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>
-                        <h4 class="mt-3">Встреч не найдено</h4>
-                        <p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p>
-                        <button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button>
-                    </div>`;
-                document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
-                return;
-            }
+        // --- ИЗМЕНЕНИЕ: Добавлена нормализация для новых статусов ---
+        if (status === 'Завершено') status = 'Завершена';
+        if (status === 'Отменено') status = 'Отмена';
 
-            sortedDates.forEach(date => {
-                const dateTitle = document.createElement('h3');
-                dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
-                dateTitle.textContent = date;
-                meetingsList.appendChild(dateTitle);
-                const groups = dateGroups[date];
-                const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершена', 'Отмена'];
-                
-                groupOrder.forEach(status => {
-                    if (groups[status] && groups[status].length > 0) {
-                        const groupTitle = document.createElement('h4');
-                        groupTitle.className = 'col-12 mt-3 text-muted';
-                        groupTitle.textContent = status;
-                        meetingsList.appendChild(groupTitle);
-                        groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
-                            let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
-                            const cleanStatus = m.Status ? m.Status.trim() : '';
-                            if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
-                                dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
-                                dropdownItems += '<li><hr class="dropdown-divider"></li>';
-                                dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
-                                dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
-                            }
-                            const actionsMenu = `
-                                <div class="dropdown actions-dropdown">
-                                    <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        ${dropdownItems}
-                                    </ul>
-                                </div>`;
-
-                            let rescheduleInfo = '';
-                            if (m.Status === 'Перенос' && m.Comment) {
-                                rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
-                            }
-                            const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
-                            const statusColor = statusColors[cleanStatus] || 'gray';
-                            
-                            let clientTitle = `<div class="d-flex align-items-center"><span class="card-title">${m.Time} - ${m.Client}</span></div>`;
-                            if (m.ClientCategory) {
-                                const categoryColor = getCategoryColor(m.ClientCategory);
-                                clientTitle = `<div class="d-flex align-items-center"><span class="card-title">${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
-                            }
-
-                            const cardWrapper = document.createElement('div');
-                            cardWrapper.className = "col-12 col-md-6";
-                            cardWrapper.innerHTML = `
-                                <div class="card meeting-card">
-                                    <div class="card-body">
-                                        <div class="card-actions-container">
-                                            <a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
-                                            ${actionsMenu}
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h5 class="d-flex justify-content-between align-items-center">
-                                                ${clientTitle}
-                                                <button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button>
-                                            </h5>
-                                            ${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}
-                                            ${m.Location ? `<p class="card-text mb-1"><small class="text-muted"><i class="bi bi-signpost-split"></i> Адрес: ${m.Location}</small></p>` : ''}
-                                            ${m.Geolocation ? `<p class="card-text mb-1"><small class="text-muted"><i class="bi bi-geo-alt-fill"></i> Геолокация: ${m.Geolocation}</small></p>` : ''}
-                                            <p class="card-text mt-3"><strong>Статус: <span class="status-badge status-${statusColor}">${m.Status || 'Не указан'}</span></strong></p>
-                                            ${rescheduleInfo}
-                                        </div>
-                                    </div>
-                                </div>`;
-                            meetingsList.appendChild(cardWrapper);
-                        });
-                    }
-                });
-            });
-            document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
-            document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
-            document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
-            document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
-            document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
-            document.querySelectorAll('.report-btn-icon').forEach(btn => btn.addEventListener('click', handleReportClick));
-            window.scrollTo(0, 0);
+        if (!validStatuses.includes(status)) {
+            status = 'В работе';
         }
 
+        // --- ИЗМЕНЕНИЕ: Добавлены ключи для новых статусов ---
+        if (!dateGroups[m.Date]) {
+            dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершена': [], 'Отмена': [], 'Просрочено': [] };
+        }
+        
+        // Корректно добавляем встречу в нужную группу
+        if (dateGroups[m.Date][status]) {
+            dateGroups[m.Date][status].push(m);
+        } else {
+             // На случай, если статус прошел валидацию, но его нет в инициализации (защита)
+            dateGroups[m.Date]['В работе'].push(m);
+        }
+    });
+
+    meetingsList.innerHTML = '';
+    const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(a.split('.').reverse().join('-')) - new Date(b.split('.').reverse().join('-')));
+    
+    if (sortedDates.length === 0) {
+        meetingsList.innerHTML = `
+            <div class="col-12 text-center p-5">
+                <i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>
+                <h4 class="mt-3">Встреч не найдено</h4>
+                <p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p>
+                <button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button>
+            </div>`;
+        document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
+        return;
+    }
+
+    sortedDates.forEach(date => {
+        const dateTitle = document.createElement('h3');
+        dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
+        dateTitle.textContent = date;
+        meetingsList.appendChild(dateTitle);
+        const groups = dateGroups[date];
+        // --- ИЗМЕНЕНИЕ: Новый порядок отображения групп ---
+        const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершена', 'Отмена'];
+        
+        groupOrder.forEach(status => {
+            if (groups[status] && groups[status].length > 0) {
+                const groupTitle = document.createElement('h4');
+                groupTitle.className = 'col-12 mt-3 text-muted';
+                groupTitle.textContent = status;
+                meetingsList.appendChild(groupTitle);
+                groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
+                    let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
+                    dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
+                    
+                    const cleanStatus = m.Status ? m.Status.trim() : '';
+                    // --- ИЗМЕНЕНИЕ: Кнопки скрываются и для статуса "Просрочено" ---
+                    if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
+                        dropdownItems += '<li><hr class="dropdown-divider"></li>';
+                        dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
+                        dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
+                    }
+                    const actionsMenu = `
+                        <div class="dropdown actions-dropdown">
+                            <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                ${dropdownItems}
+                            </ul>
+                        </div>`;
+
+                    let rescheduleInfo = '';
+                    if (m.Status === 'Перенос' && m.Comment) {
+                        rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
+                    }
+                    // --- ИЗМЕНЕНИЕ: Добавлены цвета для новых статусов ---
+                    const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
+                    const statusColor = statusColors[cleanStatus] || 'gray';
+                    
+                    let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
+                    if (m.ClientCategory) {
+                        const categoryColor = getCategoryColor(m.ClientCategory);
+                        clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
+                    }
+
+                    const cardWrapper = document.createElement('div');
+                    cardWrapper.className = "col-12 col-md-6";
+                    cardWrapper.innerHTML = `
+                        <div class="card meeting-card">
+                            <div class="card-body">
+                                <div class="card-actions-container">
+                                    <a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
+                                    ${actionsMenu}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title d-flex justify-content-between align-items-center">
+                                        ${clientTitle}
+                                        <button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button>
+                                    </h5>
+                                    ${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}
+                                    <p class="card-text mb-1"><small class="text-muted">Адрес: ${m.Location || 'Не указан'}</small></p>
+                                    <p class="card-text mt-3"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
+                                    ${rescheduleInfo}
+                                </div>
+                            </div>
+                        </div>`;
+                    meetingsList.appendChild(cardWrapper);
+                });
+            }
+        });
+    });
+    document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
+    document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
+    document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
+    document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
+    document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
+    document.querySelectorAll('.report-btn-icon').forEach(btn => btn.addEventListener('click', handleReportClick));
+    window.scrollTo(0, 0);
+}
+
+        // --- УПРАВЛЕНИЕ ФОРМАМИ И МОДАЛЬНЫМИ ОКНАМИ ---
         function handleFormSubmit(e) {
             e.preventDefault();
             const saveBtn = document.getElementById('save-button');
@@ -673,8 +692,7 @@
                 Client: document.getElementById('client-name').value,
                 Purpose: document.getElementById('purpose').value,
                 Phone: phoneMask.unmaskedValue,
-                Location: document.getElementById('address').value,
-                Geolocation: document.getElementById('geolocation').value,
+                Location: document.getElementById('location').value,
                 Status: document.getElementById('status').value,
                 ManagerLogin: currentUser,
                 Comment: isUpdating ? currentEditingMeeting.Comment : '',
@@ -698,7 +716,7 @@
                 toggleButtonSpinner(saveBtn, false);
             });
         }
-
+        
         function handleEditClick(event) {
             event.preventDefault();
             const meetingId = event.currentTarget.dataset.id;
@@ -713,8 +731,7 @@
             document.getElementById('purpose').value = currentEditingMeeting.Purpose;
             document.getElementById('phone').value = currentEditingMeeting.Phone;
             if (phoneMask) phoneMask.updateValue();
-            document.getElementById('address').value = currentEditingMeeting.Location;
-            document.getElementById('geolocation').value = currentEditingMeeting.Geolocation || '';
+            document.getElementById('location').value = currentEditingMeeting.Location;
             document.getElementById('location-lat').value = currentEditingMeeting.LocationLat || '';
             document.getElementById('location-lon').value = currentEditingMeeting.LocationLon || '';
             document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
@@ -722,12 +739,13 @@
         }
 
         async function handleCompleteClick(event) {
-            event.preventDefault();
+            event.preventDefault(); // Для ссылок в меню
             const btn = event.currentTarget;
             const meetingId = btn.dataset.id;
             const oldData = allMeetings.find(m => m.ID === meetingId);
             if (!oldData) return;
             if (!confirm(`Завершить встречу с клиентом "${oldData.Client}"?`)) return;
+            
             const newData = { ...oldData, Status: 'Завершена' };
             try {
                 await callApi('updateMeeting', { newData, oldData });
@@ -739,7 +757,7 @@
         }
         
         function handleRescheduleClick(event) {
-            event.preventDefault();
+            event.preventDefault(); // Для ссылок в меню
             const meetingId = event.currentTarget.dataset.id;
             const meetingData = allMeetings.find(m => m.ID === meetingId);
             if (!meetingData) return;
@@ -778,7 +796,7 @@
         }
 
         function handleOutcomeClick(event) {
-            event.preventDefault();
+            event.preventDefault(); // Для ссылок в меню
             activeMeetingId = event.currentTarget.dataset.id;
             const meeting = allMeetings.find(m => m.ID === activeMeetingId);
             if (!meeting) return;
@@ -830,7 +848,7 @@
             toggleButtonSpinner(btn, true);
             try {
                 const { address, lat, lon } = await getAddressFromGeolocation();
-                document.getElementById('geolocation').value = address;
+                document.getElementById('location').value = address;
                 document.getElementById('location-lat').value = lat;
                 document.getElementById('location-lon').value = lon;
                 showToast("Геолокация определена");
@@ -841,14 +859,14 @@
             }
         }
         async function handleGeoClick(event) {
-            event.preventDefault();
+            event.preventDefault(); // Для ссылок в меню
             const btn = event.currentTarget;
             const meetingId = btn.dataset.id;
             const oldData = allMeetings.find(m => m.ID === meetingId);
             if (!oldData) return;
             try {
                 const { address, lat, lon } = await getAddressFromGeolocation();
-                const newData = { ...oldData, Geolocation: address, LocationLat: lat, LocationLon: lon };
+                const newData = { ...oldData, Location: address, LocationLat: lat, LocationLon: lon };
                 await callApi('updateMeeting', { newData, oldData });
                 showToast("Геолокация сохранена");
                 loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
@@ -902,32 +920,64 @@
         }
         
         async function handleClientSearch() {
-            const searchInput = document.getElementById('clientSearchInput');
-            const resultContainer = document.getElementById('clientSearchResult');
-            const searchBtn = document.getElementById('clientSearchBtn');
-            const searchTerm = searchMask.unmaskedValue || searchInput.value;
-            if (!searchTerm) {
-                resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
-                return;
-            }
-            toggleButtonSpinner(searchBtn, true);
-            resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
-            try {
-                const result = await callApi('findClient', { searchTerm });
-                if (result.found) {
-                    resultContainer.innerHTML = `
-                        <div class="alert alert-success">
-                            <h5 class="alert-heading">Клиент найден!</h5>
-                            <p class="mb-1"><strong>Наименование:</strong> ${result.clientName}</p>
-                            <p class="mb-0"><strong>Закрепленный менеджер:</strong> ${result.managerName}</p>
-                            <hr>
-                            <button class="btn btn-sm btn-success" id="create-meeting-from-search-btn">Создать встречу для этого клиента</button>
-                        </div>`;
-                    document.getElementById('create-meeting-from-search-btn').addEventListener('click', () => {
-                        clientSearchModal.hide();
-                        showAddForm();
-                        document.getElementById('client-name').value = result.clientName;
-                    });
+    const searchInput = document.getElementById('clientSearchInput');
+    const resultContainer = document.getElementById('clientSearchResult');
+    const searchBtn = document.getElementById('clientSearchBtn');
+    const searchTerm = searchMask.unmaskedValue || searchInput.value;
+
+    if (!searchTerm) {
+        resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
+        return;
+    }
+
+    toggleButtonSpinner(searchBtn, true);
+    resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
+
+    // --- НАЧАЛО ИЗМЕНЕНИЙ: Логика для обработки массива ---
+    // Удаляем старые обработчики, чтобы не было дублей
+    resultContainer.replaceWith(resultContainer.cloneNode(true));
+    const newResultContainer = document.getElementById('clientSearchResult'); // Получаем ссылку на новый элемент
+
+    try {
+        const result = await callApi('findClient', { searchTerm }); // callApi теперь возвращает весь объект
+        const data = result.data; // Получаем data из ответа
+
+        if (data && data.found && data.clients && data.clients.length > 0) {
+            const clientsHtml = data.clients.map(client => `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>${client.clientName}</strong>
+                        <br>
+                        <small class="text-muted">Менеджер: ${client.managerName || 'Не назначен'}</small>
+                    </div>
+                    <button class="btn btn-sm btn-success create-meeting-from-search-btn" data-client-name="${client.clientName}">
+                        Создать
+                    </button>
+                </li>
+            `).join('');
+
+            newResultContainer.innerHTML = `<ul class="list-group">${clientsHtml}</ul>`;
+
+        } else {
+            newResultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
+        }
+    } catch (e) {
+        newResultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
+    } finally {
+        toggleButtonSpinner(searchBtn, false);
+    }
+
+    // Используем делегирование событий для обработки кликов на кнопках "Создать"
+    newResultContainer.addEventListener('click', (e) => {
+        if (e.target && e.target.classList.contains('create-meeting-from-search-btn')) {
+            const clientName = e.target.dataset.clientName;
+            clientSearchModal.hide();
+            showAddForm();
+            document.getElementById('client-name').value = clientName;
+        }
+    });
+    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+}
                 } else {
                     resultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
                 }
