@@ -396,25 +396,34 @@
     }
 
     async function callApi(action, payload) {
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action, payload })
-            });
-            const result = await response.json();
-            if (!response.ok) {
-                throw new Error(result.message || `Ошибка сервера: ${response.status}`);
-            }
-            if (result.status === 'error') {
-                throw new Error(result.message);
-            }
-            return result.data;
-        } catch (e) {
-            console.error("API call failed:", e);
-            throw e.message ? e : new Error('Ошибка сети или ответа сервера.');
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, payload })
+        });
+        
+        // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+        if (!response.ok) {
+            // Если статус ответа - ошибка (например, 500), пытаемся прочитать тело ответа как текст
+            const errorText = await response.text(); 
+            // И выбрасываем ошибку, включая в нее и статус, и текст ответа
+            throw new Error(`Ошибка сервера: ${response.status}. Ответ: ${errorText}`);
         }
+        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+
+        const result = await response.json();
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
+        return result.data;
+
+    } catch (e) {
+        console.error("API call failed:", e);
+        // Ошибка теперь будет содержать больше деталей
+        throw e.message ? e : new Error('Ошибка сети или ответа сервера.');
     }
+}
     function onFailure(error, errorElement = null) {
         console.error(error);
         if (errorElement) {
