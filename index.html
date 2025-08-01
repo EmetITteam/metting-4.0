@@ -42,10 +42,11 @@
             border-radius: 50%;
             margin-right: 8px;
         }
-        .status-blue { background-color: #0d6efd; }
+        .status-blue { background-color: #0d6efd; } /* Для "Запланировано" */
         .status-green { background-color: #198754; }
         .status-orange { background-color: #fd7e14; }
         .status-gray { background-color: #6c757d; }
+        .status-red { background-color: #dc3545; } /* Для "Просрочено" */
         .report-btn-icon {
             font-size: 0.8em;
             vertical-align: middle;
@@ -545,121 +546,137 @@
         }
 
         function filterAndGroupMeetings() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
-            const dateGroups = {};
-            filtered.forEach(m => {
-                if (!dateGroups[m.Date]) {
-                    dateGroups[m.Date] = { 'В работе': [], 'Перенос': [], 'Завершена': [], 'Отмена': [] };
-                }
-                if (dateGroups[m.Date][m.Status]) {
-                    dateGroups[m.Date][m.Status].push(m);
-                }
-            });
-            meetingsList.innerHTML = '';
-            const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(a.split('.').reverse().join('-')) - new Date(b.split('.').reverse().join('-')));
-            
-            // --- НАЧАЛО ИЗМЕНЕНИЙ (УЛУЧШЕННЫЙ ПУСТОЙ ЭКРАН) ---
-            if (sortedDates.length === 0) {
-                meetingsList.innerHTML = `
-                    <div class="col-12 text-center p-5">
-                        <i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>
-                        <h4 class="mt-3">Встреч не найдено</h4>
-                        <p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p>
-                        <button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button>
-                    </div>`;
-                document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
-                return;
-            }
-            // --- КОНЕЦ ИЗМЕНЕНИЙ (УЛУЧШЕННЫЙ ПУСТОЙ ЭКРАН) ---
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
+    
+    const dateGroups = {};
+    // --- ИЗМЕНЕНИЕ: Добавлены новые статусы ---
+    const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
 
-            sortedDates.forEach(date => {
-                const dateTitle = document.createElement('h3');
-                // --- НАЧАЛО ИЗМЕНЕНИЙ (STICKY HEADER) ---
-                dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
-                // --- КОНЕЦ ИЗМЕНЕНИЙ (STICKY HEADER) ---
-                dateTitle.textContent = date;
-                meetingsList.appendChild(dateTitle);
-                const groups = dateGroups[date];
-                const groupOrder = ['В работе', 'Перенос', 'Завершена', 'Отмена'];
-                groupOrder.forEach(status => {
-                    if (groups[status].length > 0) {
-                        const groupTitle = document.createElement('h4');
-                        groupTitle.className = 'col-12 mt-3 text-muted';
-                        groupTitle.textContent = status;
-                        meetingsList.appendChild(groupTitle);
-                        groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
-                            const hasOutcomeData = (m.SurveyAnswers && m.SurveyAnswers.length > 2) || (m.PotentialData && m.PotentialData.length > 2);
-                            
-                            // --- НАЧАЛО ИЗМЕНЕНИЙ (КОНТЕКСТНОЕ МЕНЮ) ---
-                            let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
-                            dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
-                            if (m.Status !== 'Завершена' && m.Status !== 'Отмена') {
-                                dropdownItems += '<li><hr class="dropdown-divider"></li>';
-                                dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
-                                dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
-                            }
-                            const actionsMenu = `
-                                <div class="dropdown actions-dropdown">
-                                    <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        ${dropdownItems}
-                                    </ul>
-                                </div>`;
-                            // --- КОНЕЦ ИЗМЕНЕНИЙ (КОНТЕКСТНОЕ МЕНЮ) ---
+    filtered.forEach(m => {
+        let status = m.Status ? m.Status.trim() : '';
 
-                            let rescheduleInfo = '';
-                            if (m.Status === 'Перенос' && m.Comment) {
-                                rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
-                            }
-                            const statusColors = { 'В работе': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray' };
-                            const statusColor = statusColors[m.Status] || 'gray';
-                            
-                            let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
-                            if (m.ClientCategory) {
-                                const categoryColor = getCategoryColor(m.ClientCategory);
-                                clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
-                            }
+        // --- ИЗМЕНЕНИЕ: Добавлена нормализация для новых статусов ---
+        if (status === 'Завершено') status = 'Завершена';
+        if (status === 'Отменено') status = 'Отмена';
 
-                            const cardWrapper = document.createElement('div');
-                            cardWrapper.className = "col-12 col-md-6";
-                            // --- НАЧАЛО ИЗМЕНЕНИЙ (ОБНОВЛЕНИЕ РАЗМЕТКИ КАРТОЧКИ) ---
-                            cardWrapper.innerHTML = `
-                                <div class="card meeting-card shadow-sm">
-                                    <div class="card-body d-flex flex-column">
-                                        <a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
-                                        <div class="flex-grow-1">
-                                            <h5 class="card-title d-flex justify-content-between align-items-center">
-                                                ${clientTitle}
-                                                <button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button>
-                                            </h5>
-                                            <p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>
-                                            <p class="card-text mb-1"><small class="text-muted">Адрес: ${m.Location || 'Не указан'}</small></p>
-                                            <p class="card-text mt-3"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
-                                            ${rescheduleInfo}
-                                        </div>
-                                        <div class="d-flex justify-content-end mt-3">
-                                            ${actionsMenu}
-                                        </div>
-                                    </div>
-                                </div>`;
-                             // --- КОНЕЦ ИЗМЕНЕНИЙ (ОБНОВЛЕНИЕ РАЗМЕТКИ КАРТОЧКИ) ---
-                            meetingsList.appendChild(cardWrapper);
-                        });
-                    }
-                });
-            });
-            // Переназначаем обработчики событий для новых кнопок
-            document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
-            document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
-            document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
-            document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
-            document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
-            document.querySelectorAll('.report-btn-icon').forEach(btn => btn.addEventListener('click', handleReportClick));
-            window.scrollTo(0, 0);
+        if (!validStatuses.includes(status)) {
+            status = 'В работе';
         }
+
+        // --- ИЗМЕНЕНИЕ: Добавлены ключи для новых статусов ---
+        if (!dateGroups[m.Date]) {
+            dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершена': [], 'Отмена': [], 'Просрочено': [] };
+        }
+        
+        // Корректно добавляем встречу в нужную группу
+        if (dateGroups[m.Date][status]) {
+            dateGroups[m.Date][status].push(m);
+        } else {
+             // На случай, если статус прошел валидацию, но его нет в инициализации (защита)
+            dateGroups[m.Date]['В работе'].push(m);
+        }
+    });
+
+    meetingsList.innerHTML = '';
+    const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(a.split('.').reverse().join('-')) - new Date(b.split('.').reverse().join('-')));
+    
+    if (sortedDates.length === 0) {
+        meetingsList.innerHTML = `
+            <div class="col-12 text-center p-5">
+                <i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>
+                <h4 class="mt-3">Встреч не найдено</h4>
+                <p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p>
+                <button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button>
+            </div>`;
+        document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
+        return;
+    }
+
+    sortedDates.forEach(date => {
+        const dateTitle = document.createElement('h3');
+        dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
+        dateTitle.textContent = date;
+        meetingsList.appendChild(dateTitle);
+        const groups = dateGroups[date];
+        // --- ИЗМЕНЕНИЕ: Новый порядок отображения групп ---
+        const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершена', 'Отмена'];
+        
+        groupOrder.forEach(status => {
+            if (groups[status] && groups[status].length > 0) {
+                const groupTitle = document.createElement('h4');
+                groupTitle.className = 'col-12 mt-3 text-muted';
+                groupTitle.textContent = status;
+                meetingsList.appendChild(groupTitle);
+                groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
+                    let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
+                    dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
+                    
+                    const cleanStatus = m.Status ? m.Status.trim() : '';
+                    // --- ИЗМЕНЕНИЕ: Кнопки скрываются и для статуса "Просрочено" ---
+                    if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
+                        dropdownItems += '<li><hr class="dropdown-divider"></li>';
+                        dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
+                        dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
+                    }
+                    const actionsMenu = `
+                        <div class="dropdown actions-dropdown">
+                            <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                ${dropdownItems}
+                            </ul>
+                        </div>`;
+
+                    let rescheduleInfo = '';
+                    if (m.Status === 'Перенос' && m.Comment) {
+                        rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
+                    }
+                    // --- ИЗМЕНЕНИЕ: Добавлены цвета для новых статусов ---
+                    const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
+                    const statusColor = statusColors[cleanStatus] || 'gray';
+                    
+                    let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
+                    if (m.ClientCategory) {
+                        const categoryColor = getCategoryColor(m.ClientCategory);
+                        clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
+                    }
+
+                    const cardWrapper = document.createElement('div');
+                    cardWrapper.className = "col-12 col-md-6";
+                    cardWrapper.innerHTML = `
+                        <div class="card meeting-card">
+                            <div class="card-body">
+                                <div class="card-actions-container">
+                                    <a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
+                                    ${actionsMenu}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title d-flex justify-content-between align-items-center">
+                                        ${clientTitle}
+                                        <button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button>
+                                    </h5>
+                                    ${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}
+                                    <p class="card-text mb-1"><small class="text-muted">Адрес: ${m.Location || 'Не указан'}</small></p>
+                                    <p class="card-text mt-3"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
+                                    ${rescheduleInfo}
+                                </div>
+                            </div>
+                        </div>`;
+                    meetingsList.appendChild(cardWrapper);
+                });
+            }
+        });
+    });
+    document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
+    document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
+    document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
+    document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
+    document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
+    document.querySelectorAll('.report-btn-icon').forEach(btn => btn.addEventListener('click', handleReportClick));
+    window.scrollTo(0, 0);
+}
 
         // --- УПРАВЛЕНИЕ ФОРМАМИ И МОДАЛЬНЫМИ ОКНАМИ ---
         function handleFormSubmit(e) {
