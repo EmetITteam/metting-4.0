@@ -453,10 +453,10 @@
        function onLoginSuccess(result) {
     console.log("Ответ от сервера при логине:", result);
 
-    // --- НАЧАЛО ИСПРАВЛЕНИЯ: Проверка на пустые данные ---
+    // --- НАЧАЛО ИСПРАВЛЕНИЯ: Проверка на пустые данные от 1С ---
     if (!result || !result.login) {
         onFailure(
-            new Error("Авторизация не удалась: сервер вернул некорректные данные."),
+            new Error("Авторизация не удалась: сервер 1С вернул пустые данные пользователя."),
             document.getElementById('login-error')
         );
         toggleButtonSpinner(document.getElementById('login-button'), false);
