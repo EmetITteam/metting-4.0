@@ -6,33 +6,7 @@ export default async function handler(request, response) {
         return response.status(405).json({ message: 'Only POST requests allowed' });
     }
 
-    const { action, payload } = request.body;
-    let dataToSendToOneC;
-
-    // --- НАЧАЛО ИЗМЕНЕНИЙ: Индивидуальная обработка каждого действия ---
-    // Используем switch, чтобы создавать правильный JSON для каждого запроса
-    switch (action) {
-        case 'login':
-            dataToSendToOneC = {
-                login: payload.login,
-                password: payload.password
-            };
-            break;
-        
-        case 'getInitialData':
-            dataToSendToOneC = {
-                login: payload.login,
-                startDateString: payload.startDateString,
-                endDateString: payload.endDateString
-            };
-            break;
-
-        // Для всех остальных действий по умолчанию отправляем только payload
-        default:
-            dataToSendToOneC = payload;
-            break;
-    }
-    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+  const dataToSendToOneC = request.body;
 
     try {
         console.log(`Отправка в 1С для действия "${action}":`, JSON.stringify(dataToSendToOneC, null, 2));
