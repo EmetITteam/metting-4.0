@@ -1,1961 +1,1067 @@
 <!DOCTYPE html>
-
 <html lang="ru">
 
-
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Emet CRM Встречи</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
-
-    <script src="https://unpkg.com/imask"></script>
-
-    <style>
-
-        body {
-
-            background-color: #f8f9fa;
-
-        }
-
-        .meeting-card {
-
-            height: 100%;
-
-            position: relative;
-
-        }
-
-        .toast-container {
-
-            z-index: 1100;
-
-        }
-
-        .app-logo {
-
-            max-height: 50px;
-
-            width: auto;
-
-        }
-
-        .edit-icon-btn {
-
-            position: absolute;
-
-            top: 10px;
-
-            right: 10px;
-
-            font-size: 1.3rem;
-
-            color: #6c757d;
-
-            text-decoration: none;
-
-        }
-
-        .edit-icon-btn:hover {
-
-            color: #0d6efd;
-
-        }
-
-        .status-dot {
-
-            display: inline-block;
-
-            width: 10px;
-
-            height: 10px;
-
-            border-radius: 50%;
-
-            margin-right: 8px;
-
-        }
-
-        .status-blue { background-color: #0d6efd; } /* Для "Запланировано" */
-
-        .status-green { background-color: #198754; }
-
-        .status-orange { background-color: #fd7e14; }
-
-        .status-gray { background-color: #6c757d; }
-
-        .status-red { background-color: #dc3545; } /* Для "Просрочено" */
-
-        .report-btn-icon {
-
-            font-size: 0.8em;
-
-            vertical-align: middle;
-
-            margin-left: 5px;
-
-        }
-
-        .skeleton-card {
-
-            background-color: #e9ecef;
-
-            border-radius: 0.375rem;
-
-            height: 200px;
-
-            animation: pulse 1.5s infinite ease-in-out;
-
-        }
-
-        @keyframes pulse {
-
-            0% { opacity: 1; }
-
-            50% { opacity: 0.5; }
-
-            100% { opacity: 1; }
-
-        }
-
-        /* --- НАЧАЛО ИЗМЕНЕНИЙ (СТИЛИ) --- */
-
-        .date-header {
-
-            position: sticky;
-
-            top: -1px;
-
-            background-color: #f8f9fa;
-
-            z-index: 10;
-
-            padding-top: 0.5rem;
-
-            padding-bottom: 0.5rem;
-
-        }
-
-        .actions-dropdown .dropdown-toggle::after {
-
-            display: none;
-
-        }
-
-        /* --- КОНЕЦ ИЗМЕНЕНИЙ (СТИЛИ) --- */
-
-    </style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emet CRM Встречи</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+    <script src="https://unpkg.com/imask"></script>
+    <script src="https://cdn.lordicon.com/lordicon.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bs-primary: #0d6efd;
+            --bs-primary-rgb: 13, 110, 253;
+            --bs-body-bg: #f7f9fc;
+            --bs-border-color: #dee2e6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bs-body-bg);
+        }
+
+        #main-app, #admin-dashboard, #login-screen .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.07);
+        }
+        
+        #login-screen .card {
+            border: none;
+        }
+
+        .btn-primary {
+             box-shadow: 0 2px 8px -1px rgba(var(--bs-primary-rgb), 0.4);
+        }
+
+        .meeting-card {
+            height: 100%;
+            position: relative;
+            background-color: #ffffff;
+            border: 1px solid var(--bs-border-color);
+            border-top: 4px solid var(--bs-primary);
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .meeting-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        .card-title {
+            color: #212529;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.35em 0.65em;
+            font-size: .75em;
+            font-weight: 700;
+            line-height: 1;
+            color: #fff;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.375rem;
+        }
+        .status-blue { background-color: #0d6efd; }
+        .status-green { background-color: #198754; }
+        .status-orange { background-color: #fd7e14; }
+        .status-gray { background-color: #6c757d; }
+        .status-red { background-color: #dc3545; }
+
+        #main-app > header, #admin-dashboard > header {
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            transition: all 0.3s ease-in-out;
+            padding-top: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        .header-scrolled {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 0 !important;
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+        }
+        .header-scrolled .app-logo {
+            max-height: 40px;
+        }
+
+        .view-section {
+            transition: opacity 0.25s ease-in-out;
+        }
+        .view-section.is-hiding {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .toast-container { z-index: 1100; }
+        .app-logo { max-height: 50px; width: auto; transition: max-height 0.3s ease-in-out; }
+        .card-actions-container { position: absolute; top: 1rem; right: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .edit-icon-btn { font-size: 1.3rem; color: #6c757d; text-decoration: none; line-height: 1; }
+        .edit-icon-btn:hover { color: var(--bs-primary); }
+        .skeleton-card { background-color: #e9ecef; border-radius: 0.375rem; height: 200px; animation: pulse 1.5s infinite ease-in-out; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .date-header { position: sticky; top: -1px; background-color: var(--bs-body-bg); z-index: 10; padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .actions-dropdown .dropdown-toggle::after { display: none; }
+    </style>
 </head>
 
-
-
 <body>
-
-    <div class="toast-container position-fixed top-0 end-0 p-3">
-
-        <div id="appToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-
-            <div class="d-flex">
-
-                <div class="toast-body"></div>
-
-                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-    <div class="container my-3 my-md-4">
-
-        <div id="login-screen">
-
-            <div class="row justify-content-center">
-
-                <div class="col-12 col-md-8 col-lg-6">
-
-                    <div class="card shadow-sm border-0">
-
-                        <div class="card-body p-4">
-
-                            <h1 class="card-title text-center h3 mb-4">Вход в систему</h1>
-
-                            <form id="login-form">
-
-                                <div class="mb-3">
-
-                                    <label for="username" class="form-label">Имя пользователя:</label>
-
-                                    <input type="text" id="username" class="form-control" required>
-
-                                </div>
-
-                                <div class="mb-3">
-
-                                    <label for="password" class="form-label">Пароль:</label>
-
-                                    <input type="password" id="password" class="form-control" required>
-
-                                </div>
-
-                                <button type="submit" id="login-button" class="btn btn-primary w-100 py-2">Войти</button>
-
-                                <p id="login-error" class="text-danger text-center mt-3 d-none"></p>
-
-                            </form>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-
-        <div id="main-app" class="d-none">
-
-            <header class="mb-4 pb-3 border-bottom">
-
-                <div class="text-center mb-4">
-
-                    <img src="https://links.emet.in.ua/wp-content/uploads/2025/07/logo_dark-scaled.png" alt="Логотип" class="app-logo">
-
-                    <h1 class="h4 mt-2 mb-0">Рабочий стол. Встречи</h1>
-
-                </div>
-
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-
-                    <h2 id="manager-header" class="h5 mb-3 mb-md-0"></h2>
-
-                    <div class="d-flex gap-2 justify-content-center">
-
-                        <button id="show-add-form-btn" class="btn btn-primary">Создать встречу</button>
-
-                        <button id="show-client-search-btn" class="btn btn-outline-primary">Поиск контрагента</button>
-
-                        <button id="logout-btn" class="btn btn-secondary">Выйти</button>
-
-                    </div>
-
-                </div>
-
-            </header>
-
-
-
-            <main id="view-meetings">
-
-                <div class="row g-3 mb-4 p-3 bg-light border rounded-3 align-items-end">
-
-                    <div class="col-lg-5">
-
-                        <label for="searchInput" class="form-label">Поиск по клиенту</label>
-
-                        <input type="text" id="searchInput" class="form-control">
-
-                    </div>
-
-                    <div class="col-lg-5">
-
-                        <label for="dateRangeFilter" class="form-label">Период</label>
-
-                        <input type="text" id="dateRangeFilter" class="form-control">
-
-                    </div>
-
-                    <div class="col-lg-2">
-
-                        <button id="resetFiltersBtn" class="btn btn-outline-secondary w-100 mt-3 mt-lg-0">Сегодня</button>
-
-                    </div>
-
-                </div>
-
-                <div id="meetings-list" class="row g-3"></div>
-
-            </main>
-
-
-
-            <section id="form-section" class="d-none mt-4">
-
-                <h2 id="form-title" class="h3 mb-3 text-center">Новая встреча</h2>
-
-                <form id="meeting-form" class="p-4 bg-light border rounded-3">
-
-                    <input type="hidden" id="meeting-id">
-
-                    <div class="row g-3">
-
-                        <div class="col-12">
-
-                            <label for="meeting-date" class="form-label">Дата:</label>
-
-                            <div class="input-group">
-
-                                <input type="date" id="meeting-date" class="form-control" required>
-
-                                <button type="button" class="btn btn-outline-secondary" id="todayBtn">Сегодня</button>
-
-                                <button type="button" class="btn btn-outline-secondary" id="tomorrowBtn">Завтра</button>
-
-                            </div>
-
-                        </div>
-
-                        <div class="col-12">
-
-                            <label for="meeting-time" class="form-label">Время:</label>
-
-                            <input type="time" id="meeting-time" class="form-control" required>
-
-                        </div>
-
-                        <div class="col-12">
-
-                            <label for="client-name" class="form-label">Клиент:</label>
-
-                            <input type="text" id="client-name" class="form-control" required>
-
-                        </div>
-
-                        <div class="col-12">
-
-                            <label for="purpose" class="form-label">Цель:</label>
-
-                            <select id="purpose" class="form-select" required></select>
-
-                        </div>
-
-                        <div class="col-md-6">
-
-                            <label for="phone" class="form-label">Телефон:</label>
-
-                            <input type="tel" id="phone" class="form-control" required>
-
-                        </div>
-
-                        <div class="col-md-6">
-
-                            <label for="status" class="form-label">Статус:</label>
-
-                            <select id="status" class="form-select">
-
-                                <option value="В работе">В работе</option>
-
-                                <option value="Завершена">Завершена</option>
-
-                                <option value="Перенос">Перенос</option>
-
-                                <option value="Отмена">Отмена</option>
-
-                            </select>
-
-                        </div>
-
-                        <div class="col-12">
-
-                            <label for="location" class="form-label">Геолокация:</label>
-
-                            <div class="input-group">
-
-                                <input type="text" id="location" class="form-control">
-
-                                <button class="btn btn-outline-secondary" type="button" id="get-location-btn">📍 Определить</button>
-
-                            </div>
-
-                            <input type="hidden" id="location-lat">
-
-                            <input type="hidden" id="location-lon">
-
-                        </div>
-
-                    </div>
-
-                    <div class="d-flex gap-2 mt-4">
-
-                        <button type="submit" id="save-button" class="btn btn-primary">Сохранить</button>
-
-                        <button type="button" id="cancel-btn" class="btn btn-secondary">Отмена</button>
-
-                    </div>
-
-                </form>
-
-            </section>
-
-        </div>
-
-
-
-        <div id="admin-dashboard" class="d-none">
-
-            <header class="mb-4 pb-3 border-bottom">
-
-                <div class="text-center mb-4">
-
-                    <img src="https://links.emet.in.ua/wp-content/uploads/2025/07/logo_dark-scaled.png" alt="Логотип" class="app-logo">
-
-                    <h1 class="h4 mt-2 mb-0">Панель Администратора</h1>
-
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <h2 id="admin-header" class="h5"></h2>
-
-                    <button id="admin-logout-btn" class="btn btn-secondary">Выйти</button>
-
-                </div>
-
-            </header>
-
-            <main>
-
-                <div class="row g-3 mb-4 p-3 bg-light border rounded-3 align-items-end">
-
-                    <div class="col-lg-10">
-
-                        <label for="adminDateRangeFilter" class="form-label">Период для статистики</label>
-
-                        <input type="text" id="adminDateRangeFilter" class="form-control">
-
-                    </div>
-
-                    <div class="col-lg-2">
-
-                        <button id="adminRefreshBtn" class="btn btn-primary w-100 mt-3 mt-lg-0">Обновить</button>
-
-                    </div>
-
-                </div>
-
-                <div id="stats-container" class="row g-4"></div>
-
-            </main>
-
-        </div>
-
-    </div>
-
-
-
-    <div class="modal fade" id="reportModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5" id="reportModalTitle">Отчет по клиенту</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="reportModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
-
-    <div class="modal fade" id="outcomeModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Итоги встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><nav><div class="nav nav-tabs" id="nav-tab" role="tablist"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#nav-potential" type="button">Потенциал</button><button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-comments" type="button">Комментарии и Вопросы</button></div></nav><div class="tab-content p-3 border border-top-0 rounded-bottom"><div class="tab-pane fade show active" id="nav-potential" role="tabpanel"><div id="potentialCategories"></div></div><div class="tab-pane fade" id="nav-comments" role="tabpanel"><div class="mb-3"><label for="meetingComment" class="form-label">Общий комментарий:</label><textarea class="form-control" id="meetingComment" rows="3"></textarea></div><hr><h6>Ответы на вопросы:</h6><div id="surveyQuestions"></div></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveOutcomeBtn">Сохранить итоги</button></div></div></div></div>
-
-    <div class="modal fade" id="rescheduleModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Перенос встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Укажите новую дату и время.</p><div class="mb-3"><label for="newMeetingDate" class="form-label">Новая дата</label><input type="date" class="form-control" id="newMeetingDate" required></div><div><label for="newMeetingTime" class="form-label">Новое время</label><input type="time" class="form-control" id="newMeetingTime" required></div><div id="rescheduleError" class="text-danger mt-2 d-none"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveRescheduleBtn">Перенести</button></div></div></div></div>
-
-    <div class="modal fade" id="cancelConfirmModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Подтверждение</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Вы уверены, что хотите отменить изменения?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Остаться</button><button type="button" class="btn btn-danger" id="confirmCancelBtn">Отменить изменения</button></div></div></div></div>
-
-    <div class="modal fade" id="clientSearchModal" tabindex="-1">
-
-        <div class="modal-dialog modal-dialog-centered">
-
-            <div class="modal-content">
-
-                <div class="modal-header">
-
-                    <h1 class="modal-title fs-5">Поиск контрагента</h1>
-
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-
-                </div>
-
-                <div class="modal-body">
-
-                    <p>Введите номер телефона или ФИО для поиска клиента в базе 1С.</p>
-
-                    <div class="input-group mb-3">
-
-                        <input type="text" class="form-control" id="clientSearchInput" placeholder="Телефон или ФИО...">
-
-                        <button class="btn btn-primary" type="button" id="clientSearchBtn">Найти</button>
-
-                    </div>
-
-                    <div id="clientSearchResult" class="mt-3"></div>
-
-                </div>
-
-                <div class="modal-footer">
-
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
-
-    <script>
-
-        const API_URL = "/api/handler";
-
-        const HIDDEN_CLASS = 'd-none';
-
-
-
-        let currentUser = null,
-
-            allMeetings = [],
-
-            currentEditingMeeting = null;
-
-        let meetingToReschedule = null,
-
-            activeMeetingId = null;
-
-        let questions = [],
-
-            potentialCategories = [];
-
-
-
-        const meetingsList = document.getElementById('meetings-list');
-
-        const rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
-
-        const cancelConfirmModal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
-
-        const outcomeModal = new bootstrap.Modal(document.getElementById('outcomeModal'));
-
-        const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
-
-        const clientSearchModal = new bootstrap.Modal(document.getElementById('clientSearchModal'));
-
-        const appToast = new bootstrap.Toast(document.getElementById('appToast'));
-
-        
-
-        let datePicker = null;
-
-        let adminDatePicker = null;
-
-        let phoneMask = null;
-
-        let searchMask = null;
-
-
-
-        document.addEventListener('DOMContentLoaded', () => {
-
-            datePicker = new Litepicker({
-
-                element: document.getElementById('dateRangeFilter'),
-
-                singleMode: false,
-
-                format: 'DD.MM.YYYY',
-
-                lang: 'ru-RU',
-
-                setup: (picker) => {
-
-                    picker.on('selected', (date1, date2) => {
-
-                        if (date1 && date2) {
-
-                            const startDate = formatDateToYYYYMMDD(date1.toJSDate());
-
-                            const endDate = formatDateToYYYYMMDD(date2.toJSDate());
-
-                            loadInitialData(startDate, endDate);
-
-                        }
-
-                    });
-
-                }
-
-            });
-
-            adminDatePicker = new Litepicker({
-
-                element: document.getElementById('adminDateRangeFilter'),
-
-                singleMode: false,
-
-                format: 'DD.MM.YYYY',
-
-                lang: 'ru-RU'
-
-            });
-
-             const phoneInput = document.getElementById('phone');
-
-            phoneMask = IMask(phoneInput, {
-
-                mask: '+{38} (000) 000-00-00'
-
-            });
-
-            const searchInput = document.getElementById('clientSearchInput');
-
-            searchMask = IMask(searchInput, {
-
-                mask: [
-
-                    {
-
-                        mask: '+{38} (000) 000-00-00',
-
-                        startsWith: '380',
-
-                        lazy: false
-
-                    },
-
-                    {
-
-                        mask: /.*/
-
-                    }
-
-                ]
-
-            });
-
-
-
-            function checkActiveSession() {
-
-                const savedSession = localStorage.getItem('crm_session');
-
-                if (!savedSession) return;
-
-
-
-                const session = JSON.parse(savedSession);
-
-                const oneDay = 24 * 60 * 60 * 1000;
-
-                const isSessionExpired = (new Date().getTime() - session.loginTime) > oneDay;
-
-
-
-                if (isSessionExpired) {
-
-                    localStorage.removeItem('crm_session');
-
-                    return;
-
-                }
-
-                onLoginSuccess({ login: session.user, role: session.role });
-
-            }
-
-            checkActiveSession();
-
-
-
-            // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
-
-            document.getElementById('login-form').addEventListener('submit', handleLogin);
-
-            document.getElementById('logout-btn').addEventListener('click', handleLogout);
-
-            document.getElementById('admin-logout-btn').addEventListener('click', handleLogout);
-
-            document.getElementById('show-add-form-btn').addEventListener('click', showAddForm);
-
-            document.getElementById('meeting-form').addEventListener('submit', handleFormSubmit);
-
-            document.getElementById('cancel-btn').addEventListener('click', handleCancelClick);
-
-            document.getElementById('confirmCancelBtn').addEventListener('click', () => {
-
-                cancelConfirmModal.hide();
-
-                showForm(false);
-
-            });
-
-            document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
-
-            document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
-
-            document.getElementById('searchInput').addEventListener('input', filterAndGroupMeetings);
-
-            document.getElementById('resetFiltersBtn').addEventListener('click', () => {
-
-                document.getElementById('searchInput').value = '';
-
-                datePicker.setDateRange(new Date(), new Date());
-
-            });
-
-            document.getElementById('get-location-btn').addEventListener('click', handleGetLocationClick);
-
-            document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
-
-            document.getElementById('saveOutcomeBtn').addEventListener('click', handleSaveOutcome);
-
-            document.getElementById('adminRefreshBtn').addEventListener('click', loadAdminStats);
-
-            document.getElementById('show-client-search-btn').addEventListener('click', () => {
-
-                document.getElementById('clientSearchInput').value = '';
-
-                document.getElementById('clientSearchResult').innerHTML = '';
-
-                if (searchMask) searchMask.updateValue();
-
-                clientSearchModal.show();
-
-            });
-
-            document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
-
-            document.getElementById('clientSearchInput').addEventListener('keypress', (e) => {
-
-                if (e.key === 'Enter') handleClientSearch();
-
-            });
-
-        });
-
-
-
-        // --- УТИЛИТЫ ---
-
-        function getTodayDateString() { return formatDateToYYYYMMDD(new Date()); }
-
-        function getTomorrowDateString() { const t = new Date(); t.setDate(t.getDate() + 1); return formatDateToYYYYMMDD(t); }
-
-        function formatDateToYYYYMMDD(date) {
-
-            const y = date.getFullYear();
-
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-
-            const d = String(date.getDate()).padStart(2, '0');
-
-            return `${y}-${m}-${d}`;
-
-        }
-
-        function toggleButtonSpinner(btn, show) {
-
-            if (show) {
-
-                btn.disabled = true;
-
-                btn.dataset.originalText = btn.innerHTML;
-
-                btn.innerHTML = `<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>`;
-
-            } else {
-
-                btn.disabled = false;
-
-                btn.innerHTML = btn.dataset.originalText || '';
-
-            }
-
-        }
-
-        function showToast(message) {
-
-            document.querySelector('#appToast .toast-body').textContent = message;
-
-            appToast.show();
-
-        }
-
-        function getCategoryColor(categoryName) {
-
-            if (!categoryName) return '#6c757d';
-
-            const lowerCategory = categoryName.toLowerCase();
-
-            if (lowerCategory.includes('vip')) return '#ffc107';
-
-            if (lowerCategory.includes('новый')) return '#0d6efd';
-
-            if (lowerCategory.includes('постоянный')) return '#198754';
-
-            if (lowerCategory.includes('проблемный')) return '#dc3545';
-
-            return '#6c757d';
-
-        }
-
-
-
-        // --- API ---
-
-        async function callApi(action, payload) {
-
-            try {
-
-                const response = await fetch(API_URL, {
-
-                    method: 'POST',
-
-                    headers: { 'Content-Type': 'application/json' },
-
-                    body: JSON.stringify({ action, payload })
-
-                });
-
-                const result = await response.json();
-
-                if (!response.ok) {
-
-                    throw new Error(result.message || `Ошибка сервера: ${response.status}`);
-
-                }
-
-                if (result.status === 'error') {
-
-                    throw new Error(result.message);
-
-                }
-
-                return result.data;
-
-            } catch (e) {
-
-                console.error("API call failed:", e);
-
-                throw e.message ? e : new Error('Ошибка сети или ответа сервера.');
-
-            }
-
-        }
-
-        function onFailure(error, errorElement = null) {
-
-            console.error(error);
-
-            if (errorElement) {
-
-                errorElement.textContent = error.message;
-
-                errorElement.classList.remove(HIDDEN_CLASS);
-
-            } else {
-
-                showToast('Ошибка: ' + error.message);
-
-            }
-
-        }
-
-
-
-        // --- ОСНОВНАЯ ЛОГИКА ---
-
-        function handleLogin(e) {
-
-            e.preventDefault();
-
-            const loginBtn = document.getElementById('login-button');
-
-            toggleButtonSpinner(loginBtn, true);
-
-            const loginError = document.getElementById('login-error');
-
-            loginError.classList.add(HIDDEN_CLASS);
-
-            const payload = { login: document.getElementById('username').value, password: document.getElementById('password').value };
-
-            callApi('login', payload).then(onLoginSuccess).catch(err => {
-
-                onFailure(err, loginError);
-
-                document.getElementById('password').value = '';
-
-            }).finally(() => {
-
-                toggleButtonSpinner(loginBtn, false);
-
-            });
-
-        }
-
-
-
-        function onLoginSuccess(result) {
-
-            currentUser = result.login;
-
-            const userRole = result.role;
-
-
-
-            const session = {
-
-                user: currentUser,
-
-                role: userRole,
-
-                loginTime: new Date().getTime()
-
-            };
-
-            localStorage.setItem('crm_session', JSON.stringify(session));
-
-            
-
-            document.getElementById('login-screen').classList.add(HIDDEN_CLASS);
-
-            if (userRole === 'admin') {
-
-                document.getElementById('admin-header').textContent = `Администратор: ${currentUser}`;
-
-                document.getElementById('main-app').classList.add(HIDDEN_CLASS);
-
-                document.getElementById('admin-dashboard').classList.remove(HIDDEN_CLASS);
-
-                adminDatePicker.setDateRange(new Date(), new Date());
-
-                loadAdminStats();
-
-            } else {
-
-                document.getElementById('manager-header').textContent = `Менеджер: ${currentUser}`;
-
-                document.getElementById('admin-dashboard').classList.add(HIDDEN_CLASS);
-
-                document.getElementById('main-app').classList.remove(HIDDEN_CLASS);
-
-                datePicker.setDateRange(new Date(), new Date());
-
-            }
-
-        }
-
-
-
-        function handleLogout() {
-
-            localStorage.removeItem('crm_session');
-
-            window.location.reload(); 
-
-        }
-
-        
-
-        async function loadAdminStats() {
-
-            const statsContainer = document.getElementById('stats-container');
-
-            statsContainer.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
-
-            const startDate = adminDatePicker.getStartDate()?.toJSDate();
-
-            const endDate = adminDatePicker.getEndDate()?.toJSDate();
-
-            if (!startDate || !endDate) {
-
-                statsContainer.innerHTML = '<p class="text-center text-danger">Выберите период</p>';
-
-                return;
-
-            }
-
-            try {
-
-                const payload = {
-
-                    startDateString: formatDateToYYYYMMDD(startDate),
-
-                    endDateString: formatDateToYYYYMMDD(endDate)
-
-                };
-
-                const stats = await callApi('getAdminStats', payload);
-
-                displayAdminStats(stats);
-
-            } catch (e) {
-
-                onFailure(e);
-
-            }
-
-        }
-
-
-
-        function displayAdminStats(stats) {
-
-            const statsContainer = document.getElementById('stats-container');
-
-            statsContainer.innerHTML = `<div class="col-md-4"><div class="card text-center h-100"><div class="card-body"><h5 class="card-title">Всего встреч</h5><p class="card-text fs-1 fw-bold">${stats.totalMeetings}</p></div></div></div><div class="col-md-4"><div class="card h-100"><div class="card-header">По статусам</div><ul class="list-group list-group-flush">${Object.entries(stats.statusCounts).map(([status, count]) => `<li class="list-group-item d-flex justify-content-between align-items-center">${status}<span class="badge bg-primary rounded-pill">${count}</span></li>`).join('')}</ul></div></div><div class="col-md-4"><div class="card h-100"><div class="card-header">По менеджерам</div><ul class="list-group list-group-flush">${Object.entries(stats.managerCounts).map(([manager, count]) => `<li class="list-group-item d-flex justify-content-between align-items-center">${manager}<span class="badge bg-primary rounded-pill">${count}</span></li>`).join('')}</ul></div></div>`;
-
-        }
-
-
-
-
-
-        // --- ЗАГРУЗКА И ОТОБРАЖЕНИЕ ДАННЫХ ---
-
-        function loadInitialData(startDateString, endDateString) {
-
-            let skeletonHTML = '';
-
-            for (let i = 0; i < 4; i++) {
-
-                skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
-
-            }
-
-            meetingsList.innerHTML = skeletonHTML;
-
-            const payload = { login: currentUser, startDateString, endDateString };
-
-            callApi('getInitialData', payload)
-
-                .then(onDataLoaded)
-
-                .catch(err => {
-
-                    onFailure(err);
-
-                    meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
-
-                });
-
-        }
-
-
-
-        function onDataLoaded(data) {
-
-            allMeetings = data.meetings;
-
-            questions = data.questions || [];
-
-            potentialCategories = data.potentialCategories || [];
-
-            populatePurposes(data.purposes);
-
-            filterAndGroupMeetings();
-
-        }
-
-
-
-        function populatePurposes(purposes) {
-
-            const purposeSelect = document.getElementById('purpose');
-
-            purposeSelect.innerHTML = '<option value="">-- Выберите цель --</option>';
-
-            if (purposes && Array.isArray(purposes)) {
-
-                purposes.forEach(p => {
-
-                    purposeSelect.innerHTML += `<option value="${p.Purpose}">${p.Purpose}</option>`;
-
-                });
-
-            }
-
-        }
-
-
-
-        function filterAndGroupMeetings() {
-
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-
-    const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
-
-    
-
-    const dateGroups = {};
-
-    // --- ИЗМЕНЕНИЕ: Добавлены новые статусы ---
-
-    const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
-
-
-
-    filtered.forEach(m => {
-
-        let status = m.Status ? m.Status.trim() : '';
-
-
-
-        // --- ИЗМЕНЕНИЕ: Добавлена нормализация для новых статусов ---
-
-        if (status === 'Завершено') status = 'Завершена';
-
-        if (status === 'Отменено') status = 'Отмена';
-
-
-
-        if (!validStatuses.includes(status)) {
-
-            status = 'В работе';
-
-        }
-
-
-
-        // --- ИЗМЕНЕНИЕ: Добавлены ключи для новых статусов ---
-
-        if (!dateGroups[m.Date]) {
-
-            dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершена': [], 'Отмена': [], 'Просрочено': [] };
-
-        }
-
-        
-
-        // Корректно добавляем встречу в нужную группу
-
-        if (dateGroups[m.Date][status]) {
-
-            dateGroups[m.Date][status].push(m);
-
-        } else {
-
-             // На случай, если статус прошел валидацию, но его нет в инициализации (защита)
-
-            dateGroups[m.Date]['В работе'].push(m);
-
-        }
-
-    });
-
-
-
-    meetingsList.innerHTML = '';
-
-    const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(a.split('.').reverse().join('-')) - new Date(b.split('.').reverse().join('-')));
-
-    
-
-    if (sortedDates.length === 0) {
-
-        meetingsList.innerHTML = `
-
-            <div class="col-12 text-center p-5">
-
-                <i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>
-
-                <h4 class="mt-3">Встреч не найдено</h4>
-
-                <p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p>
-
-                <button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button>
-
-            </div>`;
-
-        document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
-
-        return;
-
-    }
-
-
-
-    sortedDates.forEach(date => {
-
-        const dateTitle = document.createElement('h3');
-
-        dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
-
-        dateTitle.textContent = date;
-
-        meetingsList.appendChild(dateTitle);
-
-        const groups = dateGroups[date];
-
-        // --- ИЗМЕНЕНИЕ: Новый порядок отображения групп ---
-
-        const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершена', 'Отмена'];
-
-        
-
-        groupOrder.forEach(status => {
-
-            if (groups[status] && groups[status].length > 0) {
-
-                const groupTitle = document.createElement('h4');
-
-                groupTitle.className = 'col-12 mt-3 text-muted';
-
-                groupTitle.textContent = status;
-
-                meetingsList.appendChild(groupTitle);
-
-                groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
-
-                    let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
-
-                    dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
-
-                    
-
-                    const cleanStatus = m.Status ? m.Status.trim() : '';
-
-                    // --- ИЗМЕНЕНИЕ: Кнопки скрываются и для статуса "Просрочено" ---
-
-                    if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
-
-                        dropdownItems += '<li><hr class="dropdown-divider"></li>';
-
-                        dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
-
-                        dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
-
-                    }
-
-                    const actionsMenu = `
-
-                        <div class="dropdown actions-dropdown">
-
-                            <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-
-                                <i class="bi bi-three-dots-vertical"></i>
-
-                            </button>
-
-                            <ul class="dropdown-menu dropdown-menu-end">
-
-                                ${dropdownItems}
-
-                            </ul>
-
-                        </div>`;
-
-
-
-                    let rescheduleInfo = '';
-
-                    if (m.Status === 'Перенос' && m.Comment) {
-
-                        rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
-
-                    }
-
-                    // --- ИЗМЕНЕНИЕ: Добавлены цвета для новых статусов ---
-
-                    const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
-
-                    const statusColor = statusColors[cleanStatus] || 'gray';
-
-                    
-
-                    let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
-
-                    if (m.ClientCategory) {
-
-                        const categoryColor = getCategoryColor(m.ClientCategory);
-
-                        clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
-
-                    }
-
-
-
-                    const cardWrapper = document.createElement('div');
-
-                    cardWrapper.className = "col-12 col-md-6";
-
-                    cardWrapper.innerHTML = `
-
-                        <div class="card meeting-card">
-
-                            <div class="card-body">
-
-                                <div class="card-actions-container">
-
-                                    <a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
-
-                                    ${actionsMenu}
-
-                                </div>
-
-                                <div class="flex-grow-1">
-
-                                    <h5 class="card-title d-flex justify-content-between align-items-center">
-
-                                        ${clientTitle}
-
-                                        <button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button>
-
-                                    </h5>
-
-                                    ${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}
-
-                                    <p class="card-text mb-1"><small class="text-muted">Адрес: ${m.Location || 'Не указан'}</small></p>
-
-                                    <p class="card-text mt-3"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
-
-                                    ${rescheduleInfo}
-
-                                </div>
-
-                            </div>
-
-                        </div>`;
-
-                    meetingsList.appendChild(cardWrapper);
-
-                });
-
-            }
-
-        });
-
-    });
-
-    document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
-
-    document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
-
-    document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
-
-    document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
-
-    document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
-
-    document.querySelectorAll('.report-btn-icon').forEach(btn => btn.addEventListener('click', handleReportClick));
-
-    window.scrollTo(0, 0);
-
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="appToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body"></div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container my-3 my-md-4">
+        <div id="login-screen">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6">
+                    <div class="card p-2 p-md-4">
+                        <div class="card-body">
+                            <h1 class="card-title text-center h3 mb-4">Вход в систему</h1>
+                            <form id="login-form">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Имя пользователя:</label>
+                                    <input type="text" id="username" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Пароль:</label>
+                                    <input type="password" id="password" class="form-control" required>
+                                </div>
+                                <button type="submit" id="login-button" class="btn btn-primary w-100 py-2 d-inline-flex align-items-center justify-content-center">
+                                    <span class="btn-text">Войти</span>
+                                    <lord-icon class="d-none ms-2" src="https://cdn.lordicon.com/lupuorrc.json" trigger="loop" delay="100" colors="primary:#ffffff" style="width:25px;height:25px"></lord-icon>
+                                </button>
+                                <p id="login-error" class="text-danger text-center mt-3 d-none"></p>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="main-app" class="d-none p-3 p-md-4">
+            <header class="mb-4 pb-3 border-bottom">
+                <div class="text-center mb-4">
+                    <img src="https://links.emet.in.ua/wp-content/uploads/2025/07/logo_dark-scaled.png" alt="Логотип" class="app-logo">
+                    <h1 class="h4 mt-2 mb-0">Рабочий стол. Встречи</h1>
+                </div>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                    <h2 id="manager-header" class="h5 mb-3 mb-md-0"></h2>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button id="show-add-form-btn" class="btn btn-primary">Создать встречу</button>
+                        <button id="show-client-search-btn" class="btn btn-outline-primary">Поиск контрагента</button>
+                        <button id="logout-btn" class="btn btn-secondary">Выйти</button>
+                    </div>
+                </div>
+            </header>
+
+            <main id="view-meetings" class="view-section">
+                <div class="row g-3 mb-4 p-3 bg-white border rounded-3 align-items-end">
+                    <div class="col-lg-5">
+                        <label for="searchInput" class="form-label">Поиск по клиенту</label>
+                        <input type="text" id="searchInput" class="form-control">
+                    </div>
+                    <div class="col-lg-5">
+                        <label for="dateRangeFilter" class="form-label">Период</label>
+                        <input type="text" id="dateRangeFilter" class="form-control">
+                    </div>
+                    <div class="col-lg-2">
+                        <button id="resetFiltersBtn" class="btn btn-outline-secondary w-100 mt-3 mt-lg-0">Сегодня</button>
+                    </div>
+                </div>
+                <div id="meetings-list" class="row g-3"></div>
+            </main>
+
+            <section id="form-section" class="d-none mt-4 view-section">
+                <h2 id="form-title" class="h3 mb-3 text-center">Новая встреча</h2>
+                <form id="meeting-form" class="p-4 bg-light border rounded-3">
+                    <input type="hidden" id="meeting-id">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="meeting-date" class="form-label">Дата:</label>
+                            <div class="input-group">
+                                <input type="date" id="meeting-date" class="form-control" required>
+                                <button type="button" class="btn btn-outline-secondary" id="todayBtn">Сегодня</button>
+                                <button type="button" class="btn btn-outline-secondary" id="tomorrowBtn">Завтра</button>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label for="meeting-time" class="form-label">Время:</label>
+                            <input type="time" id="meeting-time" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="client-name" class="form-label">Клиент:</label>
+                            <input type="text" id="client-name" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="purpose" class="form-label">Цель:</label>
+                            <select id="purpose" class="form-select" required></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Телефон:</label>
+                            <input type="tel" id="phone" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="status" class="form-label">Статус:</label>
+                            <select id="status" class="form-select">
+                                <option value="В работе">В работе</option>
+                                <option value="Запланировано">Запланировано</option>
+                                <option value="Завершена">Завершена</option>
+                                <option value="Перенос">Перенос</option>
+                                <option value="Отмена">Отмена</option>
+                                <option value="Просрочено">Просрочено</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label for="address" class="form-label">Адрес:</label>
+                            <input type="text" id="address" class="form-control" placeholder="Например, ул. Соборная, 7">
+                        </div>
+                        <div class="col-12">
+                            <label for="geolocation" class="form-label">Геолокация:</label>
+                            <div class="input-group">
+                                <input type="text" id="geolocation" class="form-control" readonly placeholder="Не определена">
+                                <button class="btn btn-outline-secondary" type="button" id="get-location-btn">📍 Определить</button>
+                            </div>
+                            <input type="hidden" id="location-lat">
+                            <input type="hidden" id="location-lon">
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                         <button type="submit" id="save-button" class="btn btn-primary d-inline-flex align-items-center justify-content-center">
+                            <span class="btn-text">Сохранить</span>
+                            <lord-icon class="d-none ms-2" src="https://cdn.lordicon.com/lupuorrc.json" trigger="loop" delay="100" colors="primary:#ffffff" style="width:25px;height:25px"></lord-icon>
+                        </button>
+                        <button type="button" id="cancel-btn" class="btn btn-secondary">Отмена</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <div id="admin-dashboard" class="d-none p-3 p-md-4">
+            <header class="mb-4 pb-3 border-bottom">
+                <div class="text-center mb-4">
+                    <img src="https://links.emet.in.ua/wp-content/uploads/2025/07/logo_dark-scaled.png" alt="Логотип" class="app-logo">
+                    <h1 class="h4 mt-2 mb-0">Панель Администратора</h1>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 id="admin-header" class="h5"></h2>
+                    <button id="admin-logout-btn" class="btn btn-secondary">Выйти</button>
+                </div>
+            </header>
+            <main>
+                <div class="row g-3 mb-4 p-3 bg-light border rounded-3 align-items-end">
+                    <div class="col-lg-10">
+                        <label for="adminDateRangeFilter" class="form-label">Период для статистики</label>
+                        <input type="text" id="adminDateRangeFilter" class="form-control">
+                    </div>
+                    <div class="col-lg-2">
+                        <button id="adminRefreshBtn" class="btn btn-primary w-100 mt-3 mt-lg-0">Обновить</button>
+                    </div>
+                </div>
+                <div id="stats-container" class="row g-4"></div>
+            </main>
+        </div>
+    </div>
+
+    <div class="modal fade" id="reportModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5" id="reportModalTitle">Отчет по клиенту</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="reportModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
+    <div class="modal fade" id="outcomeModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Итоги встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><nav><div class="nav nav-tabs" id="nav-tab" role="tablist"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#nav-potential" type="button">Потенциал</button><button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-comments" type="button">Комментарии и Вопросы</button></div></nav><div class="tab-content p-3 border border-top-0 rounded-bottom"><div class="tab-pane fade show active" id="nav-potential" role="tabpanel"><div id="potentialCategories"></div></div><div class="tab-pane fade" id="nav-comments" role="tabpanel"><div class="mb-3"><label for="meetingComment" class="form-label">Общий комментарий:</label><textarea class="form-control" id="meetingComment" rows="3"></textarea></div><hr><h6>Ответы на вопросы:</h6><div id="surveyQuestions"></div></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveOutcomeBtn">Сохранить итоги</button></div></div></div></div>
+    <div class="modal fade" id="rescheduleModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Перенос встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Укажите новую дату и время.</p><div class="mb-3"><label for="newMeetingDate" class="form-label">Новая дата</label><input type="date" class="form-control" id="newMeetingDate" required></div><div><label for="newMeetingTime" class="form-label">Новое время</label><input type="time" class="form-control" id="newMeetingTime" required></div><div id="rescheduleError" class="text-danger mt-2 d-none"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveRescheduleBtn">Перенести</button></div></div></div></div>
+    <div class="modal fade" id="cancelConfirmModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Подтверждение</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Вы уверены, что хотите отменить изменения?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Остаться</button><button type="button" class="btn btn-danger" id="confirmCancelBtn">Отменить изменения</button></div></div></div></div>
+    <div class="modal fade" id="clientSearchModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Поиск контрагента</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Введите номер телефона или ФИО для поиска клиента в базе 1С.</p>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="clientSearchInput" placeholder="Телефон или ФИО...">
+                        <button class="btn btn-primary" type="button" id="clientSearchBtn">Найти</button>
+                    </div>
+                    <div id="clientSearchResult" class="mt-3"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
+    <script>
+        const API_URL = "/api/handler";
+        const HIDDEN_CLASS = 'd-none';
+
+        let currentUser = null,
+            allMeetings = [],
+            currentEditingMeeting = null;
+        let meetingToReschedule = null,
+            activeMeetingId = null;
+        let questions = [],
+            potentialCategories = [];
+        
+        let clientSearchModalTrigger = null;
+
+        const meetingsList = document.getElementById('meetings-list');
+        const rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
+        const cancelConfirmModal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
+        const outcomeModal = new bootstrap.Modal(document.getElementById('outcomeModal'));
+        const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+        const clientSearchModal = new bootstrap.Modal(document.getElementById('clientSearchModal'));
+        const appToast = new bootstrap.Toast(document.getElementById('appToast'));
+        
+        let datePicker = null;
+        let adminDatePicker = null;
+        let phoneMask = null;
+        let searchMask = null;
+
+        function getTodayDateString() { return formatDateToYYYYMMDD(new Date()); }
+        function getTomorrowDateString() { const t = new Date(); t.setDate(t.getDate() + 1); return formatDateToYYYYMMDD(t); }
+        function formatDateToYYYYMMDD(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+        function toggleButtonSpinner(btn, show) {
+            const lordIcon = btn.querySelector('lord-icon');
+            const originalText = btn.querySelector('.btn-text');
+
+            if (show) {
+                btn.disabled = true;
+                if (originalText) originalText.classList.add('d-none');
+                if (lordIcon) lordIcon.classList.remove('d-none');
+            } else {
+                btn.disabled = false;
+                if (originalText) originalText.classList.remove('d-none');
+                if (lordIcon) lordIcon.classList.add('d-none');
+            }
+        }
+        function showToast(message) {
+            document.querySelector('#appToast .toast-body').textContent = message;
+            appToast.show();
+        }
+        function getCategoryColor(categoryName) {
+            if (!categoryName) return '#6c757d';
+            const lowerCategory = categoryName.toLowerCase();
+            if (lowerCategory.includes('vip')) return '#ffc107';
+            if (lowerCategory.includes('новый')) return '#0d6efd';
+            if (lowerCategory.includes('постоянный')) return '#198754';
+            if (lowerCategory.includes('проблемный')) return '#dc3545';
+            return '#6c757d';
+        }
+
+        function showForm(show) {
+            const viewMeetings = document.getElementById('view-meetings');
+            const formSection = document.getElementById('form-section');
+            const header = document.querySelector('#main-app header');
+
+            const sectionToShow = show ? formSection : viewMeetings;
+            const sectionToHide = show ? viewMeetings : formSection;
+            
+            if(header) {
+                header.style.transition = 'opacity 0.25s ease-in-out';
+                header.classList.toggle('is-hiding', show);
+            }
+
+            sectionToHide.classList.add('is-hiding');
+            
+            const handleTransitionEnd = () => {
+                sectionToHide.classList.add('d-none');
+                
+                sectionToShow.classList.remove('d-none');
+                setTimeout(() => {
+                    sectionToHide.classList.remove('is-hiding');
+                    sectionToShow.classList.remove('is-hiding');
+                }, 20);
+
+                sectionToHide.removeEventListener('transitionend', handleTransitionEnd);
+            };
+
+            sectionToHide.addEventListener('transitionend', handleTransitionEnd);
+        }
+
+        async function callApi(action, payload) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, payload })
+                });
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.message || `Ошибка сервера: ${response.status}`);
+                }
+                if (result.status === 'error') {
+                    throw new Error(result.message);
+                }
+                return result;
+            } catch (e) {
+                console.error("API call failed:", e);
+                throw e.message ? e : new Error('Ошибка сети или ответа сервера.');
+            }
+        }
+        function onFailure(error, errorElement = null) {
+            console.error(error);
+            if (errorElement) {
+                errorElement.textContent = error.message;
+                errorElement.classList.remove(HIDDEN_CLASS);
+            } else {
+                showToast('Ошибка: ' + error.message);
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const loginBtn = document.getElementById('login-button');
+            toggleButtonSpinner(loginBtn, true);
+            const loginError = document.getElementById('login-error');
+            loginError.classList.add(HIDDEN_CLASS);
+            const payload = { login: document.getElementById('username').value, password: document.getElementById('password').value };
+            callApi('login', payload).then(onLoginSuccess).catch(err => {
+                onFailure(err, loginError);
+                document.getElementById('password').value = '';
+            }).finally(() => {
+                toggleButtonSpinner(loginBtn, false);
+            });
+        }
+
+       function onLoginSuccess(result) {
+    console.log("Ответ от сервера при логине:", result);
+
+    // --- НАЧАЛО ИСПРАВЛЕНИЯ: Проверка на пустые данные ---
+    if (!result || !result.login) {
+        onFailure(
+            new Error("Авторизация не удалась: сервер вернул некорректные данные."),
+            document.getElementById('login-error')
+        );
+        toggleButtonSpinner(document.getElementById('login-button'), false);
+        return; // Прерываем выполнение
+    }
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
+    currentUser = result.login;
+    const userRole = result.role;
+    const session = { user: currentUser, role: userRole, loginTime: new Date().getTime() };
+    localStorage.setItem('crm_session', JSON.stringify(session));
+    
+    document.getElementById('login-screen').classList.add(HIDDEN_CLASS);
+    if (userRole === 'admin') {
+        document.getElementById('admin-header').textContent = `Администратор: ${currentUser}`;
+        document.getElementById('main-app').classList.add(HIDDEN_CLASS);
+        document.getElementById('admin-dashboard').classList.remove(HIDDEN_CLASS);
+        adminDatePicker.setDateRange(new Date(), new Date());
+        loadAdminStats();
+    } else {
+        document.getElementById('manager-header').textContent = `Менеджер: ${currentUser}`;
+        document.getElementById('admin-dashboard').classList.add(HIDDEN_CLASS);
+        document.getElementById('main-app').classList.remove(HIDDEN_CLASS);
+        datePicker.setDateRange(new Date(), new Date());
+    }
 }
-
-
-
-        // --- УПРАВЛЕНИЕ ФОРМАМИ И МОДАЛЬНЫМИ ОКНАМИ ---
-
-        function handleFormSubmit(e) {
-
-            e.preventDefault();
-
-            const saveBtn = document.getElementById('save-button');
-
-            toggleButtonSpinner(saveBtn, true);
-
-            const meetingId = document.getElementById('meeting-id').value;
-
-            const isUpdating = !!meetingId;
-
-            const data = {
-
-                ID: isUpdating ? meetingId : `m${Date.now()}`,
-
-                Date: document.getElementById('meeting-date').value.split('-').reverse().join('.'),
-
-                Time: document.getElementById('meeting-time').value,
-
-                Client: document.getElementById('client-name').value,
-
-                Purpose: document.getElementById('purpose').value,
-
-                Phone: phoneMask.unmaskedValue,
-
-                Location: document.getElementById('location').value,
-
-                Status: document.getElementById('status').value,
-
-                ManagerLogin: currentUser,
-
-                Comment: isUpdating ? currentEditingMeeting.Comment : '',
-
-                LocationLat: document.getElementById('location-lat').value,
-
-                LocationLon: document.getElementById('location-lon').value
-
-            };
-
-            if (isUpdating && data.Status === 'Перенос') {
-
-                meetingToReschedule = data;
-
-                currentEditingMeeting = allMeetings.find(m => m.ID === data.ID);
-
-                rescheduleModal.show();
-
-                toggleButtonSpinner(saveBtn, false);
-
-                return;
-
-            }
-
-            const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
-
-            const payload = isUpdating ? { newData: data, oldData: currentEditingMeeting } : data;
-
-            callApi(action, payload).then(() => {
-
-                showToast(`Встреча с клиентом "${data.Client}" на ${data.Time} успешно сохранена.`);
-
-                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-
-                onActionComplete();
-
-            }).catch(onFailure).finally(() => {
-
-                toggleButtonSpinner(saveBtn, false);
-
-            });
-
-        }
-
-        
-
-        function handleEditClick(event) {
-
-            event.preventDefault();
-
-            const meetingId = event.currentTarget.dataset.id;
-
-            currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
-
-            if (!currentEditingMeeting) return;
-
-            document.getElementById('form-title').textContent = "Редактирование встречи";
-
-            const dateParts = currentEditingMeeting.Date.split('.');
-
-            document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-
-            document.getElementById('meeting-time').value = currentEditingMeeting.Time;
-
-            document.getElementById('meeting-id').value = currentEditingMeeting.ID;
-
-            document.getElementById('client-name').value = currentEditingMeeting.Client;
-
-            document.getElementById('purpose').value = currentEditingMeeting.Purpose;
-
-            document.getElementById('phone').value = currentEditingMeeting.Phone;
-
-            if (phoneMask) phoneMask.updateValue();
-
-            document.getElementById('location').value = currentEditingMeeting.Location;
-
-            document.getElementById('location-lat').value = currentEditingMeeting.LocationLat || '';
-
-            document.getElementById('location-lon').value = currentEditingMeeting.LocationLon || '';
-
-            document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
-
-            showForm(true);
-
-        }
-
-
-
-        async function handleCompleteClick(event) {
-
-            event.preventDefault(); // Для ссылок в меню
-
-            const btn = event.currentTarget;
-
-            const meetingId = btn.dataset.id;
-
-            const oldData = allMeetings.find(m => m.ID === meetingId);
-
-            if (!oldData) return;
-
-            if (!confirm(`Завершить встречу с клиентом "${oldData.Client}"?`)) return;
-
-            
-
-            const newData = { ...oldData, Status: 'Завершена' };
-
-            try {
-
-                await callApi('updateMeeting', { newData, oldData });
-
-                showToast("Встреча завершена");
-
-                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-
-            } catch(e) {
-
-                onFailure(e);
-
-            }
-
-        }
-
-        
-
-        function handleRescheduleClick(event) {
-
-            event.preventDefault(); // Для ссылок в меню
-
-            const meetingId = event.currentTarget.dataset.id;
-
-            const meetingData = allMeetings.find(m => m.ID === meetingId);
-
-            if (!meetingData) return;
-
-            meetingToReschedule = { ...meetingData, Status: 'Перенос' };
-
-            currentEditingMeeting = meetingData;
-
-            rescheduleModal.show();
-
-        }
-
-        async function handleSaveReschedule() {
-
-            const newDate = document.getElementById('newMeetingDate').value;
-
-            const newTime = document.getElementById('newMeetingTime').value;
-
-            const errorDiv = document.getElementById('rescheduleError');
-
-            if (!newDate || !newTime) {
-
-                errorDiv.textContent = 'Пожалуйста, укажите дату и время.';
-
-                errorDiv.classList.remove('d-none');
-
-                return;
-
-            }
-
-            errorDiv.classList.add('d-none');
-
-            const saveBtn = document.getElementById('saveRescheduleBtn');
-
-            toggleButtonSpinner(saveBtn, true);
-
-            try {
-
-                const newDateFormatted = newDate.split('-').reverse().join('.');
-
-                meetingToReschedule.Comment = `Перенесена на ${newDateFormatted} ${newTime}`;
-
-                const newMeetingData = { ...meetingToReschedule, ID: `m${Date.now()}`, Date: newDate.split('-').reverse().join('.'), Time: newTime, Status: 'В работе', Comment: '' };
-
-                const updatePromise = callApi('updateMeeting', { newData: meetingToReschedule, oldData: currentEditingMeeting });
-
-                const savePromise = callApi('saveNewMeeting', newMeetingData);
-
-                await Promise.all([updatePromise, savePromise]);
-
-                showToast("Встреча успешно перенесена");
-
-                rescheduleModal.hide();
-
-                onActionComplete();
-
-                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-
-            } catch (error) {
-
-                onFailure(error);
-
-            } finally {
-
-                toggleButtonSpinner(saveBtn, false);
-
-            }
-
-        }
-
-
-
-        function handleOutcomeClick(event) {
-
-            event.preventDefault(); // Для ссылок в меню
-
-            activeMeetingId = event.currentTarget.dataset.id;
-
-            const meeting = allMeetings.find(m => m.ID === activeMeetingId);
-
-            if (!meeting) return;
-
-            const potentialContainer = document.getElementById('potentialCategories');
-
-            potentialContainer.innerHTML = '';
-
-            let potentialData = {};
-
-            try { potentialData = JSON.parse(meeting.PotentialData) || {}; } catch (e) {};
-
-            potentialCategories.forEach((cat, index) => {
-
-                const categoryName = cat.CategoryName;
-
-                const value = potentialData[categoryName] || '';
-
-                potentialContainer.innerHTML += `<div class="input-group mb-2"><span class="input-group-text">${categoryName}</span><input type="text" id="potential-${index}" class="form-control" data-category="${categoryName}" value="${value}"></div>`;
-
-            });
-
-            document.getElementById('meetingComment').value = meeting.Comment || '';
-
-            const surveyContainer = document.getElementById('surveyQuestions');
-
-            surveyContainer.innerHTML = '';
-
-            let surveyAnswers = {};
-
-            try { surveyAnswers = JSON.parse(meeting.SurveyAnswers) || {}; } catch (e) {};
-
-            questions.forEach((q, index) => {
-
-                const questionText = q.QuestionText;
-
-                const answer = surveyAnswers[questionText] || '';
-
-                surveyContainer.innerHTML += `<div class="mb-2"><label for="question-${index}" class="form-label small">${questionText}</label><input type="text" id="question-${index}" class="form-control form-control-sm" data-question="${questionText}" value="${answer}"></div>`;
-
-            });
-
-            outcomeModal.show();
-
-        }
-
-
-
-        async function handleSaveOutcome() {
-
-            const btn = document.getElementById('saveOutcomeBtn');
-
-            toggleButtonSpinner(btn, true);
-
-            const oldData = allMeetings.find(m => m.ID === activeMeetingId);
-
-            const potentialData = {};
-
-            document.querySelectorAll('#potentialCategories input').forEach(input => { potentialData[input.dataset.category] = input.value; });
-
-            const surveyAnswers = {};
-
-            document.querySelectorAll('#surveyQuestions input').forEach(input => { surveyAnswers[input.dataset.question] = input.value; });
-
-            const newData = { ...oldData, Comment: document.getElementById('meetingComment').value, SurveyAnswers: JSON.stringify(surveyAnswers), PotentialData: JSON.stringify(potentialData) };
-
-            try {
-
-                await callApi('updateMeeting', { newData, oldData });
-
-                showToast("Итоги встречи сохранены");
-
-                outcomeModal.hide();
-
-                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-
-            } catch (e) {
-
-                onFailure(e);
-
-            } finally {
-
-                toggleButtonSpinner(btn, false);
-
-            }
-
-        }
-
-        
-
-        async function handleGetLocationClick() {
-
-            const btn = document.getElementById('get-location-btn');
-
-            toggleButtonSpinner(btn, true);
-
-            try {
-
-                const { address, lat, lon } = await getAddressFromGeolocation();
-
-                document.getElementById('location').value = address;
-
-                document.getElementById('location-lat').value = lat;
-
-                document.getElementById('location-lon').value = lon;
-
-                showToast("Геолокация определена");
-
-            } catch (error) {
-
-                alert(error.message);
-
-            } finally {
-
-                toggleButtonSpinner(btn, false);
-
-            }
-
-        }
-
-        async function handleGeoClick(event) {
-
-            event.preventDefault(); // Для ссылок в меню
-
-            const btn = event.currentTarget;
-
-            const meetingId = btn.dataset.id;
-
-            const oldData = allMeetings.find(m => m.ID === meetingId);
-
-            if (!oldData) return;
-
-            try {
-
-                const { address, lat, lon } = await getAddressFromGeolocation();
-
-                const newData = { ...oldData, Location: address, LocationLat: lat, LocationLon: lon };
-
-                await callApi('updateMeeting', { newData, oldData });
-
-                showToast("Геолокация сохранена");
-
-                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-
-            } catch (error) {
-
-                alert(error.message);
-
-            }
-
-        }
-
-        async function getAddressFromGeolocation() {
-
-            if (!navigator.geolocation) throw new Error("Геолокация не поддерживается");
-
-            return new Promise((resolve, reject) => {
-
-                navigator.geolocation.getCurrentPosition(async (position) => {
-
-                    try {
-
-                        const lat = position.coords.latitude;
-
-                        const lon = position.coords.longitude;
-
-                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
-
-                        if (!response.ok) return reject(new Error('Ошибка сети'));
-
-                        const data = await response.json();
-
-                        if (data && data.address) {
-
-                            const addr = data.address;
-
-                            const address = [addr.road, addr.house_number, addr.city || addr.town].filter(Boolean).join(', ');
-
-                            resolve({ address, lat, lon });
-
-                        } else {
-
-                            reject(new Error("Адрес не найден"));
-
-                        }
-
-                    } catch (e) {
-
-                        reject(new Error("Не удалось получить адрес"));
-
-                    }
-
-                }, () => reject(new Error("Нет доступа к геолокации")), { timeout: 10000 });
-
-            });
-
-        }
-
-        
-
-        async function handleReportClick(event) {
-
-            event.preventDefault();
-
-            const clientName = event.currentTarget.dataset.client;
-
-            const reportModalBody = document.getElementById('reportModalBody');
-
-            document.getElementById('reportModalTitle').textContent = `Отчет по клиенту: ${clientName}`;
-
-            reportModalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
-
-            reportModal.show();
-
-            try {
-
-                const data = await callApi('getClientReport', { clientName });
-
-                renderReport(data);
-
-            } catch (e) {
-
-                onFailure(e);
-
-                reportModal.hide();
-
-            }
-
-        }
-
-        function renderReport(data) {
-
-            const reportModalBody = document.getElementById('reportModalBody');
-
-            const meetingsHtml = data.lastMeetings.map(m => `<li>${m.date} - ${m.status} (${m.purpose})</li>`).join('');
-
-            reportModalBody.innerHTML = `<h4>${data.clientInfo.name}</h4><div class="row"><div class="col-md-6"><ul class="list-group"><li class="list-group-item"><strong>Общие продажи:</strong> ${data.clientInfo.totalSales}</li><li class="list-group-item"><strong>Средний чек:</strong> ${data.clientInfo.averageCheck}</li><li class="list-group-item"><strong>Последний контакт:</strong> ${data.clientInfo.lastContactDate}</li></ul></div><div class="col-md-6"><h6>Последние встречи:</h6><ul>${meetingsHtml}</ul></div></div>`;
-
-        }
-
-        
-
-        async function handleClientSearch() {
-
-            const searchInput = document.getElementById('clientSearchInput');
-
-            const resultContainer = document.getElementById('clientSearchResult');
-
-            const searchBtn = document.getElementById('clientSearchBtn');
-
-            const searchTerm = searchMask.unmaskedValue || searchInput.value;
-
-            if (!searchTerm) {
-
-                resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
-
-                return;
-
-            }
-
-            toggleButtonSpinner(searchBtn, true);
-
-            resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
-
-            try {
-
-                const result = await callApi('findClient', { searchTerm });
-
-                if (result.found) {
-
-                    // --- НАЧАЛО ИЗМЕНЕНИЙ (КНОПКА СОЗДАНИЯ ВСТРЕЧИ) ---
-
-                    resultContainer.innerHTML = `
-
-                        <div class="alert alert-success">
-
-                            <h5 class="alert-heading">Клиент найден!</h5>
-
-                            <p class="mb-1"><strong>Наименование:</strong> ${result.clientName}</p>
-
-                            <p class="mb-0"><strong>Закрепленный менеджер:</strong> ${result.managerName}</p>
-
-                            <hr>
-
-                            <button class="btn btn-sm btn-success" id="create-meeting-from-search-btn">Создать встречу для этого клиента</button>
-
-                        </div>`;
-
-                    document.getElementById('create-meeting-from-search-btn').addEventListener('click', () => {
-
-                        clientSearchModal.hide();
-
-                        showAddForm();
-
-                        document.getElementById('client-name').value = result.clientName;
-
-                    });
-
-                    // --- КОНЕЦ ИЗМЕНЕНИЙ (КНОПКА СОЗДАНИЯ ВСТРЕЧИ) ---
-
-                } else {
-
-                    resultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
-
-                }
-
-            } catch (e) {
-
-                resultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
-
-            } finally {
-
-                toggleButtonSpinner(searchBtn, false);
-
-            }
-
-        }
-
-
-
-        function showAddForm() {
-
-            currentEditingMeeting = null;
-
-            document.getElementById('form-title').textContent = "Новая встреча";
-
-            document.getElementById('meeting-form').reset();
-
-            if(phoneMask) phoneMask.updateValue();
-
-            document.getElementById('meeting-date').value = getTodayDateString();
-
-            document.getElementById('meeting-id').value = '';
-
-            document.getElementById('status').value = 'В работе';
-
-            showForm(true);
-
-        }
-
-        function onActionComplete() { showForm(false); }
-
-        function handleCancelClick() { cancelConfirmModal.show(); }
-
-        function showForm(show) {
-
-            document.getElementById('view-meetings').classList.toggle(HIDDEN_CLASS, show);
-
-            document.getElementById('form-section').classList.toggle(HIDDEN_CLASS, !show);
-
-            document.querySelector('header').classList.toggle(HIDDEN_CLASS, show);
-
-        }
-
-    </script>
-
+        function handleLogout() {
+            localStorage.removeItem('crm_session');
+            window.location.reload(); 
+        }
+        
+        async function loadAdminStats() {
+            const statsContainer = document.getElementById('stats-container');
+            statsContainer.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
+            const startDate = adminDatePicker.getStartDate()?.toJSDate();
+            const endDate = adminDatePicker.getEndDate()?.toJSDate();
+            if (!startDate || !endDate) {
+                statsContainer.innerHTML = '<p class="text-center text-danger">Выберите период</p>';
+                return;
+            }
+            try {
+                const payload = { startDateString: formatDateToYYYYMMDD(startDate), endDateString: formatDateToYYYYMMDD(endDate) };
+                const stats = await callApi('getAdminStats', payload);
+                displayAdminStats(stats);
+            } catch (e) {
+                onFailure(e);
+            }
+        }
+
+        function displayAdminStats(stats) {
+            const statsContainer = document.getElementById('stats-container');
+            statsContainer.innerHTML = `<div class="col-md-4"><div class="card text-center h-100"><div class="card-body"><h5 class="card-title">Всего встреч</h5><p class="card-text fs-1 fw-bold">${stats.totalMeetings}</p></div></div></div><div class="col-md-4"><div class="card h-100"><div class="card-header">По статусам</div><ul class="list-group list-group-flush">${Object.entries(stats.statusCounts).map(([status, count]) => `<li class="list-group-item d-flex justify-content-between align-items-center">${status}<span class="badge bg-primary rounded-pill">${count}</span></li>`).join('')}</ul></div></div><div class="col-md-4"><div class="card h-100"><div class="card-header">По менеджерам</div><ul class="list-group list-group-flush">${Object.entries(stats.managerCounts).map(([manager, count]) => `<li class="list-group-item d-flex justify-content-between align-items-center">${manager}<span class="badge bg-primary rounded-pill">${count}</span></li>`).join('')}</ul></div></div>`;
+        }
+
+        function loadInitialData(startDateString, endDateString) {
+    let skeletonHTML = '';
+    for (let i = 0; i < 4; i++) {
+        skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
+    }
+    meetingsList.innerHTML = skeletonHTML;
+
+    // --- НАЧАЛО ИСПРАВЛЕНИЯ: Добавляем login в запрос ---
+    const payload = { 
+        login: currentUser, 
+        startDateString: startDateString, 
+        endDateString: endDateString 
+    };
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+    
+    callApi('getInitialData', payload)
+        .then(onDataLoaded)
+        .catch(err => {
+            onFailure(err);
+            meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
+        });
+}
+        function onDataLoaded(data) {
+            if (!data || !Array.isArray(data.meetings)) {
+                console.error("Получены некорректные данные от сервера:", data);
+                allMeetings = [];
+            } else {
+                allMeetings = data.meetings;
+                questions = data.questions || [];
+                potentialCategories = data.potentialCategories || [];
+                populatePurposes(data.purposes);
+            }
+            filterAndGroupMeetings();
+        }
+
+        function populatePurposes(purposes) {
+            const purposeSelect = document.getElementById('purpose');
+            purposeSelect.innerHTML = '<option value="">-- Выберите цель --</option>';
+            if (purposes && Array.isArray(purposes)) {
+                purposes.forEach(p => {
+                    purposeSelect.innerHTML += `<option value="${p.Purpose}">${p.Purpose}</option>`;
+                });
+            }
+        }
+
+        function filterAndGroupMeetings() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
+            
+            const dateGroups = {};
+            const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
+
+            filtered.forEach(m => {
+                let status = m.Status ? m.Status.trim() : '';
+                if (status === 'Завершено') status = 'Завершена';
+                if (status === 'Отменено') status = 'Отмена';
+                if (!validStatuses.includes(status)) {
+                    status = 'В работе';
+                }
+
+                if (!dateGroups[m.Date]) {
+                    dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершена': [], 'Отмена': [], 'Просрочено': [] };
+                }
+                
+                if (dateGroups[m.Date][status]) {
+                    dateGroups[m.Date][status].push(m);
+                } else {
+                    dateGroups[m.Date]['В работе'].push(m);
+                }
+            });
+
+            meetingsList.innerHTML = '';
+            const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(a.split('.').reverse().join('-')) - new Date(b.split('.').reverse().join('-')));
+            
+            if (sortedDates.length === 0) {
+                meetingsList.innerHTML = `
+                    <div class="col-12 text-center p-5">
+                        <i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>
+                        <h4 class="mt-3">Встреч не найдено</h4>
+                        <p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p>
+                        <button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button>
+                    </div>`;
+                document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
+                return;
+            }
+
+            sortedDates.forEach(date => {
+                const dateTitle = document.createElement('h3');
+                dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
+                dateTitle.textContent = date;
+                meetingsList.appendChild(dateTitle);
+                const groups = dateGroups[date];
+                const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершена', 'Отмена'];
+                
+                groupOrder.forEach(status => {
+                    if (groups[status] && groups[status].length > 0) {
+                        const groupTitle = document.createElement('h4');
+                        groupTitle.className = 'col-12 mt-3 text-muted';
+                        groupTitle.textContent = status;
+                        meetingsList.appendChild(groupTitle);
+                        groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
+                            let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
+                            
+                            const cleanStatus = m.Status ? m.Status.trim() : '';
+                            if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
+                                dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
+                                dropdownItems += '<li><hr class="dropdown-divider"></li>';
+                                dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
+                                dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
+                            }
+                            const actionsMenu = `
+                                <div class="dropdown actions-dropdown">
+                                    <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        ${dropdownItems}
+                                    </ul>
+                                </div>`;
+
+                            let rescheduleInfo = '';
+                            if (m.Status === 'Перенос' && m.Comment) {
+                                rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
+                            }
+                            const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
+                            const statusColor = statusColors[cleanStatus] || 'gray';
+                            
+                            let clientTitle = `<div class="d-flex align-items-center"><span class="card-title">${m.Time} - ${m.Client}</span></div>`;
+                            if (m.ClientCategory) {
+                                const categoryColor = getCategoryColor(m.ClientCategory);
+                                clientTitle = `<div class="d-flex align-items-center"><span class="card-title">${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
+                            }
+
+                            const cardWrapper = document.createElement('div');
+                            cardWrapper.className = "col-12 col-md-6";
+                            cardWrapper.innerHTML = `
+                                <div class="card meeting-card">
+                                    <div class="card-body">
+                                        <div class="card-actions-container">
+                                            <a href="#" class="edit-btn edit-icon-btn" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
+                                            ${actionsMenu}
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h5 class="d-flex justify-content-between align-items-center">
+                                                ${clientTitle}
+                                                <button class="btn btn-link p-0 report-btn-icon" data-client="${m.Client}"><i class="bi bi-file-text"></i></button>
+                                            </h5>
+                                            ${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}
+                                            ${m.Location ? `<p class="card-text mb-1"><small class="text-muted"><i class="bi bi-signpost-split"></i> Адрес: ${m.Location}</small></p>` : ''}
+                                            ${m.Geolocation ? `<p class="card-text mb-1"><small class="text-muted"><i class="bi bi-geo-alt-fill"></i> Геолокация: ${m.Geolocation}</small></p>` : ''}
+                                            <p class="card-text mt-3"><strong>Статус: <span class="status-badge status-${statusColor}">${m.Status || 'Не указан'}</span></strong></p>
+                                            ${rescheduleInfo}
+                                        </div>
+                                    </div>
+                                </div>`;
+                            meetingsList.appendChild(cardWrapper);
+                        });
+                    }
+                });
+            });
+            document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
+            document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
+            document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
+            document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
+            document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
+            document.querySelectorAll('.report-btn-icon').forEach(btn => btn.addEventListener('click', handleReportClick));
+            window.scrollTo(0, 0);
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const saveBtn = document.getElementById('save-button');
+            toggleButtonSpinner(saveBtn, true);
+            const meetingId = document.getElementById('meeting-id').value;
+            const isUpdating = !!meetingId;
+            const data = {
+                ID: isUpdating ? meetingId : `m${Date.now()}`,
+                Date: document.getElementById('meeting-date').value.split('-').reverse().join('.'),
+                Time: document.getElementById('meeting-time').value,
+                Client: document.getElementById('client-name').value,
+                Purpose: document.getElementById('purpose').value,
+                Phone: phoneMask.unmaskedValue,
+                Location: document.getElementById('address').value,
+                Geolocation: document.getElementById('geolocation').value,
+                Status: document.getElementById('status').value,
+                ManagerLogin: currentUser,
+                Comment: isUpdating ? currentEditingMeeting.Comment : '',
+                LocationLat: document.getElementById('location-lat').value,
+                LocationLon: document.getElementById('location-lon').value
+            };
+            if (isUpdating && data.Status === 'Перенос') {
+                meetingToReschedule = data;
+                currentEditingMeeting = allMeetings.find(m => m.ID === data.ID);
+                rescheduleModal.show();
+                toggleButtonSpinner(saveBtn, false);
+                return;
+            }
+            const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
+            const payload = isUpdating ? { newData: data, oldData: currentEditingMeeting } : data;
+            callApi(action, payload).then(() => {
+                showToast(`Встреча с клиентом "${data.Client}" на ${data.Time} успешно сохранена.`);
+                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+                onActionComplete();
+            }).catch(onFailure).finally(() => {
+                toggleButtonSpinner(saveBtn, false);
+            });
+        }
+
+        function handleEditClick(event) {
+            event.preventDefault();
+            const meetingId = event.currentTarget.dataset.id;
+            currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
+            if (!currentEditingMeeting) return;
+            document.getElementById('form-title').textContent = "Редактирование встречи";
+            const dateParts = currentEditingMeeting.Date.split('.');
+            document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+            document.getElementById('meeting-time').value = currentEditingMeeting.Time;
+            document.getElementById('meeting-id').value = currentEditingMeeting.ID;
+            document.getElementById('client-name').value = currentEditingMeeting.Client;
+            document.getElementById('purpose').value = currentEditingMeeting.Purpose;
+            document.getElementById('phone').value = currentEditingMeeting.Phone;
+            if (phoneMask) phoneMask.updateValue();
+            document.getElementById('address').value = currentEditingMeeting.Location;
+            document.getElementById('geolocation').value = currentEditingMeeting.Geolocation || '';
+            document.getElementById('location-lat').value = currentEditingMeeting.LocationLat || '';
+            document.getElementById('location-lon').value = currentEditingMeeting.LocationLon || '';
+            document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
+            showForm(true);
+        }
+
+        async function handleCompleteClick(event) {
+            event.preventDefault();
+            const btn = event.currentTarget;
+            const meetingId = btn.dataset.id;
+            const oldData = allMeetings.find(m => m.ID === meetingId);
+            if (!oldData) return;
+            if (!confirm(`Завершить встречу с клиентом "${oldData.Client}"?`)) return;
+            const newData = { ...oldData, Status: 'Завершена' };
+            try {
+                await callApi('updateMeeting', { newData, oldData });
+                showToast("Встреча завершена");
+                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+            } catch(e) {
+                onFailure(e);
+            }
+        }
+        
+        function handleRescheduleClick(event) {
+            event.preventDefault();
+            const meetingId = event.currentTarget.dataset.id;
+            const meetingData = allMeetings.find(m => m.ID === meetingId);
+            if (!meetingData) return;
+            meetingToReschedule = { ...meetingData, Status: 'Перенос' };
+            currentEditingMeeting = meetingData;
+            rescheduleModal.show();
+        }
+        async function handleSaveReschedule() {
+            const newDate = document.getElementById('newMeetingDate').value;
+            const newTime = document.getElementById('newMeetingTime').value;
+            const errorDiv = document.getElementById('rescheduleError');
+            if (!newDate || !newTime) {
+                errorDiv.textContent = 'Пожалуйста, укажите дату и время.';
+                errorDiv.classList.remove('d-none');
+                return;
+            }
+            errorDiv.classList.add('d-none');
+            const saveBtn = document.getElementById('saveRescheduleBtn');
+            toggleButtonSpinner(saveBtn, true);
+            try {
+                const newDateFormatted = newDate.split('-').reverse().join('.');
+                meetingToReschedule.Comment = `Перенесена на ${newDateFormatted} ${newTime}`;
+                const newMeetingData = { ...meetingToReschedule, ID: `m${Date.now()}`, Date: newDate.split('-').reverse().join('.'), Time: newTime, Status: 'В работе', Comment: '' };
+                const updatePromise = callApi('updateMeeting', { newData: meetingToReschedule, oldData: currentEditingMeeting });
+                const savePromise = callApi('saveNewMeeting', newMeetingData);
+                await Promise.all([updatePromise, savePromise]);
+                showToast("Встреча успешно перенесена");
+                rescheduleModal.hide();
+                onActionComplete();
+                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+            } catch (error) {
+                onFailure(error);
+            } finally {
+                toggleButtonSpinner(saveBtn, false);
+            }
+        }
+
+        function handleOutcomeClick(event) {
+            event.preventDefault();
+            activeMeetingId = event.currentTarget.dataset.id;
+            const meeting = allMeetings.find(m => m.ID === activeMeetingId);
+            if (!meeting) return;
+            const potentialContainer = document.getElementById('potentialCategories');
+            potentialContainer.innerHTML = '';
+            let potentialData = {};
+            try { potentialData = JSON.parse(meeting.PotentialData) || {}; } catch (e) {};
+            potentialCategories.forEach((cat, index) => {
+                const categoryName = cat.CategoryName;
+                const value = potentialData[categoryName] || '';
+                potentialContainer.innerHTML += `<div class="input-group mb-2"><span class="input-group-text">${categoryName}</span><input type="text" id="potential-${index}" class="form-control" data-category="${categoryName}" value="${value}"></div>`;
+            });
+            document.getElementById('meetingComment').value = meeting.Comment || '';
+            const surveyContainer = document.getElementById('surveyQuestions');
+            surveyContainer.innerHTML = '';
+            let surveyAnswers = {};
+            try { surveyAnswers = JSON.parse(meeting.SurveyAnswers) || {}; } catch (e) {};
+            questions.forEach((q, index) => {
+                const questionText = q.QuestionText;
+                const answer = surveyAnswers[questionText] || '';
+                surveyContainer.innerHTML += `<div class="mb-2"><label for="question-${index}" class="form-label small">${questionText}</label><input type="text" id="question-${index}" class="form-control form-control-sm" data-question="${questionText}" value="${answer}"></div>`;
+            });
+            outcomeModal.show();
+        }
+
+        async function handleSaveOutcome() {
+            const btn = document.getElementById('saveOutcomeBtn');
+            toggleButtonSpinner(btn, true);
+            const oldData = allMeetings.find(m => m.ID === activeMeetingId);
+            const potentialData = {};
+            document.querySelectorAll('#potentialCategories input').forEach(input => { potentialData[input.dataset.category] = input.value; });
+            const surveyAnswers = {};
+            document.querySelectorAll('#surveyQuestions input').forEach(input => { surveyAnswers[input.dataset.question] = input.value; });
+            const newData = { ...oldData, Comment: document.getElementById('meetingComment').value, SurveyAnswers: JSON.stringify(surveyAnswers), PotentialData: JSON.stringify(potentialData) };
+            try {
+                await callApi('updateMeeting', { newData, oldData });
+                showToast("Итоги встречи сохранены");
+                outcomeModal.hide();
+                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+            } catch (e) {
+                onFailure(e);
+            } finally {
+                toggleButtonSpinner(btn, false);
+            }
+        }
+        
+        async function handleGetLocationClick() {
+            const btn = document.getElementById('get-location-btn');
+            toggleButtonSpinner(btn, true);
+            try {
+                const { address, lat, lon } = await getAddressFromGeolocation();
+                document.getElementById('geolocation').value = address;
+                document.getElementById('location-lat').value = lat;
+                document.getElementById('location-lon').value = lon;
+                showToast("Геолокация определена");
+            } catch (error) {
+                alert(error.message);
+            } finally {
+                toggleButtonSpinner(btn, false);
+            }
+        }
+        async function handleGeoClick(event) {
+            event.preventDefault();
+            const btn = event.currentTarget;
+            const meetingId = btn.dataset.id;
+            const oldData = allMeetings.find(m => m.ID === meetingId);
+            if (!oldData) return;
+            try {
+                const { address, lat, lon } = await getAddressFromGeolocation();
+                const newData = { ...oldData, Geolocation: address, LocationLat: lat, LocationLon: lon };
+                await callApi('updateMeeting', { newData, oldData });
+                showToast("Геолокация сохранена");
+                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+        async function getAddressFromGeolocation() {
+            if (!navigator.geolocation) throw new Error("Геолокация не поддерживается");
+            return new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    try {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                        if (!response.ok) return reject(new Error('Ошибка сети'));
+                        const data = await response.json();
+                        if (data && data.address) {
+                            const addr = data.address;
+                            const address = [addr.road, addr.house_number, addr.city || addr.town].filter(Boolean).join(', ');
+                            resolve({ address, lat, lon });
+                        } else {
+                            reject(new Error("Адрес не найден"));
+                        }
+                    } catch (e) {
+                        reject(new Error("Не удалось получить адрес"));
+                    }
+                }, () => reject(new Error("Нет доступа к геолокации")), { timeout: 10000 });
+            });
+        }
+        
+        async function handleReportClick(event) {
+            event.preventDefault();
+            const clientName = event.currentTarget.dataset.client;
+            const reportModalBody = document.getElementById('reportModalBody');
+            document.getElementById('reportModalTitle').textContent = `Отчет по клиенту: ${clientName}`;
+            reportModalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
+            reportModal.show();
+            try {
+                const data = await callApi('getClientReport', { clientName });
+                renderReport(data);
+            } catch (e) {
+                onFailure(e);
+                reportModal.hide();
+            }
+        }
+        function renderReport(data) {
+            const reportModalBody = document.getElementById('reportModalBody');
+            const meetingsHtml = data.lastMeetings.map(m => `<li>${m.date} - ${m.status} (${m.purpose})</li>`).join('');
+            reportModalBody.innerHTML = `<h4>${data.clientInfo.name}</h4><div class="row"><div class="col-md-6"><ul class="list-group"><li class="list-group-item"><strong>Общие продажи:</strong> ${data.clientInfo.totalSales}</li><li class="list-group-item"><strong>Средний чек:</strong> ${data.clientInfo.averageCheck}</li><li class="list-group-item"><strong>Последний контакт:</strong> ${data.clientInfo.lastContactDate}</li></ul></div><div class="col-md-6"><h6>Последние встречи:</h6><ul>${meetingsHtml}</ul></div></div>`;
+        }
+        
+        async function handleClientSearch() {
+            const searchInput = document.getElementById('clientSearchInput');
+            const resultContainer = document.getElementById('clientSearchResult');
+            const searchBtn = document.getElementById('clientSearchBtn');
+            const searchTerm = searchMask.unmaskedValue || searchInput.value;
+            if (!searchTerm) {
+                resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
+                return;
+            }
+            toggleButtonSpinner(searchBtn, true);
+            resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
+            try {
+                const result = await callApi('findClient', { searchTerm });
+                if (result.found) {
+                    resultContainer.innerHTML = `
+                        <div class="alert alert-success">
+                            <h5 class="alert-heading">Клиент найден!</h5>
+                            <p class="mb-1"><strong>Наименование:</strong> ${result.clientName}</p>
+                            <p class="mb-0"><strong>Закрепленный менеджер:</strong> ${result.managerName}</p>
+                            <hr>
+                            <button class="btn btn-sm btn-success" id="create-meeting-from-search-btn">Создать встречу для этого клиента</button>
+                        </div>`;
+                    document.getElementById('create-meeting-from-search-btn').addEventListener('click', () => {
+                        clientSearchModal.hide();
+                        showAddForm();
+                        document.getElementById('client-name').value = result.clientName;
+                    });
+                } else {
+                    resultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
+                }
+            } catch (e) {
+                resultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
+            } finally {
+                toggleButtonSpinner(searchBtn, false);
+            }
+        }
+
+        function showAddForm() {
+            currentEditingMeeting = null;
+            document.getElementById('form-title').textContent = "Новая встреча";
+            document.getElementById('meeting-form').reset();
+            if(phoneMask) phoneMask.updateValue();
+            document.getElementById('meeting-date').value = getTodayDateString();
+            document.getElementById('meeting-id').value = '';
+            document.getElementById('status').value = 'В работе';
+            showForm(true);
+        }
+        function onActionComplete() { showForm(false); }
+        function handleCancelClick() { cancelConfirmModal.show(); }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            datePicker = new Litepicker({ element: document.getElementById('dateRangeFilter'), singleMode: false, format: 'DD.MM.YYYY', lang: 'ru-RU', setup: (picker) => { picker.on('selected', (date1, date2) => { if (date1 && date2) { const startDate = formatDateToYYYYMMDD(date1.toJSDate()); const endDate = formatDateToYYYYMMDD(date2.toJSDate()); loadInitialData(startDate, endDate); } }); } });
+            adminDatePicker = new Litepicker({ element: document.getElementById('adminDateRangeFilter'), singleMode: false, format: 'DD.MM.YYYY', lang: 'ru-RU' });
+            
+            const phoneInput = document.getElementById('phone');
+            phoneMask = IMask(phoneInput, { mask: '+{380} (00) 000-00-00' });
+            phoneInput.addEventListener('input', () => { phoneMask.updateValue(); });
+
+            // В этом блоке мы оставляем только объявление переменной,
+            // сама маска будет создаваться при открытии окна
+            const searchInput = document.getElementById('clientSearchInput');
+            searchInput.addEventListener('input', () => { searchMask.updateValue(); });
+
+            function checkActiveSession() {
+                const savedSession = localStorage.getItem('crm_session');
+                if (!savedSession) return;
+                const session = JSON.parse(savedSession);
+                const oneDay = 24 * 60 * 60 * 1000;
+                const isSessionExpired = (new Date().getTime() - session.loginTime) > oneDay;
+                if (isSessionExpired) { localStorage.removeItem('crm_session'); return; }
+                onLoginSuccess({ login: session.user, role: session.role });
+            }
+            checkActiveSession();
+
+            const clientSearchModalEl = document.getElementById('clientSearchModal');
+
+// 1. При клике на кнопку "Поиск контрагента"
+document.getElementById('show-client-search-btn').addEventListener('click', (e) => {
+    clientSearchModalTrigger = e.currentTarget; // Запоминаем кнопку
+    searchInput.value = '';
+    document.getElementById('clientSearchResult').innerHTML = '';
+    clientSearchModal.show();
+});
+
+// 2. Когда окно ПОЛНОСТЬЮ ПОКАЗАЛОСЬ - создаем маску
+clientSearchModalEl.addEventListener('shown.bs.modal', () => {
+    if (!searchMask) { // Создаем, только если ее еще нет
+        searchMask = IMask(searchInput, {
+            mask: /.*/,
+            dispatch: function (appended, dynamicMasked) {
+                if (/^\d/.test(dynamicMasked.unmaskedValue)) {
+                    return { mask: '+{38} (000) 000-00-00', lazy: false };
+                }
+                return { mask: /.*/ };
+            }
+        });
+    }
+});
+
+// 3. Когда окно ПОЛНОСТЬЮ СКРЫЛОСЬ - уничтожаем маску и возвращаем фокус
+clientSearchModalEl.addEventListener('hidden.bs.modal', () => {
+    if (searchMask) {
+        searchMask.destroy();
+        searchMask = null;
+    }
+    if (clientSearchModalTrigger) {
+        clientSearchModalTrigger.focus();
+    }
+});
+            clientSearchModalEl.addEventListener('hidden.bs.modal', () => { if (clientSearchModalTrigger) { clientSearchModalTrigger.focus(); } });
+
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            document.getElementById('admin-logout-btn').addEventListener('click', handleLogout);
+            document.getElementById('show-add-form-btn').addEventListener('click', showAddForm);
+            document.getElementById('meeting-form').addEventListener('submit', handleFormSubmit);
+            document.getElementById('cancel-btn').addEventListener('click', handleCancelClick);
+            document.getElementById('confirmCancelBtn').addEventListener('click', () => { cancelConfirmModal.hide(); showForm(false); });
+            document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
+            document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
+            document.getElementById('searchInput').addEventListener('input', filterAndGroupMeetings);
+            document.getElementById('resetFiltersBtn').addEventListener('click', () => { document.getElementById('searchInput').value = ''; datePicker.setDateRange(new Date(), new Date()); });
+            document.getElementById('get-location-btn').addEventListener('click', handleGetLocationClick);
+            document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
+            document.getElementById('saveOutcomeBtn').addEventListener('click', handleSaveOutcome);
+            document.getElementById('adminRefreshBtn').addEventListener('click', loadAdminStats);
+            document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
+            document.getElementById('clientSearchInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleClientSearch(); });
+            
+            const header = document.querySelector('#main-app > header');
+            if (header) {
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 10) {
+                        header.classList.add('header-scrolled');
+                    } else {
+                        header.classList.remove('header-scrolled');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
-
-
 
 </html>
