@@ -506,8 +506,13 @@
     }
     meetingsList.innerHTML = skeletonHTML;
 
-    // Ключевая строка, которая добавляет login в запрос
-    const payload = { login: currentUser, startDateString, endDateString };
+    // --- НАЧАЛО ИСПРАВЛЕНИЯ: Добавляем login в запрос ---
+    const payload = { 
+        login: currentUser, 
+        startDateString: startDateString, 
+        endDateString: endDateString 
+    };
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
     
     callApi('getInitialData', payload)
         .then(onDataLoaded)
@@ -516,7 +521,6 @@
             meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
         });
 }
-
         function onDataLoaded(data) {
             if (!data || !Array.isArray(data.meetings)) {
                 console.error("Получены некорректные данные от сервера:", data);
