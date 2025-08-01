@@ -35,25 +35,23 @@
         .edit-icon-btn:hover {
             color: #0d6efd;
         }
-        .card-body {
-        /* Добавляем отступы сверху и снизу для кнопок */
+       .card-body {
+        /* Оставляем отступ только сверху для кнопки редактирования */
         padding-top: 50px;
-        padding-bottom: 50px; 
+        /* Нижний отступ больше не нужен */
+        padding-bottom: 1.25rem; /* Стандартный отступ Bootstrap */
     }
 
-    /* Стиль для кнопки редактирования в правом верхнем углу */
+    /* Стиль для кнопки редактирования в правом верхнем углу (остается) */
     .card-edit-btn-top-right {
         position: absolute;
         top: 0.75rem;
         right: 0.75rem;
     }
     
-    /* Стиль для меню "три точки" в правом нижнем углу */
-    .card-actions-bottom-right {
-        position: absolute;
-        bottom: 0.75rem;
-        right: 0.75rem;
-    }
+    /* Класс .card-actions-bottom-right БОЛЬШЕ НЕ НУЖЕН, удалите его */
+
+    /* ... остальные стили ... */
         }
         .status-blue { background-color: #0d6efd; } /* Для "Запланировано" */
 .status-green { background-color: #198754; }
@@ -669,7 +667,14 @@
 
                 ${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}
                 <p class="card-text mb-1"><small class="text-muted">Место встречи: ${m.Location || 'Не указано'}</small></p>
-                <p class="card-text mt-3"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
+
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <p class="card-text mb-0">
+                        <strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}
+                    </p>
+                    
+                    ${actionsMenu}
+                </div>
                 ${rescheduleInfo}
 
                 <div class="mt-3 pt-3 border-top">
@@ -677,10 +682,6 @@
                         <i class="bi bi-file-text me-2"></i>Данные по клиенту
                     </button>
                 </div>
-            </div>
-
-            <div class="card-actions-bottom-right">
-                ${actionsMenu}
             </div>
 
         </div>
