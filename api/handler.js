@@ -1,35 +1,49 @@
 const axios = require('axios');
 const { google } = require('googleapis');
 
-// --- ОСНОВНОЙ ОБРАБОТЧИК ---
 export default async function handler(request, response) {
     if (request.method !== 'POST') {
         return response.status(405).json({ message: 'Only POST requests allowed' });
     }
 
     const { action, payload } = request.body;
+    let dataToSendToOneC;
+
+    // --- НАЧАЛО ИЗМЕНЕНИЙ: Индивидуальная обработка каждого действия ---
+    // Используем switch, чтобы создавать правильный JSON для каждого запроса
+    switch (action) {
+        case 'login':
+            dataToSendToOneC = {
+                login: payload.login,
+                password: payload.password
+            };
+            break;
+        
+        case 'getInitialData':
+            dataToSendToOneC = {
+                login: payload.login,
+                startDateString: payload.startDateString,
+                endDateString: payload.endDateString
+            };
+            break;
+
+        // Для всех остальных действий по умолчанию отправляем только payload
+        default:
+            dataToSendToOneC = payload;
+            break;
+    }
+    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
     try {
-        // --- НАЧАЛО ИЗМЕНЕНИЙ ---
-        // 1. Определяем, какие данные отправлять в 1С.
-        // Если в запросе есть поле 'payload', отправляем только его содержимое.
-        // Это универсальное решение для всех ваших запросов (login, getInitialData и т.д.).
-        const dataToSendToOneC = { action, ...payload };
-
-        // Логируем то, что отправляем в 1С. Это можно будет увидеть в логах Vercel.
         console.log(`Отправка в 1С для действия "${action}":`, JSON.stringify(dataToSendToOneC, null, 2));
         
-        // 2. Перенаправляем правильные данные в 1С
         const responseFrom1C = await forwardRequestToOneC(dataToSendToOneC);
-        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
-        // 3. Если 1С вернула успешный ответ, работаем с календарем
         if (responseFrom1C.status === 'success') {
             const meetingData = (action === 'saveNewMeeting') ? responseFrom1C.data : payload.newData;
             handleCalendarEvent(action, meetingData);
         }
 
-        // 4. Возвращаем успешный ответ от 1С на фронтенд
         response.status(200).json(responseFrom1C);
 
     } catch (error) {
@@ -42,7 +56,8 @@ export default async function handler(request, response) {
     }
 }
 
-// --- ФУНКЦИЯ ДЛЯ РАБОТЫ С 1С (без изменений) ---
+// --- Остальные функции (forwardRequestToOneC, getGoogleAuth, и т.д.) остаются БЕЗ ИЗМЕНЕНИЙ ---
+
 async function forwardRequestToOneC(requestBody) {
     const ONEC_API_URL = process.env.ONEC_API_URL;
     const ONEC_LOGIN = process.env.ONEC_LOGIN;
@@ -58,7 +73,6 @@ async function forwardRequestToOneC(requestBody) {
     return apiResponse.data;
 }
 
-// --- ФУНКЦИИ ДЛЯ РАБОТЫ С GOOGLE CALENDAR (без изменений) ---
 function getGoogleAuth(userEmail) {
     const auth = new google.auth.JWT({
         email: process.env.GAPI_CLIENT_EMAIL,
