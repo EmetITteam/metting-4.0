@@ -499,19 +499,22 @@
         }
 
         function loadInitialData(startDateString, endDateString) {
-            let skeletonHTML = '';
-            for (let i = 0; i < 4; i++) {
-                skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
-            }
-            meetingsList.innerHTML = skeletonHTML;
-            const payload = { login: currentUser, startDateString, endDateString };
-            callApi('getInitialData', payload)
-                .then(onDataLoaded)
-                .catch(err => {
-                    onFailure(err);
-                    meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
-                });
-        }
+    let skeletonHTML = '';
+    for (let i = 0; i < 4; i++) {
+        skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
+    }
+    meetingsList.innerHTML = skeletonHTML;
+
+    // Ключевая строка, которая добавляет login в запрос
+    const payload = { login: currentUser, startDateString, endDateString };
+    
+    callApi('getInitialData', payload)
+        .then(onDataLoaded)
+        .catch(err => {
+            onFailure(err);
+            meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
+        });
+}
 
         function onDataLoaded(data) {
             if (!data || !Array.isArray(data.meetings)) {
