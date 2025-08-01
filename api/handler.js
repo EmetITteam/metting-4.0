@@ -14,7 +14,7 @@ export default async function handler(request, response) {
         // 1. Определяем, какие данные отправлять в 1С.
         // Если в запросе есть поле 'payload', отправляем только его содержимое.
         // Это универсальное решение для всех ваших запросов (login, getInitialData и т.д.).
-        const dataToSendToOneC = payload ? payload : request.body;
+        const dataToSendToOneC = { action, ...payload };
 
         // Логируем то, что отправляем в 1С. Это можно будет увидеть в логах Vercel.
         console.log(`Отправка в 1С для действия "${action}":`, JSON.stringify(dataToSendToOneC, null, 2));
