@@ -134,60 +134,67 @@
                 <div id="meetings-list" class="row g-3"></div>
             </main>
 
-            <section id="form-section" class="d-none mt-4">
-                <h2 id="form-title" class="h3 mb-3 text-center">Новая встреча</h2>
-                <form id="meeting-form" class="p-4 bg-light border rounded-3">
-                    <input type="hidden" id="meeting-id">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label for="meeting-date" class="form-label">Дата:</label>
-                            <div class="input-group">
-                                <input type="date" id="meeting-date" class="form-control" required>
-                                <button type="button" class="btn btn-outline-secondary" id="todayBtn">Сегодня</button>
-                                <button type="button" class="btn btn-outline-secondary" id="tomorrowBtn">Завтра</button>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <label for="meeting-time" class="form-label">Время:</label>
-                            <input type="time" id="meeting-time" class="form-control" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="client-name" class="form-label">Клиент:</label>
-                            <input type="text" id="client-name" class="form-control" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="purpose" class="form-label">Цель:</label>
-                            <select id="purpose" class="form-select" required></select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="phone" class="form-label">Телефон:</label>
-                            <input type="tel" id="phone" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="status" class="form-label">Статус:</label>
-                            <select id="status" class="form-select">
-                                <option value="В работе">В работе</option>
-                                <option value="Завершена">Завершена</option>
-                                <option value="Перенос">Перенос</option>
-                                <option value="Отмена">Отмена</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label for="location" class="form-label">Геолокация:</label>
-                            <div class="input-group">
-                                <input type="text" id="location" class="form-control">
-                                <button class="btn btn-outline-secondary" type="button" id="get-location-btn">📍 Определить</button>
-                            </div>
-                            <input type="hidden" id="location-lat">
-                            <input type="hidden" id="location-lon">
-                        </div>
-                    </div>
-                    <div class="d-flex gap-2 mt-4">
-                        <button type="submit" id="save-button" class="btn btn-primary">Сохранить</button>
-                        <button type="button" id="cancel-btn" class="btn btn-secondary">Отмена</button>
-                    </div>
-                </form>
-            </section>
+           <section id="form-section" class="d-none mt-4">
+    <h2 id="form-title" class="h3 mb-3 text-center">Новая встреча</h2>
+    <form id="meeting-form" class="p-4 bg-light border rounded-3">
+        <input type="hidden" id="meeting-id">
+        <div class="row g-3">
+            <div class="col-12">
+                <label for="meeting-date" class="form-label">Дата:</label>
+                <div class="input-group">
+                    <input type="date" id="meeting-date" class="form-control" required>
+                    <button type="button" class="btn btn-outline-secondary" id="todayBtn">Сегодня</button>
+                    <button type="button" class="btn btn-outline-secondary" id="tomorrowBtn">Завтра</button>
+                </div>
+            </div>
+            <div class="col-12">
+                <label for="meeting-time" class="form-label">Время:</label>
+                <input type="time" id="meeting-time" class="form-control" required>
+            </div>
+            <div class="col-12">
+                <label for="client-name" class="form-label">Клиент:</label>
+                <input type="text" id="client-name" class="form-control" required>
+            </div>
+            <div class="col-12">
+                <label for="purpose" class="form-label">Цель:</label>
+                <select id="purpose" class="form-select" required></select>
+            </div>
+            <div class="col-md-6">
+                <label for="phone" class="form-label">Телефон:</label>
+                <input type="tel" id="phone" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+                <label for="status" class="form-label">Статус:</label>
+                <select id="status" class="form-select">
+                    <option value="В работе">В работе</option>
+                    <option value="Завершена">Завершена</option>
+                    <option value="Перенос">Перенос</option>
+                    <option value="Отмена">Отмена</option>
+                </select>
+            </div>
+
+            <div class="col-12">
+                <label for="location" class="form-label">Адрес клиента:</label>
+                <input type="text" id="location" class="form-control" readonly>
+            </div>
+
+            <div class="col-12">
+                <label for="meeting-location" class="form-label">Место встречи (Геолокация):</label>
+                <div class="input-group">
+                    <input type="text" id="meeting-location" class="form-control">
+                    <button class="btn btn-outline-secondary" type="button" id="get-meeting-location-btn">📍 Определить</button>
+                </div>
+                <input type="hidden" id="meeting-lat">
+                <input type="hidden" id="meeting-lon">
+            </div>
+
+        </div>
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" id="save-button" class="btn btn-primary">Сохранить</button>
+            <button type="button" id="cancel-btn" class="btn btn-secondary">Отмена</button>
+        </div>
+    </form>
+</section>
         </div>
 
         <div id="admin-dashboard" class="d-none">
