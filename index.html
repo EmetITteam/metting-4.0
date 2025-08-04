@@ -983,7 +983,8 @@ function filterAndGroupMeetings() {
                     <div>
                         <strong>${client.clientName}</strong>
                         <br>
-                        <small class="text-muted">Категория: ${client.ClientCategory || 'Не указана'}</small>
+                        <small class="text-muted d-block">Категория: ${client.ClientCategory || 'Не указана'}</small>
+                        <small class="text-muted d-block">Менеджер: ${client.managerName || 'Не назначен'}</small>
                     </div>
                     <button class="btn btn-sm btn-success create-meeting-from-search-btn" 
                             data-client-name="${client.clientName}" 
@@ -1008,7 +1009,7 @@ function filterAndGroupMeetings() {
             const clientName = target.dataset.clientName;
             const clientAddress = target.dataset.clientAddress;
             const clientID = target.dataset.clientId;
-            const clientCategory = target.dataset.clientCategory; // Получаем категорию
+            const clientCategory = target.dataset.clientCategory;
 
             clientSearchModal.hide();
             showAddForm();
@@ -1016,7 +1017,7 @@ function filterAndGroupMeetings() {
             document.getElementById('client-name').value = clientName;
             document.getElementById('location').value = clientAddress;
             document.getElementById('client-id').value = clientID;
-            document.getElementById('client-category').value = clientCategory; // Заполняем поле категории
+            document.getElementById('client-category').value = clientCategory;
         }
     });
 }
