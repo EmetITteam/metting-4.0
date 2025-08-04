@@ -74,6 +74,11 @@
             50% { opacity: 0.5; }
             100% { opacity: 1; }
         }
+        #client-autocomplete-results .list-group-item {
+        cursor: pointer;
+    }
+    #client-autocomplete-results .list-group-item:hover {
+        background-color: #f0f0f0;
     </style>
 </head>
 
@@ -165,9 +170,12 @@
                 <input type="time" id="meeting-time" class="form-control" required>
             </div>
             <div class="col-12">
-                <label for="client-name" class="form-label">Клиент:</label>
-                <input type="text" id="client-name" class="form-control" required>
-            </div>
+    <label for="client-name" class="form-label">Клиент:</label>
+    <div class="position-relative">
+        <input type="text" id="client-name" class="form-control" required autocomplete="off">
+        <div id="client-autocomplete-results" class="list-group position-absolute w-100" style="z-index: 1050;"></div>
+    </div>
+</div>
             <div class="col-12">
                 <label for="purpose" class="form-label">Цель:</label>
                 <select id="purpose" class="form-select" required></select>
