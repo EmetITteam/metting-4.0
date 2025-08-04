@@ -172,10 +172,10 @@
                 <label for="purpose" class="form-label">Цель:</label>
                 <select id="purpose" class="form-select" required></select>
             </div>
-            <div class="col-md-6">
-                <label for="phone" class="form-label">Телефон:</label>
-                <input type="tel" id="phone" class="form-control" required>
-            </div>
+            <div class="col-12">
+   <label for="phone" class="form-label">Телефон:</label>
+   <input type="tel" id="phone" class="form-control" required>
+</div>
             <div class="col-md-6">
                 <label for="status" class="form-label">Статус:</label>
                 <select id="status" class="form-select">
@@ -185,6 +185,10 @@
                     <option value="Отмена">Отмена</option>
                 </select>
             </div>
+            <div class="col-md-6">
+    <label for="client-category" class="form-label">Категория клиента:</label>
+    <input type="text" id="client-category" class="form-control" readonly>
+</div>
             <div class="col-12">
                 <label for="location" class="form-label">Адрес клиента:</label>
                 <input type="text" id="location" class="form-control" readonly>
@@ -746,7 +750,8 @@ function filterAndGroupMeetings() {
     
     document.getElementById('form-title').textContent = "Редактирование встречи";
     document.getElementById('meeting-id').value = currentEditingMeeting.ID;
-    document.getElementById('client-id').value = currentEditingMeeting.ClientID; // Заполняем ClientID
+    document.getElementById('client-id').value = currentEditingMeeting.ClientID;
+    document.getElementById('client-category').value = currentEditingMeeting.ClientCategory || ''; // Заполняем категорию
     
     const dateParts = currentEditingMeeting.Date.split('.');
     document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
@@ -957,7 +962,7 @@ function filterAndGroupMeetings() {
     }
     
     // ИЗМЕНЕНО: Поиск клиента теперь заполняет и его статичный адрес
-    async function handleClientSearch() {
+   async function handleClientSearch() {
     const searchInput = document.getElementById('clientSearchInput');
     const resultContainer = document.getElementById('clientSearchResult');
     const searchBtn = document.getElementById('clientSearchBtn');
@@ -978,12 +983,13 @@ function filterAndGroupMeetings() {
                     <div>
                         <strong>${client.clientName}</strong>
                         <br>
-                        <small class="text-muted">Менеджер: ${client.managerName || 'Не назначен'}</small>
+                        <small class="text-muted">Категория: ${client.ClientCategory || 'Не указана'}</small>
                     </div>
                     <button class="btn btn-sm btn-success create-meeting-from-search-btn" 
                             data-client-name="${client.clientName}" 
                             data-client-address="${client.clientAddress || ''}"
-                            data-client-id="${client.ClientID}">
+                            data-client-id="${client.ClientID}"
+                            data-client-category="${client.ClientCategory || ''}">
                         Создать
                     </button>
                 </li>`).join('');
@@ -1002,17 +1008,18 @@ function filterAndGroupMeetings() {
             const clientName = target.dataset.clientName;
             const clientAddress = target.dataset.clientAddress;
             const clientID = target.dataset.clientId;
+            const clientCategory = target.dataset.clientCategory; // Получаем категорию
 
             clientSearchModal.hide();
             showAddForm();
             
             document.getElementById('client-name').value = clientName;
             document.getElementById('location').value = clientAddress;
-            document.getElementById('client-id').value = clientID; // Заполняем скрытое поле
+            document.getElementById('client-id').value = clientID;
+            document.getElementById('client-category').value = clientCategory; // Заполняем поле категории
         }
     });
 }
-
     function showAddForm() {
         currentEditingMeeting = null;
         document.getElementById('form-title').textContent = "Новая встреча";
