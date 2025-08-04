@@ -149,6 +149,9 @@
     <h2 id="form-title" class="h3 mb-3 text-center">Новая встреча</h2>
     <form id="meeting-form" class="p-4 bg-light border rounded-3">
         <input type="hidden" id="meeting-id">
+        <form id="meeting-form" class="p-4 bg-light border rounded-3">
+    <input type="hidden" id="meeting-id">
+    <input type="hidden" id="client-id"> <div class="row g-3">
         <div class="row g-3">
             <div class="col-12">
                 <label for="meeting-date" class="form-label">Дата:</label>
@@ -590,181 +593,172 @@
         }
     }
 
-    function filterAndGroupMeetings() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
-        const dateGroups = {};
-        const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
-        filtered.forEach(m => {
-            let status = m.Status ? m.Status.trim() : '';
-            if (status === 'Завершено') status = 'Завершена';
-            if (status === 'Отменено') status = 'Отмена';
-            if (!validStatuses.includes(status)) status = 'В работе';
-            if (!dateGroups[m.Date]) {
-                dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершена': [], 'Отмена': [], 'Просрочено': [] };
-            }
-            if (dateGroups[m.Date][status]) {
-                dateGroups[m.Date][status].push(m);
-            } else {
-                dateGroups[m.Date]['В работе'].push(m);
-            }
-        });
-        meetingsList.innerHTML = '';
-        const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(a.split('.').reverse().join('-')) - new Date(b.split('.').reverse().join('-')));
-        if (sortedDates.length === 0) {
-            meetingsList.innerHTML = `<div class="col-12 text-center p-5"><i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i><h4 class="mt-3">Встреч не найдено</h4><p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p><button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button></div>`;
-            document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
-            return;
+function filterAndGroupMeetings() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
+    const dateGroups = {};
+    const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
+    filtered.forEach(m => {
+        let status = m.Status ? m.Status.trim() : '';
+        if (status === 'Завершено') status = 'Завершена';
+        if (status === 'Отменено') status = 'Отмена';
+        if (!validStatuses.includes(status)) status = 'В работе';
+        if (!dateGroups[m.Date]) {
+            dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершена': [], 'Отмена': [], 'Просрочено': [] };
         }
-        sortedDates.forEach(date => {
-            const dateTitle = document.createElement('h3');
-            dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
-            dateTitle.textContent = date;
-            meetingsList.appendChild(dateTitle);
-            const groups = dateGroups[date];
-            const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершена', 'Отмена'];
-            groupOrder.forEach(status => {
-                if (groups[status] && groups[status].length > 0) {
-                    const groupTitle = document.createElement('h4');
-                    groupTitle.className = 'col-12 mt-3 text-muted';
-                    groupTitle.textContent = status;
-                    meetingsList.appendChild(groupTitle);
-                    groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
-                        let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
-                        dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
-                        const cleanStatus = m.Status ? m.Status.trim() : '';
-                        if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
-                            dropdownItems += '<li><hr class="dropdown-divider"></li>';
-                            dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
-                            dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
-                        }
-                        const actionsMenu = `<div class="dropdown actions-dropdown"><button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end">${dropdownItems}</ul></div>`;
-                        let rescheduleInfo = '';
-                        if (m.Status === 'Перенос' && m.Comment) {
-                            rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
-                        }
-                        const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
-                        const statusColor = statusColors[cleanStatus] || 'gray';
-                        let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
-                        if (m.ClientCategory) {
-                            const categoryColor = getCategoryColor(m.ClientCategory);
-                            clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
-                        }
-                        const cardWrapper = document.createElement('div');
-                        cardWrapper.className = "col-12 col-md-6";
-                        cardWrapper.innerHTML = `
-    <div class="card meeting-card shadow-sm border-0">
-        <div class="card-body">
-
-            <a href="#" class="btn btn-light edit-btn card-edit-btn-top-right" title="Редактировать" data-id="${m.ID}">
-                <i class="bi bi-pencil-square"></i>
-            </a>
-            
-            <div class="flex-grow-1">
-                <h5 class="card-title">
-                    ${clientTitle}
-                </h5>
-
-                ${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}
-                <p class="card-text mb-1"><small class="text-muted">Место встречи: ${m.Location || 'Не указано'}</small></p>
-
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <p class="card-text mb-0">
-                        <strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}
-                    </p>
-                    
-                    ${actionsMenu}
-                </div>
-                ${rescheduleInfo}
-
-                <div class="mt-3 pt-3 border-top">
-                    <button class="btn btn-sm btn-outline-secondary w-100 report-btn-icon" data-client="${m.Client}">
-                        <i class="bi bi-file-text me-2"></i>Данные по клиенту
-                    </button>
-                </div>
-            </div>
-
-        </div>
-    </div>`;
-                        meetingsList.appendChild(cardWrapper);
-                    });
-                }
-            });
-        });
-        document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
-        document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
-        document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
-        document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
-        document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
-        document.querySelectorAll('.report-btn-icon').forEach(btn => btn.addEventListener('click', handleReportClick));
-        window.scrollTo(0, 0);
+        if (dateGroups[m.Date][status]) {
+            dateGroups[m.Date][status].push(m);
+        } else {
+            dateGroups[m.Date]['В работе'].push(m);
+        }
+    });
+    meetingsList.innerHTML = '';
+    const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(a.split('.').reverse().join('-')) - new Date(b.split('.').reverse().join('-')));
+    if (sortedDates.length === 0) {
+        meetingsList.innerHTML = `<div class="col-12 text-center p-5"><i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i><h4 class="mt-3">Встреч не найдено</h4><p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p><button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button></div>`;
+        document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
+        return;
     }
+    sortedDates.forEach(date => {
+        const dateTitle = document.createElement('h3');
+        dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
+        dateTitle.textContent = date;
+        meetingsList.appendChild(dateTitle);
+        const groups = dateGroups[date];
+        const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершена', 'Отмена'];
+        groupOrder.forEach(status => {
+            if (groups[status] && groups[status].length > 0) {
+                const groupTitle = document.createElement('h4');
+                groupTitle.className = 'col-12 mt-3 text-muted';
+                groupTitle.textContent = status;
+                meetingsList.appendChild(groupTitle);
+                groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
+                    let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
+                    dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
+                    const cleanStatus = m.Status ? m.Status.trim() : '';
+                    if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
+                        dropdownItems += '<li><hr class="dropdown-divider"></li>';
+                        dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
+                        dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
+                    }
+                    const actionsMenu = `<div class="dropdown actions-dropdown">${dropdownItems ? `<button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end">${dropdownItems}</ul>` : ''}</div>`;
+                    let rescheduleInfo = '';
+                    if (m.Status === 'Перенос' && m.Comment) {
+                        rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
+                    }
+                    const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
+                    const statusColor = statusColors[cleanStatus] || 'gray';
+                    let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
+                    if (m.ClientCategory) {
+                        const categoryColor = getCategoryColor(m.ClientCategory);
+                        clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
+                    }
+                    const cardWrapper = document.createElement('div');
+                    cardWrapper.className = "col-12 col-md-6";
+                    cardWrapper.innerHTML = `
+                        <div class="card meeting-card shadow-sm border-0">
+                            <div class="card-body">
+                                <a href="#" class="btn btn-light edit-btn card-edit-btn-top-right" title="Редактировать" data-id="${m.ID}">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title">${clientTitle}</h5>
+                                    ${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}
+                                    <p class="card-text mb-1"><small class="text-muted">Место встречи: ${m.Location || 'Не указано'}</small></p>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <p class="card-text mb-0">
+                                            <strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}
+                                        </p>
+                                        ${actionsMenu}
+                                    </div>
+                                    ${rescheduleInfo}
+                                    <div class="mt-3 pt-3 border-top">
+                                        <button class="btn btn-sm btn-outline-secondary w-100 report-btn-icon" data-client-id="${m.ClientID}" data-client-name="${m.Client}">
+                                            <i class="bi bi-file-text me-2"></i>Данные по клиенту
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    meetingsList.appendChild(cardWrapper);
+                });
+            }
+        });
+    });
+    document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
+    document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
+    document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
+    document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
+    document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
+    document.querySelectorAll('.report-btn-icon').forEach(btn => btn.addEventListener('click', handleReportClick));
+    window.scrollTo(0, 0);
+}
 
     // ИЗМЕНЕНО: Функция сохранения адаптирована под новые поля
-    function handleFormSubmit(e) {
-        e.preventDefault();
-        const saveBtn = document.getElementById('save-button');
-        toggleButtonSpinner(saveBtn, true);
-        const meetingId = document.getElementById('meeting-id').value;
-        const isUpdating = !!meetingId;
-        const data = {
-            ID: isUpdating ? meetingId : `m${Date.now()}`,
-            Date: document.getElementById('meeting-date').value.split('-').reverse().join('.'),
-            Time: document.getElementById('meeting-time').value,
-            Client: document.getElementById('client-name').value,
-            Purpose: document.getElementById('purpose').value,
-            Phone: phoneMask.unmaskedValue,
-            // Новые поля для места встречи
-            Location: document.getElementById('meeting-location').value,
-            LocationLat: document.getElementById('meeting-lat').value,
-            LocationLon: document.getElementById('meeting-lon').value,
-            Status: document.getElementById('status').value,
-            ManagerLogin: currentUser,
-            Comment: isUpdating ? currentEditingMeeting.Comment : ''
-        };
-        if (isUpdating && data.Status === 'Перенос') {
-            meetingToReschedule = data;
-            currentEditingMeeting = allMeetings.find(m => m.ID === data.ID);
-            rescheduleModal.show();
-            toggleButtonSpinner(saveBtn, false);
-            return;
-        }
-        const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
-        const payload = isUpdating ? { newData: data, oldData: currentEditingMeeting } : data;
-        callApi(action, payload).then(() => {
-            showToast(`Встреча с клиентом "${data.Client}" на ${data.Time} успешно сохранена.`);
-            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-            onActionComplete();
-        }).catch(onFailure).finally(() => {
-            toggleButtonSpinner(saveBtn, false);
-        });
+   function handleFormSubmit(e) {
+    e.preventDefault();
+    const saveBtn = document.getElementById('save-button');
+    toggleButtonSpinner(saveBtn, true);
+    const meetingId = document.getElementById('meeting-id').value;
+    const isUpdating = !!meetingId;
+    const data = {
+        ID: isUpdating ? meetingId : `m${Date.now()}`,
+        ClientID: document.getElementById('client-id').value, // Добавили ClientID в отправку
+        Date: document.getElementById('meeting-date').value.split('-').reverse().join('.'),
+        Time: document.getElementById('meeting-time').value,
+        Client: document.getElementById('client-name').value,
+        Purpose: document.getElementById('purpose').value,
+        Phone: phoneMask.unmaskedValue,
+        Location: document.getElementById('meeting-location').value,
+        LocationLat: document.getElementById('meeting-lat').value,
+        LocationLon: document.getElementById('meeting-lon').value,
+        Status: document.getElementById('status').value,
+        ManagerLogin: currentUser,
+        Comment: isUpdating ? currentEditingMeeting.Comment : ''
+    };
+    if (isUpdating && data.Status === 'Перенос') {
+        meetingToReschedule = data;
+        currentEditingMeeting = allMeetings.find(m => m.ID === data.ID);
+        rescheduleModal.show();
+        toggleButtonSpinner(saveBtn, false);
+        return;
     }
+    const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
+    const payload = isUpdating ? { newData: data, oldData: currentEditingMeeting } : data;
+    callApi(action, payload).then(() => {
+        showToast(`Встреча с клиентом "${data.Client}" на ${data.Time} успешно сохранена.`);
+        loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+        onActionComplete();
+    }).catch(onFailure).finally(() => {
+        toggleButtonSpinner(saveBtn, false);
+    });
+}
     
     // ИЗМЕНЕНО: Функция редактирования заполняет оба поля адреса
     function handleEditClick(event) {
-        event.preventDefault();
-        const meetingId = event.currentTarget.dataset.id;
-        currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
-        if (!currentEditingMeeting) return;
-        document.getElementById('form-title').textContent = "Редактирование встречи";
-        const dateParts = currentEditingMeeting.Date.split('.');
-        document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-        document.getElementById('meeting-time').value = currentEditingMeeting.Time;
-        document.getElementById('meeting-id').value = currentEditingMeeting.ID;
-        document.getElementById('client-name').value = currentEditingMeeting.Client;
-        document.getElementById('purpose').value = currentEditingMeeting.Purpose;
-        document.getElementById('phone').value = currentEditingMeeting.Phone;
-        if (phoneMask) phoneMask.updateValue();
-        
-        // Заполнение обоих полей адреса
-        document.getElementById('location').value = currentEditingMeeting.ClientAddress || ''; // Статичный адрес клиента
-        document.getElementById('meeting-location').value = currentEditingMeeting.Location || ''; // Место встречи
-        document.getElementById('meeting-lat').value = currentEditingMeeting.LocationLat || '';
-        document.getElementById('meeting-lon').value = currentEditingMeeting.LocationLon || '';
-
-        document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
-        showForm(true);
-    }
+    event.preventDefault();
+    const meetingId = event.currentTarget.dataset.id;
+    currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
+    if (!currentEditingMeeting) return;
+    
+    document.getElementById('form-title').textContent = "Редактирование встречи";
+    document.getElementById('meeting-id').value = currentEditingMeeting.ID;
+    document.getElementById('client-id').value = currentEditingMeeting.ClientID; // Заполняем ClientID
+    
+    const dateParts = currentEditingMeeting.Date.split('.');
+    document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+    document.getElementById('meeting-time').value = currentEditingMeeting.Time;
+    document.getElementById('client-name').value = currentEditingMeeting.Client;
+    document.getElementById('purpose').value = currentEditingMeeting.Purpose;
+    document.getElementById('phone').value = currentEditingMeeting.Phone;
+    if (phoneMask) phoneMask.updateValue();
+    document.getElementById('location').value = currentEditingMeeting.ClientAddress || '';
+    document.getElementById('meeting-location').value = currentEditingMeeting.Location || '';
+    document.getElementById('meeting-lat').value = currentEditingMeeting.LocationLat || '';
+    document.getElementById('meeting-lon').value = currentEditingMeeting.LocationLon || '';
+    document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
+    showForm(true);
+}
 
     async function handleCompleteClick(event) {
         const btn = event.target;
@@ -931,20 +925,28 @@
     }
     
     async function handleReportClick(event) {
-        event.preventDefault();
-        const clientName = event.currentTarget.dataset.client;
-        const reportModalBody = document.getElementById('reportModalBody');
-        document.getElementById('reportModalTitle').textContent = `Отчет по клиенту: ${clientName}`;
-        reportModalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
-        reportModal.show();
-        try {
-            const data = await callApi('getClientReport', { clientName });
-            renderReport(data);
-        } catch (e) {
-            onFailure(e);
-            reportModal.hide();
-        }
+    event.preventDefault();
+    const targetBtn = event.currentTarget;
+    const clientID = targetBtn.dataset.clientId;
+    const clientName = targetBtn.dataset.clientName;
+    
+    if (!clientID) {
+        showToast("Ошибка: не найден ID клиента для отчета.");
+        return;
     }
+
+    const reportModalBody = document.getElementById('reportModalBody');
+    document.getElementById('reportModalTitle').textContent = `Отчет по клиенту: ${clientName}`;
+    reportModalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
+    reportModal.show();
+    try {
+        const data = await callApi('getClientReport', { clientID: clientID }); 
+        renderReport(data);
+    } catch (e) {
+        onFailure(e);
+        reportModal.hide();
+    }
+}
     function renderReport(data) {
         const reportModalBody = document.getElementById('reportModalBody');
         const meetingsHtml = data.lastMeetings.map(m => `<li>${m.date} - ${m.status} (${m.purpose})</li>`).join('');
@@ -953,54 +955,60 @@
     
     // ИЗМЕНЕНО: Поиск клиента теперь заполняет и его статичный адрес
     async function handleClientSearch() {
-        const searchInput = document.getElementById('clientSearchInput');
-        const resultContainer = document.getElementById('clientSearchResult');
-        const searchBtn = document.getElementById('clientSearchBtn');
-        const searchTerm = searchMask.unmaskedValue || searchInput.value;
-        if (!searchTerm) {
-            resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
-            return;
-        }
-        toggleButtonSpinner(searchBtn, true);
-        resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
-        resultContainer.replaceWith(resultContainer.cloneNode(true));
-        const newResultContainer = document.getElementById('clientSearchResult');
-        try {
-            const result = await callApi('findClient', { searchTerm });
-            if (result && result.found && result.clients && result.clients.length > 0) {
-                const clientsHtml = result.clients.map(client => `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>${client.clientName}</strong>
-                            <br>
-                            <small class="text-muted">Менеджер: ${client.managerName || 'Не назначен'}</small>
-                        </div>
-                        <button class="btn btn-sm btn-success create-meeting-from-search-btn" 
-                                data-client-name="${client.clientName}" 
-                                data-client-address="${client.clientAddress || ''}">
-                            Создать
-                        </button>
-                    </li>`).join('');
-                newResultContainer.innerHTML = `<ul class="list-group">${clientsHtml}</ul>`;
-            } else {
-                newResultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
-            }
-        } catch (e) {
-            newResultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
-        } finally {
-            toggleButtonSpinner(searchBtn, false);
-        }
-        newResultContainer.addEventListener('click', (e) => {
-            if (e.target && e.target.classList.contains('create-meeting-from-search-btn')) {
-                const clientName = e.target.dataset.clientName;
-                const clientAddress = e.target.dataset.clientAddress; // Получаем адрес из data-атрибута
-                clientSearchModal.hide();
-                showAddForm();
-                document.getElementById('client-name').value = clientName;
-                document.getElementById('location').value = clientAddress; // Заполняем поле адреса клиента
-            }
-        });
+    const searchInput = document.getElementById('clientSearchInput');
+    const resultContainer = document.getElementById('clientSearchResult');
+    const searchBtn = document.getElementById('clientSearchBtn');
+    const searchTerm = searchMask.unmaskedValue || searchInput.value;
+    if (!searchTerm) {
+        resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
+        return;
     }
+    toggleButtonSpinner(searchBtn, true);
+    resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
+    resultContainer.replaceWith(resultContainer.cloneNode(true));
+    const newResultContainer = document.getElementById('clientSearchResult');
+    try {
+        const result = await callApi('findClient', { searchTerm });
+        if (result && result.found && result.clients && result.clients.length > 0) {
+            const clientsHtml = result.clients.map(client => `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>${client.clientName}</strong>
+                        <br>
+                        <small class="text-muted">Менеджер: ${client.managerName || 'Не назначен'}</small>
+                    </div>
+                    <button class="btn btn-sm btn-success create-meeting-from-search-btn" 
+                            data-client-name="${client.clientName}" 
+                            data-client-address="${client.clientAddress || ''}"
+                            data-client-id="${client.ClientID}">
+                        Создать
+                    </button>
+                </li>`).join('');
+            newResultContainer.innerHTML = `<ul class="list-group">${clientsHtml}</ul>`;
+        } else {
+            newResultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
+        }
+    } catch (e) {
+        newResultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
+    } finally {
+        toggleButtonSpinner(searchBtn, false);
+    }
+    newResultContainer.addEventListener('click', (e) => {
+        if (e.target && e.target.classList.contains('create-meeting-from-search-btn')) {
+            const target = e.target;
+            const clientName = target.dataset.clientName;
+            const clientAddress = target.dataset.clientAddress;
+            const clientID = target.dataset.clientId;
+
+            clientSearchModal.hide();
+            showAddForm();
+            
+            document.getElementById('client-name').value = clientName;
+            document.getElementById('location').value = clientAddress;
+            document.getElementById('client-id').value = clientID; // Заполняем скрытое поле
+        }
+    });
+}
 
     function showAddForm() {
         currentEditingMeeting = null;
