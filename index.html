@@ -148,12 +148,9 @@
            <section id="form-section" class="d-none mt-4">
     <h2 id="form-title" class="h3 mb-3 text-center">Новая встреча</h2>
     <form id="meeting-form" class="p-4 bg-light border rounded-3">
-    <input type="hidden" id="meeting-id">
-    <input type="hidden" id="client-id">
-    
-    <div class="row g-3">
-        </div>
-    </form>
+        <input type="hidden" id="meeting-id">
+        <input type="hidden" id="client-id">
+        
         <div class="row g-3">
             <div class="col-12">
                 <label for="meeting-date" class="form-label">Дата:</label>
@@ -188,12 +185,10 @@
                     <option value="Отмена">Отмена</option>
                 </select>
             </div>
-
             <div class="col-12">
                 <label for="location" class="form-label">Адрес клиента:</label>
                 <input type="text" id="location" class="form-control" readonly>
             </div>
-
             <div class="col-12">
                 <label for="meeting-location" class="form-label">Место встречи (Геолокация):</label>
                 <div class="input-group">
@@ -203,14 +198,19 @@
                 <input type="hidden" id="meeting-lat">
                 <input type="hidden" id="meeting-lon">
             </div>
+        </div>
 
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+            <button type="submit" id="save-button" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Сохранить
+            </button>
+            <button type="button" id="cancel-btn" class="btn btn-outline-secondary">
+                <i class="bi bi-x-lg me-2"></i>Отмена
+            </button>
         </div>
-        <div class="d-flex gap-2 mt-4">
-            <button type="submit" id="save-button" class="btn btn-primary">Сохранить</button>
-            <button type="button" id="cancel-btn" class="btn btn-secondary">Отмена</button>
-        </div>
+        
     </form>
-</section>
+           </section>
         </div>
 
         <div id="admin-dashboard" class="d-none">
