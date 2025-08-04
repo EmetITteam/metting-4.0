@@ -698,6 +698,7 @@ function filterAndGroupMeetings() {
 
     // ИЗМЕНЕНО: Функция сохранения адаптирована под новые поля
    function handleFormSubmit(e) {
+    console.log('Форма отправляется!'); // ДОБАВЬТЕ ЭТУ СТРОКУ
     e.preventDefault();
     const saveBtn = document.getElementById('save-button');
     toggleButtonSpinner(saveBtn, true);
