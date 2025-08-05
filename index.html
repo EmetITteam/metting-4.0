@@ -1008,10 +1008,10 @@ function handleClientInput(e) {
     const reportModalBody = document.getElementById('reportModalBody');
     let content = '';
 
-    // --- Блок 1: Основная информация о клиенте ---
+    // --- Блок 1: Шапка с основной информацией (остается без изменений) ---
     if (data.clientInfo) {
         content += `
-            <div class="mb-4">
+            <div class="mb-3">
                 <h3>${data.clientInfo.name || 'Имя не указано'}</h3>
                 <div class="row">
                     <div class="col-md-6">
@@ -1021,81 +1021,85 @@ function handleClientInput(e) {
                         <p class="mb-1"><strong><i class="bi bi-star-fill me-2"></i>Категория:</strong> ${data.clientInfo.category || 'Не указана'}</p>
                     </div>
                 </div>
+            </div>`;
+    }
+
+    // --- Блок 2: Навигация по вкладкам (табы) ---
+    content += `
+        <nav>
+            <div class="nav nav-tabs" id="report-tab" role="tablist">
+                <button class="nav-link active" id="sales-tab" data-bs-toggle="tab" data-bs-target="#sales-content" type="button" role="tab">Продажи</button>
+                <button class="nav-link" id="meetings-tab" data-bs-toggle="tab" data-bs-target="#meetings-content" type="button" role="tab">Последние встречи</button>
+                <button class="nav-link" id="seminars-tab" data-bs-toggle="tab" data-bs-target="#seminars-content" type="button" role="tab">Посещенные семинары</button>
             </div>
-            <hr>`;
+        </nav>`;
+
+    // --- Блок 3: Содержимое вкладок ---
+    content += `<div class="tab-content p-3 border border-top-0 rounded-bottom" id="report-tab-content">`;
+
+    // --- Содержимое вкладки "Продажи" ---
+    let salesContent = '';
+    if (data.salesReport && data.salesReport.brands && data.salesReport.brands.length > 0) {
+        salesContent += `<h5 class="mb-3">Продажи по брендам (c ${data.salesReport.periodStart} по ${data.salesReport.periodEnd})</h5>`;
+        salesContent += '<div class="row g-3">';
+        data.salesReport.brands.forEach(brand => {
+            const salesRows = brand.salesByMonth.map(sale => 
+                `<li class="list-group-item d-flex justify-content-between">
+                    <span>${sale.month}</span> 
+                    <span>${new Intl.NumberFormat('ru-RU').format(sale.amount)} грн</span>
+                </li>`
+            ).join('');
+            salesContent += `
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-light"><strong>${brand.brandName}</strong></div>
+                        <ul class="list-group list-group-flush">
+                            ${salesRows}
+                            <li class="list-group-item d-flex justify-content-between fw-bold">
+                                <span>Итого:</span> 
+                                <span>${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} грн</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>`;
+        });
+        salesContent += '</div>';
+    } else {
+        salesContent += '<p class="text-muted mt-2">Нет данных о продажах за указанный период.</p>';
     }
+    content += `<div class="tab-pane fade show active" id="sales-content" role="tabpanel">${salesContent}</div>`;
 
-    // --- Блок 2: Отчет по продажам ---
-    if (data.salesReport && data.salesReport.brands) {
-        content += `<h4 class="mt-4">Продажи по брендам (c ${data.salesReport.periodStart} по ${data.salesReport.periodEnd})</h4>`;
-        if (data.salesReport.brands.length > 0) {
-            content += '<div class="row g-3 mt-2">';
-            data.salesReport.brands.forEach(brand => {
-                const salesRows = brand.salesByMonth.map(sale => 
-                    `<li class="list-group-item d-flex justify-content-between">
-                        <span>${sale.month}</span> 
-                        <span>${new Intl.NumberFormat('ru-RU').format(sale.amount)} грн</span>
-                    </li>`
-                ).join('');
-
-                content += `
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <div class="card-header bg-light">
-                                <strong>${brand.brandName}</strong>
-                            </div>
-                            <ul class="list-group list-group-flush">
-                                ${salesRows}
-                                <li class="list-group-item d-flex justify-content-between fw-bold">
-                                    <span>Итого:</span> 
-                                    <span>${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} грн</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>`;
-            });
-            content += '</div>';
-        } else {
-            content += '<p class="text-muted">Нет данных о продажах за указанный период.</p>';
-        }
-    }
-
-    // --- Блок 3: Встречи и Семинары ---
-    content += '<div class="row mt-4 pt-3 border-top">';
-    
-    // --- Колонка для последних встреч ---
-    content += '<div class="col-md-6">';
-    content += '<h4>Последние 3 встречи</h4>';
+    // --- Содержимое вкладки "Последние встречи" ---
+    let meetingsContent = '';
     if (data.lastMeetings && data.lastMeetings.length > 0) {
-        content += '<ul class="list-unstyled mt-3">';
+        meetingsContent += '<ul class="list-unstyled mt-2">';
         data.lastMeetings.forEach(meeting => {
-            content += `
+            meetingsContent += `
                 <li class="mb-3">
                     <p class="mb-0"><strong>${meeting.date}:</strong></p>
                     <p class="mb-0 text-muted fst-italic">"${meeting.comment || 'Без комментария'}"</p>
                 </li>`;
         });
-        content += '</ul>';
+        meetingsContent += '</ul>';
     } else {
-        content += '<p class="text-muted mt-3">Нет данных о последних встречах.</p>';
+        meetingsContent += '<p class="text-muted mt-2">Нет данных о последних встречах.</p>';
     }
-    content += '</div>';
+    content += `<div class="tab-pane fade" id="meetings-content" role="tabpanel">${meetingsContent}</div>`;
 
-    // --- Колонка для семинаров ---
-    content += '<div class="col-md-6">';
-    content += '<h4>Посещенные семинары</h4>';
+    // --- Содержимое вкладки "Посещенные семинары" ---
+    let seminarsContent = '';
     if (data.seminars && data.seminars.length > 0) {
-        content += '<ul class="list-group list-group-flush mt-3">';
+        seminarsContent += '<ul class="list-group list-group-flush mt-2">';
         data.seminars.forEach(seminar => {
-            content += `<li class="list-group-item ps-0">${seminar.date} - ${seminar.name}</li>`;
+            seminarsContent += `<li class="list-group-item ps-0">${seminar.date} - ${seminar.name}</li>`;
         });
-        content += '</ul>';
+        seminarsContent += '</ul>';
     } else {
-        content += '<p class="text-muted mt-3">Нет данных о посещении семинаров.</p>';
+        seminarsContent += '<p class="text-muted mt-2">Нет данных о посещении семинаров.</p>';
     }
-    content += '</div>';
-    
-    content += '</div>'; // close row
+    content += `<div class="tab-pane fade" id="seminars-content" role="tabpanel">${seminarsContent}</div>`;
+
+    content += `</div>`; // close tab-content
 
     reportModalBody.innerHTML = content;
 }
