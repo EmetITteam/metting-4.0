@@ -1005,10 +1005,100 @@ function handleClientInput(e) {
     }
 }
     function renderReport(data) {
-        const reportModalBody = document.getElementById('reportModalBody');
-        const meetingsHtml = data.lastMeetings.map(m => `<li>${m.date} - ${m.status} (${m.purpose})</li>`).join('');
-        reportModalBody.innerHTML = `<h4>${data.clientInfo.name}</h4><div class="row"><div class="col-md-6"><ul class="list-group"><li class="list-group-item"><strong>Общие продажи:</strong> ${data.clientInfo.totalSales}</li><li class="list-group-item"><strong>Средний чек:</strong> ${data.clientInfo.averageCheck}</li><li class="list-group-item"><strong>Последний контакт:</strong> ${data.clientInfo.lastContactDate}</li></ul></div><div class="col-md-6"><h6>Последние встречи:</h6><ul>${meetingsHtml}</ul></div></div>`;
+    const reportModalBody = document.getElementById('reportModalBody');
+    let content = '';
+
+    // --- Блок 1: Основная информация о клиенте ---
+    if (data.clientInfo) {
+        content += `
+            <div class="mb-4">
+                <h3>${data.clientInfo.name || 'Имя не указано'}</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong><i class="bi bi-telephone-fill me-2"></i>Телефон:</strong> ${data.clientInfo.phone || 'Не указан'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong><i class="bi bi-star-fill me-2"></i>Категория:</strong> ${data.clientInfo.category || 'Не указана'}</p>
+                    </div>
+                </div>
+            </div>
+            <hr>`;
     }
+
+    // --- Блок 2: Отчет по продажам ---
+    if (data.salesReport && data.salesReport.brands) {
+        content += `<h4 class="mt-4">Продажи по брендам (c ${data.salesReport.periodStart} по ${data.salesReport.periodEnd})</h4>`;
+        if (data.salesReport.brands.length > 0) {
+            content += '<div class="row g-3 mt-2">';
+            data.salesReport.brands.forEach(brand => {
+                const salesRows = brand.salesByMonth.map(sale => 
+                    `<li class="list-group-item d-flex justify-content-between">
+                        <span>${sale.month}</span> 
+                        <span>${new Intl.NumberFormat('ru-RU').format(sale.amount)} грн</span>
+                    </li>`
+                ).join('');
+
+                content += `
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <strong>${brand.brandName}</strong>
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                ${salesRows}
+                                <li class="list-group-item d-flex justify-content-between fw-bold">
+                                    <span>Итого:</span> 
+                                    <span>${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} грн</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>`;
+            });
+            content += '</div>';
+        } else {
+            content += '<p class="text-muted">Нет данных о продажах за указанный период.</p>';
+        }
+    }
+
+    // --- Блок 3: Встречи и Семинары ---
+    content += '<div class="row mt-4 pt-3 border-top">';
+    
+    // --- Колонка для последних встреч ---
+    content += '<div class="col-md-6">';
+    content += '<h4>Последние 3 встречи</h4>';
+    if (data.lastMeetings && data.lastMeetings.length > 0) {
+        content += '<ul class="list-unstyled mt-3">';
+        data.lastMeetings.forEach(meeting => {
+            content += `
+                <li class="mb-3">
+                    <p class="mb-0"><strong>${meeting.date}:</strong></p>
+                    <p class="mb-0 text-muted fst-italic">"${meeting.comment || 'Без комментария'}"</p>
+                </li>`;
+        });
+        content += '</ul>';
+    } else {
+        content += '<p class="text-muted mt-3">Нет данных о последних встречах.</p>';
+    }
+    content += '</div>';
+
+    // --- Колонка для семинаров ---
+    content += '<div class="col-md-6">';
+    content += '<h4>Посещенные семинары</h4>';
+    if (data.seminars && data.seminars.length > 0) {
+        content += '<ul class="list-group list-group-flush mt-3">';
+        data.seminars.forEach(seminar => {
+            content += `<li class="list-group-item ps-0">${seminar.date} - ${seminar.name}</li>`;
+        });
+        content += '</ul>';
+    } else {
+        content += '<p class="text-muted mt-3">Нет данных о посещении семинаров.</p>';
+    }
+    content += '</div>';
+    
+    content += '</div>'; // close row
+
+    reportModalBody.innerHTML = content;
+}
     
     // ИЗМЕНЕНО: Поиск клиента теперь заполняет и его статичный адрес
    async function handleClientSearch() {
