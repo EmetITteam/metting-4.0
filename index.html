@@ -1213,22 +1213,23 @@
         } else if (!e.target.closest('#client-name')) {
             resultsContainer.innerHTML = '';
         }
-  // --- НОВЫЙ ГЛОБАЛЬНЫЙ ОБРАБОТЧИК ДЛЯ КНОПОК ОТЧЕТА И АВТОЗАПОЛНЕНИЯ ---
+ // --- ЕДИНЫЙ ГЛОБАЛЬНЫЙ ОБРАБОТЧИК ДЛЯ КНОПОК ОТЧЕТА И АВТОЗАПОЛНЕНИЯ ---
 document.addEventListener('click', function(e) {
-    // Ищем клик по кнопке отчета
+    // 1. Ищем клик по кнопке отчета
     const reportBtn = e.target.closest('.report-btn-icon');
     if (reportBtn && !reportBtn.disabled) {
-        handleReportClick(e); // Вызываем нашу исправленную функцию
-        return; 
+        handleReportClick(e); // Вызываем функцию для отчета
+        return; // Завершаем, чтобы не проверять остальное
     }
 
-    // Ищем клик по результату автозаполнения
+    // 2. Ищем клик по результату автозаполнения
     const resultsContainer = document.getElementById('client-autocomplete-results');
     const autocompleteLink = e.target.closest('#client-autocomplete-results a');
     if (autocompleteLink) {
         e.preventDefault();
         const target = autocompleteLink;
         
+        // Заполняем поля формы
         document.getElementById('client-name').value = target.dataset.clientName;
         document.getElementById('client-id').value = target.dataset.clientId;
         document.getElementById('client-category').value = target.dataset.clientCategory;
@@ -1236,8 +1237,10 @@ document.addEventListener('click', function(e) {
         document.getElementById('phone').value = target.dataset.clientPhone;
         if (phoneMask) phoneMask.updateValue();
 
+        // Прячем список результатов
         resultsContainer.innerHTML = '';
     } else if (!e.target.closest('#client-name')) {
+        // Если кликнули мимо, тоже прячем список
         resultsContainer.innerHTML = '';
     }
 });
