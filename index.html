@@ -704,15 +704,13 @@
 
     searchTimeout = setTimeout(async () => {
         try {
-            // ОТПРАВЛЯЕМ ЛОГИН МЕНЕДЖЕРА ВМЕСТЕ С ЗАПРОСОМ
+            // ВОТ ИСПРАВЛЕНИЕ: Добавляем 'managerLogin' в payload
             const payload = { searchTerm: searchTerm, managerLogin: currentUser };
             const result = await callApi('findClient', payload);
 
             if (result && result.found && result.clients && result.clients.length > 0) {
                 const clientsHtml = result.clients.map(client => {
-                    // Проверяем, наш ли это клиент
                     if (client.isMine) {
-                        // Если наш - делаем ссылку активной
                         return `
                             <a href="#" class="list-group-item list-group-item-action" 
                                data-client-name="${client.clientName}" 
@@ -724,7 +722,6 @@
                                 <small class="d-block text-muted">Категория: ${client.ClientCategory || 'Не указана'}</small>
                             </a>`;
                     } else {
-                        // Если чужой - делаем элемент неактивным и показываем, чей он
                         return `
                             <span class="list-group-item list-group-item-light text-muted pe-none">
                                 <strong>${client.clientName}</strong>
@@ -1097,64 +1094,85 @@
     }
     
     async function handleClientSearch() {
-        const searchInput = document.getElementById('clientSearchInput');
-        const resultContainer = document.getElementById('clientSearchResult');
-        const searchBtn = document.getElementById('clientSearchBtn');
-        const searchTerm = searchMask.unmaskedValue || searchInput.value;
-        if (!searchTerm) {
-            resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
-            return;
-        }
-        toggleButtonSpinner(searchBtn, true);
-        resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
-        resultContainer.replaceWith(resultContainer.cloneNode(true));
-        const newResultContainer = document.getElementById('clientSearchResult');
-        try {
-            const result = await callApi('findClient', { searchTerm });
-            if (result && result.found && result.clients && result.clients.length > 0) {
-                const clientsHtml = result.clients.map(client => `
+    const searchInput = document.getElementById('clientSearchInput');
+    const resultContainer = document.getElementById('clientSearchResult');
+    const searchBtn = document.getElementById('clientSearchBtn');
+    const searchTerm = searchMask.unmaskedValue || searchInput.value;
+    if (!searchTerm) {
+        resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
+        return;
+    }
+    toggleButtonSpinner(searchBtn, true);
+    resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
+    resultContainer.replaceWith(resultContainer.cloneNode(true));
+    const newResultContainer = document.getElementById('clientSearchResult');
+    try {
+        // ВОТ ИСПРАВЛЕНИЕ: Добавляем 'managerLogin' в payload
+        const payload = { searchTerm: searchTerm, managerLogin: currentUser };
+        const result = await callApi('findClient', payload);
+
+        if (result && result.found && result.clients && result.clients.length > 0) {
+            const clientsHtml = result.clients.map(client => {
+                const isDisabled = !client.isMine;
+                const disabledClass = isDisabled ? 'disabled' : '';
+                const titleText = isDisabled ? `Закреплен за: ${client.managerName || 'другой менеджер'}` : 'Создать встречу';
+
+                return `
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
                             <strong>${client.clientName}</strong>
-                            <br>
                             <small class="text-muted d-block">Категория: ${client.ClientCategory || 'Не указана'}</small>
                             <small class="text-muted d-block">Менеджер: ${client.managerName || 'Не назначен'}</small>
                         </div>
-                        <button class="btn btn-sm btn-success create-meeting-from-search-btn" 
-                                data-client-name="${client.clientName}" 
-                                data-client-address="${client.clientAddress || ''}"
-                                data-client-id="${client.ClientID}"
-                                data-client-category="${client.ClientCategory || ''}">
-                            Создать
-                        </button>
-                    </li>`).join('');
-                newResultContainer.innerHTML = `<ul class="list-group">${clientsHtml}</ul>`;
-            } else {
-                newResultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
-            }
-        } catch (e) {
-            newResultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
-        } finally {
-            toggleButtonSpinner(searchBtn, false);
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-secondary report-btn-icon" 
+                                    data-client-id="${client.ClientID}" 
+                                    data-client-name="${client.clientName}"
+                                    title="Данные по клиенту"
+                                    ${disabledClass}>
+                                <i class="bi bi-file-text"></i>
+                            </button>
+                            <button class="btn btn-sm btn-success create-meeting-from-search-btn" 
+                                    data-client-name="${client.clientName}" 
+                                    data-client-address="${client.clientAddress || ''}"
+                                    data-client-id="${client.ClientID}"
+                                    data-client-category="${client.ClientCategory || ''}"
+                                    title="${titleText}"
+                                    ${disabledClass}>
+                                Создать
+                            </button>
+                        </div>
+                    </li>`;
+            }).join('');
+            newResultContainer.innerHTML = `<ul class="list-group">${clientsHtml}</ul>`;
+        } else {
+            newResultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
         }
-        newResultContainer.addEventListener('click', (e) => {
-            if (e.target && e.target.classList.contains('create-meeting-from-search-btn')) {
-                const target = e.target;
-                const clientName = target.dataset.clientName;
-                const clientAddress = target.dataset.clientAddress;
-                const clientID = target.dataset.clientId;
-                const clientCategory = target.dataset.clientCategory;
-
-                clientSearchModal.hide();
-                showAddForm();
-                
-                document.getElementById('client-name').value = clientName;
-                document.getElementById('location').value = clientAddress;
-                document.getElementById('client-id').value = clientID;
-                document.getElementById('client-category').value = clientCategory;
-            }
-        });
+    } catch (e) {
+        newResultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
+    } finally {
+        toggleButtonSpinner(searchBtn, false);
     }
+    
+    newResultContainer.addEventListener('click', (e) => {
+        const createBtn = e.target.closest('.create-meeting-from-search-btn');
+        if (createBtn && !createBtn.disabled) {
+            const target = createBtn;
+            const clientName = target.dataset.clientName;
+            const clientAddress = target.dataset.clientAddress;
+            const clientID = target.dataset.clientId;
+            const clientCategory = target.dataset.clientCategory;
+
+            clientSearchModal.hide();
+            showAddForm();
+            
+            document.getElementById('client-name').value = clientName;
+            document.getElementById('location').value = clientAddress;
+            document.getElementById('client-id').value = clientID;
+            document.getElementById('client-category').value = clientCategory;
+        }
+    });
+}
 
     function showAddForm() {
         currentEditingMeeting = null;
