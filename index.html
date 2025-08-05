@@ -688,7 +688,6 @@
         document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
         document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
         document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
-        document.querySelectorAll('.report-btn-icon').forEach(btn => btn.addEventListener('click', handleReportClick));
         window.scrollTo(0, 0);
     }
         function handleClientInput(e) {
@@ -970,28 +969,32 @@
     }
     
     async function handleReportClick(event) {
-        event.preventDefault();
-        const targetBtn = event.currentTarget;
-        const clientID = targetBtn.dataset.clientId;
-        const clientName = targetBtn.dataset.clientName;
-        
-        if (!clientID) {
-            showToast("Ошибка: не найден ID клиента для отчета.");
-            return;
-        }
+    event.preventDefault();
+    
+    // Правильно находим кнопку, по которой кликнули
+    const targetBtn = event.target.closest('.report-btn-icon');
+    if (!targetBtn) return; // Если клик был не по кнопке, ничего не делаем
 
-        const reportModalBody = document.getElementById('reportModalBody');
-        document.getElementById('reportModalTitle').textContent = `Отчет по клиенту: ${clientName}`;
-        reportModalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
-        reportModal.show();
-        try {
-            const data = await callApi('getClientReport', { clientID: clientID }); 
-            renderReport(data);
-        } catch (e) {
-            onFailure(e);
-            reportModal.hide();
-        }
+    const clientID = targetBtn.dataset.clientId;
+    const clientName = targetBtn.dataset.clientName;
+    
+    if (!clientID) {
+        showToast("Ошибка: не найден ID клиента для отчета.");
+        return;
     }
+
+    const reportModalBody = document.getElementById('reportModalBody');
+    document.getElementById('reportModalTitle').textContent = `Отчет по клиенту: ${clientName}`;
+    reportModalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
+    reportModal.show();
+    try {
+        const data = await callApi('getClientReport', { clientID: clientID }); 
+        renderReport(data);
+    } catch (e) {
+        onFailure(e);
+        reportModal.hide();
+    }
+}
     
     function renderReport(data) {
         const reportModalBody = document.getElementById('reportModalBody');
@@ -1210,7 +1213,34 @@
         } else if (!e.target.closest('#client-name')) {
             resultsContainer.innerHTML = '';
         }
-    });
+  // --- НОВЫЙ ГЛОБАЛЬНЫЙ ОБРАБОТЧИК ДЛЯ КНОПОК ОТЧЕТА И АВТОЗАПОЛНЕНИЯ ---
+document.addEventListener('click', function(e) {
+    // Ищем клик по кнопке отчета
+    const reportBtn = e.target.closest('.report-btn-icon');
+    if (reportBtn && !reportBtn.disabled) {
+        handleReportClick(e); // Вызываем нашу исправленную функцию
+        return; 
+    }
+
+    // Ищем клик по результату автозаполнения
+    const resultsContainer = document.getElementById('client-autocomplete-results');
+    const autocompleteLink = e.target.closest('#client-autocomplete-results a');
+    if (autocompleteLink) {
+        e.preventDefault();
+        const target = autocompleteLink;
+        
+        document.getElementById('client-name').value = target.dataset.clientName;
+        document.getElementById('client-id').value = target.dataset.clientId;
+        document.getElementById('client-category').value = target.dataset.clientCategory;
+        document.getElementById('location').value = target.dataset.clientAddress;
+        document.getElementById('phone').value = target.dataset.clientPhone;
+        if (phoneMask) phoneMask.updateValue();
+
+        resultsContainer.innerHTML = '';
+    } else if (!e.target.closest('#client-name')) {
+        resultsContainer.innerHTML = '';
+    }
+});
 </script>
 </body>
 
