@@ -403,14 +403,21 @@
         appToast.show();
     }
     function getCategoryColor(categoryName) {
-        if (!categoryName) return '#6c757d';
-        const lowerCategory = categoryName.toLowerCase();
-        if (lowerCategory.includes('vip')) return '#ffc107';
-        if (lowerCategory.includes('новый')) return '#0d6efd';
-        if (lowerCategory.includes('постоянный')) return '#198754';
-        if (lowerCategory.includes('проблемный')) return '#dc3545';
-        return '#6c757d';
-    }
+    // Если категория пустая, возвращаем серый цвет
+    if (!categoryName) return '#6c757d'; 
+
+    const lowerCategory = categoryName.toLowerCase();
+
+    // Задаем цвета для ваших категорий
+    if (lowerCategory.includes('новый')) return '#0d6efd';         // Синий (Primary) для новых
+    if (lowerCategory.includes('активный')) return '#198754';     // Зеленый (Success) для активных
+    if (lowerCategory.includes('спящий')) return '#ffc107';        // Желтый (Warning) для "спящих"
+    if (lowerCategory.includes('без закупок')) return '#fd7e14';  // Оранжевый (Warning) для тех, кто не покупает
+    if (lowerCategory.includes('потерянный')) return '#dc3545';    // Красный (Danger) для потерянных
+    
+    // Если категория не подошла ни под одно условие, возвращаем серый
+    return '#6c757d';
+}
 
     async function callApi(action, payload) {
         try {
