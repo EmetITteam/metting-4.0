@@ -1196,23 +1196,6 @@
         document.querySelector('header').classList.toggle(HIDDEN_CLASS, show);
     }
     
-   // document.addEventListener('click', function(e) {
-        const resultsContainer = document.getElementById('client-autocomplete-results');
-        if (e.target && e.target.closest('#client-autocomplete-results a')) {
-            e.preventDefault();
-            const target = e.target.closest('a');
-            
-            document.getElementById('client-name').value = target.dataset.clientName;
-            document.getElementById('client-id').value = target.dataset.clientId;
-            document.getElementById('client-category').value = target.dataset.clientCategory;
-            document.getElementById('location').value = target.dataset.clientAddress;
-            document.getElementById('phone').value = target.dataset.clientPhone;
-            if (phoneMask) phoneMask.updateValue();
-
-            resultsContainer.innerHTML = '';
-        } else if (!e.target.closest('#client-name')) {
-            resultsContainer.innerHTML = '';
-        }
  // --- ЕДИНЫЙ ГЛОБАЛЬНЫЙ ОБРАБОТЧИК ДЛЯ КНОПОК ОТЧЕТА И АВТОЗАПОЛНЕНИЯ ---
 document.addEventListener('click', function(e) {
      // Ищем клик по кнопке отчета
@@ -1243,7 +1226,12 @@ document.addEventListener('click', function(e) {
         // Если кликнули мимо, тоже прячем список
         resultsContainer.innerHTML = '';
     }
-});
+    document.body.addEventListener('click', function(e) {
+        if (e.target.closest('.report-btn-icon')) {
+            alert('Кнопка Отчет НАЖАТА!');
+        }
+    });
+
 </script>
 </body>
 
