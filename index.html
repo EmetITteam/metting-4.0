@@ -695,7 +695,6 @@
     const searchTerm = e.target.value;
     const resultsContainer = document.getElementById('client-autocomplete-results');
     
-    // Очищаем предыдущий таймер, если он был
     clearTimeout(searchTimeout);
     
     if (searchTerm.length < 3) {
@@ -703,22 +702,36 @@
         return;
     }
 
-    // Устанавливаем новый таймер
     searchTimeout = setTimeout(async () => {
         try {
-            const result = await callApi('findClient', { searchTerm });
+            // ОТПРАВЛЯЕМ ЛОГИН МЕНЕДЖЕРА ВМЕСТЕ С ЗАПРОСОМ
+            const payload = { searchTerm: searchTerm, managerLogin: currentUser };
+            const result = await callApi('findClient', payload);
+
             if (result && result.found && result.clients && result.clients.length > 0) {
-                const clientsHtml = result.clients.map(client => `
-                    <a href="#" class="list-group-item list-group-item-action" 
-                       data-client-name="${client.clientName}" 
-                       data-client-address="${client.clientAddress || ''}"
-                       data-client-id="${client.ClientID}"
-                       data-client-category="${client.ClientCategory || ''}"
-                       data-client-phone="${client.Phone || ''}">
-                        <strong>${client.clientName}</strong>
-                        <small class="d-block text-muted">Категория: ${client.ClientCategory || 'Не указана'}</small>
-                    </a>
-                `).join('');
+                const clientsHtml = result.clients.map(client => {
+                    // Проверяем, наш ли это клиент
+                    if (client.isMine) {
+                        // Если наш - делаем ссылку активной
+                        return `
+                            <a href="#" class="list-group-item list-group-item-action" 
+                               data-client-name="${client.clientName}" 
+                               data-client-address="${client.clientAddress || ''}"
+                               data-client-id="${client.ClientID}"
+                               data-client-category="${client.ClientCategory || ''}"
+                               data-client-phone="${client.Phone || ''}">
+                                <strong>${client.clientName}</strong>
+                                <small class="d-block text-muted">Категория: ${client.ClientCategory || 'Не указана'}</small>
+                            </a>`;
+                    } else {
+                        // Если чужой - делаем элемент неактивным и показываем, чей он
+                        return `
+                            <span class="list-group-item list-group-item-light text-muted pe-none">
+                                <strong>${client.clientName}</strong>
+                                <small class="d-block">Закреплен за: ${client.managerName || 'другой менеджер'}</small>
+                            </span>`;
+                    }
+                }).join('');
                 resultsContainer.innerHTML = clientsHtml;
             } else {
                 resultsContainer.innerHTML = '<span class="list-group-item disabled">Клиенты не найдены</span>';
@@ -727,7 +740,7 @@
             console.error("Ошибка автодополнения:", e);
             resultsContainer.innerHTML = '<span class="list-group-item list-group-item-danger">Ошибка поиска</span>';
         }
-    }, 500); // Задержка в 500 мс (полсекунды)
+    }, 500);
 }
 
     function handleFormSubmit(e) {
