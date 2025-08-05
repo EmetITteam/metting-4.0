@@ -8,6 +8,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no"> <title>Emet CRM Встречи</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/imask"></script>
     <style>
@@ -1009,7 +1013,16 @@
 
     // --- Блок 1: Шапка с основной информацией ---
     if (data.clientInfo) {
-        // Готовим индикатор только для документов
+        // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+        let phoneHtml = 'Не указан';
+        if (data.clientInfo.phone) {
+            // Создаем "чистый" номер для ссылки, удаляя все кроме цифр и знака "+"
+            const cleanPhone = data.clientInfo.phone.replace(/[^+\d]/g, '');
+            // Формируем кликабельную ссылку с протоколом tel:
+            phoneHtml = `<a href="tel:${cleanPhone}" class="text-decoration-none">${data.clientInfo.phone}</a>`;
+        }
+        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+
         let documentsStatusHtml = `<span class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Нет</span>`;
         if (data.clientInfo.documents === true) {
             documentsStatusHtml = `<span class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Есть</span>`;
@@ -1020,7 +1033,7 @@
                 <h3>${data.clientInfo.name || 'Имя не указано'}</h3>
                 <div class="row">
                     <div class="col-md-6">
-                        <p class="mb-1"><strong><i class="bi bi-telephone-fill me-2"></i>Телефон:</strong> ${data.clientInfo.phone || 'Не указан'}</p>
+                        <p class="mb-1"><strong><i class="bi bi-telephone-fill me-2"></i>Телефон:</strong> ${phoneHtml}</p>
                     </div>
                     <div class="col-md-6">
                         <p class="mb-1"><strong><i class="bi bi-star-fill me-2"></i>Категория:</strong> ${data.clientInfo.category || 'Не указана'}</p>
@@ -1037,7 +1050,7 @@
             </div>`;
     }
 
-    // --- Блок 2 и 3 (Навигация и содержимое вкладок) остаются без изменений ---
+    // --- Блок 2 и 3 (Навигация и содержимое вкладок) ---
     content += `
         <nav>
             <div class="nav nav-tabs" id="report-tab" role="tablist">
@@ -1049,6 +1062,7 @@
 
     content += `<div class="tab-content p-3 border border-top-0 rounded-bottom" id="report-tab-content">`;
 
+    // Вкладка "Продажи"
     let salesContent = '';
     if (data.salesReport && data.salesReport.brands && data.salesReport.brands.length > 0) {
         salesContent += `<h5 class="mb-3">Продажи по брендам (c ${data.salesReport.periodStart} по ${data.salesReport.periodEnd})</h5>`;
@@ -1057,7 +1071,7 @@
             const salesRows = brand.salesByMonth.map(sale => 
                 `<li class="list-group-item d-flex justify-content-between">
                     <span>${sale.month}</span> 
-                    <span>${new Intl.NumberFormat('ru-RU').format(sale.amount)} usd</span>
+                    <span>${new Intl.NumberFormat('ru-RU').format(sale.amount)} грн</span>
                 </li>`
             ).join('');
             salesContent += `
@@ -1068,7 +1082,7 @@
                             ${salesRows}
                             <li class="list-group-item d-flex justify-content-between fw-bold">
                                 <span>Итого:</span> 
-                                <span>${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} usd</span>
+                                <span>${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} грн</span>
                             </li>
                         </ul>
                     </div>
@@ -1080,6 +1094,7 @@
     }
     content += `<div class="tab-pane fade show active" id="sales-content" role="tabpanel">${salesContent}</div>`;
 
+    // Вкладка "Последние встречи"
     let meetingsContent = '';
     if (data.lastMeetings && data.lastMeetings.length > 0) {
         meetingsContent += '<ul class="list-unstyled mt-2">';
@@ -1096,6 +1111,7 @@
     }
     content += `<div class="tab-pane fade" id="meetings-content" role="tabpanel">${meetingsContent}</div>`;
 
+    // Вкладка "Посещенные семинары"
     let seminarsContent = '';
     if (data.seminars && data.seminars.length > 0) {
         seminarsContent += '<ul class="list-group list-group-flush mt-2">';
@@ -1108,7 +1124,7 @@
     }
     content += `<div class="tab-pane fade" id="seminars-content" role="tabpanel">${seminarsContent}</div>`;
 
-    content += `</div>`;
+    content += `</div>`; // Закрывающий тег для tab-content
 
     reportModalBody.innerHTML = content;
 }
