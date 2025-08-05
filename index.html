@@ -1009,7 +1009,6 @@
 
     // --- Блок 1: Шапка с основной информацией ---
     if (data.clientInfo) {
-        // --- НАЧАЛО ИЗМЕНЕНИЙ ---
         // Готовим красивый индикатор для статуса документов
         let documentsStatusHtml = `<span class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Нет</span>`;
         if (data.clientInfo.documents && data.clientInfo.documents.toLowerCase() === 'есть') {
@@ -1036,10 +1035,9 @@
                     </div>
                 </div>
             </div>`;
-        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
     }
 
-    // --- Блок 2 и 3 (Навигация и содержимое вкладок) остаются без изменений ---
+    // --- Блок 2: Навигация по вкладкам (табы) ---
     content += `
         <nav>
             <div class="nav nav-tabs" id="report-tab" role="tablist">
@@ -1049,35 +1047,73 @@
             </div>
         </nav>`;
 
+    // --- Блок 3: Содержимое вкладок ---
     content += `<div class="tab-content p-3 border border-top-0 rounded-bottom" id="report-tab-content">`;
 
-    // ... (весь остальной код функции renderReport остается без изменений) ...
-
+    // --- Содержимое вкладки "Продажи" ---
     let salesContent = '';
     if (data.salesReport && data.salesReport.brands && data.salesReport.brands.length > 0) {
-        // ...
+        salesContent += `<h5 class="mb-3">Продажи по брендам (c ${data.salesReport.periodStart} по ${data.salesReport.periodEnd})</h5>`;
+        salesContent += '<div class="row g-3">';
+        data.salesReport.brands.forEach(brand => {
+            const salesRows = brand.salesByMonth.map(sale =>
+                `<li class="list-group-item d-flex justify-content-between">
+                    <span>${sale.month}</span> 
+                    <span>${new Intl.NumberFormat('ru-RU').format(sale.amount)} грн</span>
+                </li>`
+            ).join('');
+            salesContent += `
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-light"><strong>${brand.brandName}</strong></div>
+                        <ul class="list-group list-group-flush">
+                            ${salesRows}
+                            <li class="list-group-item d-flex justify-content-between fw-bold">
+                                <span>Итого:</span> 
+                                <span>${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} грн</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>`;
+        });
+        salesContent += '</div>';
     } else {
         salesContent += '<p class="text-muted mt-2">Нет данных о продажах за указанный период.</p>';
     }
     content += `<div class="tab-pane fade show active" id="sales-content" role="tabpanel">${salesContent}</div>`;
-    
+
+    // --- Содержимое вкладки "Последние встречи" ---
     let meetingsContent = '';
     if (data.lastMeetings && data.lastMeetings.length > 0) {
-        // ...
+        meetingsContent += '<ul class="list-unstyled mt-2">';
+        data.lastMeetings.forEach(meeting => {
+            meetingsContent += `
+                <li class="mb-3">
+                    <p class="mb-0"><strong>${meeting.date}:</strong></p>
+                    <p class="mb-0 text-muted fst-italic">"${meeting.comment || 'Без комментария'}"</p>
+                </li>`;
+        });
+        meetingsContent += '</ul>';
     } else {
         meetingsContent += '<p class="text-muted mt-2">Нет данных о последних встречах.</p>';
     }
     content += `<div class="tab-pane fade" id="meetings-content" role="tabpanel">${meetingsContent}</div>`;
-    
+
+    // --- Содержимое вкладки "Посещенные семинары" ---
     let seminarsContent = '';
     if (data.seminars && data.seminars.length > 0) {
-        // ...
+        seminarsContent += '<ul class="list-group list-group-flush mt-2">';
+        data.seminars.forEach(seminar => {
+            seminarsContent += `<li class="list-group-item ps-0">${seminar.date} - ${seminar.name}</li>`;
+        });
+        seminarsContent += '</ul>';
     } else {
         seminarsContent += '<p class="text-muted mt-2">Нет данных о посещении семинаров.</p>';
     }
     content += `<div class="tab-pane fade" id="seminars-content" role="tabpanel">${seminarsContent}</div>`;
 
-    content += `</div>`;
+    content += `</div>`; // close tab-content
+
     reportModalBody.innerHTML = content;
 }
     
