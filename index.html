@@ -970,14 +970,14 @@
     
     async function handleReportClick(event) {
     event.preventDefault();
-    
+
     // Правильно находим кнопку, по которой кликнули
     const targetBtn = event.target.closest('.report-btn-icon');
     if (!targetBtn) return; // Если клик был не по кнопке, ничего не делаем
 
     const clientID = targetBtn.dataset.clientId;
     const clientName = targetBtn.dataset.clientName;
-    
+
     if (!clientID) {
         showToast("Ошибка: не найден ID клиента для отчета.");
         return;
@@ -1215,11 +1215,11 @@
         }
  // --- ЕДИНЫЙ ГЛОБАЛЬНЫЙ ОБРАБОТЧИК ДЛЯ КНОПОК ОТЧЕТА И АВТОЗАПОЛНЕНИЯ ---
 document.addEventListener('click', function(e) {
-    // 1. Ищем клик по кнопке отчета
+     // Ищем клик по кнопке отчета
     const reportBtn = e.target.closest('.report-btn-icon');
     if (reportBtn && !reportBtn.disabled) {
-        handleReportClick(e); // Вызываем функцию для отчета
-        return; // Завершаем, чтобы не проверять остальное
+        handleReportClick(e); // Вызываем нашу исправленную функцию
+        return; 
     }
 
     // 2. Ищем клик по результату автозаполнения
