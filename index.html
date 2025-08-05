@@ -1013,24 +1013,34 @@
 
     // --- Блок 1: Шапка с основной информацией ---
     if (data.clientInfo) {
-        // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+        // Создаем кликабельную ссылку для телефона
         let phoneHtml = 'Не указан';
         if (data.clientInfo.phone) {
-            // Создаем "чистый" номер для ссылки, удаляя все кроме цифр и знака "+"
             const cleanPhone = data.clientInfo.phone.replace(/[^+\d]/g, '');
-            // Формируем кликабельную ссылку с протоколом tel:
             phoneHtml = `<a href="tel:${cleanPhone}" class="text-decoration-none">${data.clientInfo.phone}</a>`;
         }
-        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
+        // Готовим индикатор для документов
         let documentsStatusHtml = `<span class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Нет</span>`;
         if (data.clientInfo.documents === true) {
             documentsStatusHtml = `<span class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Есть</span>`;
         }
         
+        // --- НАЧАЛО ИЗМЕНЕНИЙ: Добавляем заголовок с кнопкой "Новая встреча" ---
         content += `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h3 class="mb-0">${data.clientInfo.name || 'Имя не указано'}</h3>
+                <button class="btn btn-primary btn-sm js-create-meeting-from-report"
+                        data-client-id="${data.clientInfo.id || ''}"
+                        data-client-name="${data.clientInfo.name || ''}"
+                        data-client-address="${data.clientInfo.address || ''}"
+                        data-client-category="${data.clientInfo.category || ''}"
+                        data-client-phone="${data.clientInfo.phone || ''}">
+                    <i class="bi bi-calendar-plus me-1"></i> Новая встреча
+                </button>
+            </div>
+            <hr class="mt-0 mb-3">
             <div class="mb-3">
-                <h3>${data.clientInfo.name || 'Имя не указано'}</h3>
                 <div class="row">
                     <div class="col-md-6">
                         <p class="mb-1"><strong><i class="bi bi-telephone-fill me-2"></i>Телефон:</strong> ${phoneHtml}</p>
@@ -1048,6 +1058,7 @@
                     </div>
                 </div>
             </div>`;
+        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
     }
 
     // --- Блок 2 и 3 (Навигация и содержимое вкладок) ---
@@ -1124,8 +1135,7 @@
     }
     content += `<div class="tab-pane fade" id="seminars-content" role="tabpanel">${seminarsContent}</div>`;
 
-    content += `</div>`; // Закрывающий тег для tab-content
-
+    content += `</div>`;
     reportModalBody.innerHTML = content;
 }
     
@@ -1271,6 +1281,31 @@ document.addEventListener('click', function(e) {
     } else if (!e.target.closest('#client-name')) {
         resultsContainer.innerHTML = '';
     }
+    // Обработчик для кнопки "Новая встреча" из отчета
+const createFromReportBtn = e.target.closest('.js-create-meeting-from-report');
+if (createFromReportBtn) {
+    // 1. Прячем модальное окно отчета
+    reportModal.hide();
+
+    // 2. Собираем данные клиента из атрибутов кнопки
+    const target = createFromReportBtn;
+    const clientName = target.dataset.clientName;
+    const clientAddress = target.dataset.clientAddress;
+    const clientID = target.dataset.clientId;
+    const clientCategory = target.dataset.clientCategory;
+    const clientPhone = target.dataset.clientPhone;
+
+    // 3. Показываем форму создания встречи
+    showAddForm(); 
+
+    // 4. Заполняем форму данными клиента
+    document.getElementById('client-name').value = clientName;
+    document.getElementById('location').value = clientAddress; // Адрес клиента (юр. адрес)
+    document.getElementById('client-id').value = clientID;
+    document.getElementById('client-category').value = clientCategory;
+    document.getElementById('phone').value = clientPhone;
+    if (phoneMask) phoneMask.updateValue();
+}
 });
     
 
