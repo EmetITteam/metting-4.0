@@ -181,7 +181,7 @@
                             <label for="status" class="form-label">Статус:</label>
                             <select id="status" class="form-select">
                                 <option value="В работе">В работе</option>
-                                <option value="Завершена">Завершено</option>
+                                <option value="Завершено">Завершено</option>
                                 <option value="Перенос">Перенос</option>
                                 <option value="Отмена">Отмена</option>
                             </select>
@@ -609,11 +609,11 @@
         const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
         filtered.forEach(m => {
             let status = m.Status ? m.Status.trim() : '';
-            if (status === 'Завершено') status = 'Завершена';
+            if (status === 'Завершено') status = 'Завершено';
             if (status === 'Отменено') status = 'Отмена';
             if (!validStatuses.includes(status)) status = 'В работе';
             if (!dateGroups[m.Date]) {
-                dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершена': [], 'Отмена': [], 'Просрочено': [] };
+                dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершено': [], 'Отмена': [], 'Просрочено': [] };
             }
             if (dateGroups[m.Date][status]) {
                 dateGroups[m.Date][status].push(m);
@@ -634,7 +634,7 @@
             dateTitle.textContent = date;
             meetingsList.appendChild(dateTitle);
             const groups = dateGroups[date];
-            const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершена', 'Отмена'];
+            const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершено', 'Отмена'];
             groupOrder.forEach(status => {
                 if (groups[status] && groups[status].length > 0) {
                     const groupTitle = document.createElement('h4');
@@ -645,7 +645,7 @@
                         let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
                         dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
                         const cleanStatus = m.Status ? m.Status.trim() : '';
-                        if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
+                        if (cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
                             dropdownItems += '<li><hr class="dropdown-divider"></li>';
                             dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
                             dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
@@ -655,7 +655,7 @@
                         if (m.Status === 'Перенос' && m.Comment) {
                             rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
                         }
-                        const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершена': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
+                        const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершено': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
                         const statusColor = statusColors[cleanStatus] || 'gray';
                         let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
                         if (m.ClientCategory) {
@@ -837,7 +837,7 @@
         const oldData = allMeetings.find(m => m.ID === meetingId);
         if (!oldData) { toggleButtonSpinner(btn, false); return; }
         if (!confirm(`Завершить встречу с клиентом "${oldData.Client}"?`)) { toggleButtonSpinner(btn, false); return; }
-        const newData = { ...oldData, Status: 'Завершена' };
+        const newData = { ...oldData, Status: 'Завершено' };
         try {
             await callApi('updateMeeting', { newData, oldData });
             showToast("Встреча завершена");
