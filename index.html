@@ -751,43 +751,57 @@
 }
 
     function handleFormSubmit(e) {
-        e.preventDefault();
-        const saveBtn = document.getElementById('save-button');
-        toggleButtonSpinner(saveBtn, true);
-        const meetingId = document.getElementById('meeting-id').value;
-        const isUpdating = !!meetingId;
-        const data = {
-            ID: isUpdating ? meetingId : `m${Date.now()}`,
-            ClientID: document.getElementById('client-id').value,
-            Date: document.getElementById('meeting-date').value.split('-').reverse().join('.'),
-            Time: document.getElementById('meeting-time').value,
-            Client: document.getElementById('client-name').value,
-            Purpose: document.getElementById('purpose').value,
-            Phone: phoneMask.unmaskedValue,
-            Location: document.getElementById('meeting-location').value,
-            LocationLat: document.getElementById('meeting-lat').value,
-            LocationLon: document.getElementById('meeting-lon').value,
-            Status: document.getElementById('status').value,
-            ManagerLogin: currentUser,
-            Comment: isUpdating ? currentEditingMeeting.Comment : ''
-        };
-        if (isUpdating && data.Status === 'Перенос') {
-            meetingToReschedule = data;
-            currentEditingMeeting = allMeetings.find(m => m.ID === data.ID);
-            rescheduleModal.show();
-            toggleButtonSpinner(saveBtn, false);
-            return;
-        }
-        const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
-        const payload = isUpdating ? { newData: data, oldData: currentEditingMeeting } : data;
-        callApi(action, payload).then(() => {
-            showToast(`Встреча с клиентом "${data.Client}" на ${data.Time} успешно сохранена.`);
-            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-            onActionComplete();
-        }).catch(onFailure).finally(() => {
-            toggleButtonSpinner(saveBtn, false);
-        });
+    e.preventDefault();
+    const saveBtn = document.getElementById('save-button');
+    toggleButtonSpinner(saveBtn, true);
+    
+    const meetingId = document.getElementById('meeting-id').value;
+    const isUpdating = !!meetingId;
+
+    // Собираем данные из формы
+    const meetingData = {
+        // Поле ID будет добавлено только если мы редактируем существующую встречу
+        ClientID: document.getElementById('client-id').value,
+        Date: document.getElementById('meeting-date').value.split('-').reverse().join('.'),
+        Time: document.getElementById('meeting-time').value,
+        Client: document.getElementById('client-name').value,
+        Purpose: document.getElementById('purpose').value,
+        Phone: phoneMask.unmaskedValue,
+        Location: document.getElementById('meeting-location').value,
+        LocationLat: document.getElementById('meeting-lat').value,
+        LocationLon: document.getElementById('meeting-lon').value,
+        Status: document.getElementById('status').value,
+        ManagerLogin: currentUser,
+        Comment: isUpdating ? currentEditingMeeting.Comment : ''
+    };
+
+    // Если это обновление, добавляем ID в объект
+    if (isUpdating) {
+        meetingData.ID = meetingId;
     }
+
+    // Логика для переноса остается без изменений
+    if (isUpdating && meetingData.Status === 'Перенос') {
+        meetingToReschedule = meetingData;
+        currentEditingMeeting = allMeetings.find(m => m.ID === meetingData.ID);
+        rescheduleModal.show();
+        toggleButtonSpinner(saveBtn, false);
+        return;
+    }
+
+    const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
+    // Для обновления отправляем старые и новые данные, для сохранения - только новые
+    const payload = isUpdating ? { newData: meetingData, oldData: currentEditingMeeting } : meetingData;
+
+    callApi(action, payload).then(() => {
+        showToast(`Встреча с клиентом "${meetingData.Client}" на ${meetingData.Time} успешно сохранена.`);
+        loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+        onActionComplete();
+    }
+    ).catch(onFailure).finally(() => {
+        toggleButtonSpinner(saveBtn, false);
+    });
+}
     
     function handleEditClick(event) {
         event.preventDefault();
