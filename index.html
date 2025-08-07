@@ -644,6 +644,32 @@ document.getElementById('resetFiltersBtn').addEventListener('click', () => {
         return;
     }
 
+    const resultsContainer = document.getElementById('clientHistorySearchResult');
+    resultsContainer.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>';
+    clientHistorySearchModal.show();
+
+    try {
+        // ШАГ 1: Ищем КЛИЕНТОВ, а не встречи
+        const result = await callApi('findClient', { searchTerm: searchTerm, managerLogin: currentUser });
+
+        if (result && result.found && result.clients && result.clients.length > 0) {
+            const clientsHtml = result.clients.map(client => {
+                return `
+                    <a href="#" class="list-group-item list-group-item-action js-select-client-for-history" data-client-id="${client.ClientID}" data-client-name="${client.clientName}">
+                        <strong>${client.clientName}</strong>
+                        <small class="text-muted d-block">Менеджер: ${client.managerName || 'Не назначен'}</small>
+                    </a>`;
+            }).join('');
+            resultsContainer.innerHTML = `<div class="list-group">${clientsHtml}</div>`;
+        } else {
+            resultsContainer.innerHTML = `<div class="alert alert-warning">Клиенты не найдены.</div>`;
+        }
+    } catch (e) {
+        onFailure(e);
+        resultsContainer.innerHTML = `<div class="alert alert-danger">Ошибка поиска: ${e.message}</div>`;
+    }
+}
+
     isSearchMode = true;
     meetingsList.innerHTML = '<div class="col-12 text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2">Ищем встречи по всей истории...</p></div>';
     document.getElementById('resetFiltersBtn').textContent = 'Сбросить поиск';
