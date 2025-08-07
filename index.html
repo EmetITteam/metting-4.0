@@ -680,7 +680,6 @@ document.getElementById('resetFiltersBtn').addEventListener('click', () => {
     const searchTerm = document.getElementById('searchInput1').value.toLowerCase();
     const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
     // --- КОНЕЦ ИЗМЕНЕНИЙ ---
-    const filtered = allMeetings; 
     const dateGroups = {};
     const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
     
