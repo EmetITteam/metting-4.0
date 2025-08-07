@@ -133,6 +133,10 @@
                         <input type="text" id="searchInput" class="form-control">
                     </div>
                     <div class="col-lg-5">
+    <label for="searchInput" class="form-label">Поиск по всей истории клиента</label>
+    <input type="text" id="searchInput" class="form-control" placeholder="Введите имя и нажмите Enter...">
+</div>
+                    <div class="col-lg-5">
                         <label for="dateRangeFilter" class="form-label">Период</label>
                         <input type="text" id="dateRangeFilter" class="form-control">
                     </div>
@@ -284,6 +288,7 @@
     
     let adminCharts = {};
     let searchTimeout = null;
+    let isSearchMode = false;
 
     const meetingsList = document.getElementById('meetings-list');
     const rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
@@ -358,11 +363,30 @@
         });
         document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
         document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
-        document.getElementById('searchInput').addEventListener('input', filterAndGroupMeetings);
-        document.getElementById('resetFiltersBtn').addEventListener('click', () => {
-            document.getElementById('searchInput').value = '';
-            datePicker.setDateRange(new Date(), new Date());
-        });
+        const searchInputEl = document.getElementById('searchInput');
+
+// Новый обработчик для поля поиска: по нажатию Enter или потере фокуса
+searchInputEl.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') {
+        performGlobalSearch();
+    }
+});
+searchInputEl.addEventListener('blur', () => {
+    if (searchInputEl.value.length > 2) {
+        performGlobalSearch();
+    }
+});
+
+
+// Обновленный обработчик для кнопки сброса/сегодня
+document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+    // Эта кнопка теперь всегда сбрасывает поиск и возвращает на сегодняшний день
+    isSearchMode = false;
+    document.getElementById('searchInput').value = '';
+    document.getElementById('resetFiltersBtn').textContent = 'Сегодня';
+    datePicker.setDateRange(new Date(), new Date());
+    // Вызов loadInitialData произойдет автоматически через событие 'selected' у datePicker
+});
         
         document.getElementById('get-meeting-location-btn').addEventListener('click', handleGetLocationClick);
         document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
@@ -569,19 +593,24 @@
     }
 
     function loadInitialData(startDateString, endDateString) {
-        let skeletonHTML = '';
-        for (let i = 0; i < 4; i++) {
-            skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
-        }
-        meetingsList.innerHTML = skeletonHTML;
-        const payload = { login: currentUser, startDateString, endDateString };
-        callApi('getInitialData', payload)
-            .then(onDataLoaded)
-            .catch(err => {
-                onFailure(err);
-                meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
-            });
+    // Сбрасываем режим поиска при загрузке по датам
+    isSearchMode = false;
+    document.getElementById('searchInput').value = '';
+    document.getElementById('resetFiltersBtn').textContent = 'Сегодня';
+
+    let skeletonHTML = '';
+    for (let i = 0; i < 4; i++) {
+        skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
     }
+    meetingsList.innerHTML = skeletonHTML;
+    const payload = { login: currentUser, startDateString, endDateString };
+    callApi('getInitialData', payload)
+        .then(onDataLoaded)
+        .catch(err => {
+            onFailure(err);
+            meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
+        });
+}
 
     function onDataLoaded(data) {
         allMeetings = data.meetings;
@@ -590,6 +619,39 @@
         populatePurposes(data.purposes);
         filterAndGroupMeetings();
     }
+        async function performGlobalSearch() {
+    const searchInput = document.getElementById('searchInput');
+    const searchTerm = searchInput.value;
+    if (searchTerm.length < 3) {
+        // Если поле пустое, сбрасываем к календарному виду
+        if (searchTerm.length === 0) {
+            document.getElementById('resetFiltersBtn').click();
+        } else {
+            showToast("Введите минимум 3 символа для поиска.");
+        }
+        return;
+    }
+
+    isSearchMode = true;
+    meetingsList.innerHTML = '<div class="col-12 text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2">Ищем встречи по всей истории...</p></div>';
+    document.getElementById('resetFiltersBtn').textContent = 'Сбросить поиск';
+
+    try {
+        // Вызываем новый метод API
+        const result = await callApi('getAllMeetingsForClient', { login: currentUser, clientName: searchTerm });
+        allMeetings = result.meetings || [];
+        filterAndGroupMeetings(); // Используем старую функцию для отрисовки
+        // Добавляем заголовок с результатами поиска
+        const searchResultTitle = document.createElement('h3');
+        searchResultTitle.className = 'col-12 date-header';
+        searchResultTitle.innerHTML = `Результаты поиска по: <mark>${searchTerm}</mark>`;
+        meetingsList.prepend(searchResultTitle);
+
+    } catch(e) {
+        onFailure(e);
+        meetingsList.innerHTML = `<div class="col-12 text-center p-5"><h4>Ошибка поиска</h4><p class="text-muted">${e.message}</p></div>`;
+    }
+}
 
     function populatePurposes(purposes) {
         const purposeSelect = document.getElementById('purpose');
