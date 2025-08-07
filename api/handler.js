@@ -6,10 +6,7 @@ export default async function handler(request, response) {
         return response.status(405).json({ message: 'Only POST requests allowed' });
     }
 
-    // Эта строка извлекает action и payload для использования внутри этой функции
-    const { action, payload } = request.body;
-    
-    // Эта строка гарантирует, что в 1С будет отправлен ВЕСЬ исходный запрос
+    const { action } = request.body; // Получаем action для логирования и внутренней логики
     const dataToSendToOneC = request.body;
 
     try {
@@ -17,10 +14,16 @@ export default async function handler(request, response) {
         
         const responseFrom1C = await forwardRequestToOneC(dataToSendToOneC);
 
-        if (responseFrom1C.status === 'success') {
-            const meetingData = (action === 'saveNewMeeting') ? responseFrom1C.data : payload.newData;
-            handleCalendarEvent(action, meetingData);
+        // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+        // Проверяем, что 1С вернула успешный статус и есть объект с данными
+        if (responseFrom1C.status === 'success' && responseFrom1C.data) {
+            // Для создания и обновления встреч, используем данные, ВОЗВРАЩЕННЫЕ из 1С.
+            // Это самый надежный источник (включая актуальный calendarEventId).
+            if (action === 'saveNewMeeting' || action === 'updateMeeting') {
+                handleCalendarEvent(action, responseFrom1C.data);
+            }
         }
+        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
         response.status(200).json(responseFrom1C);
 
@@ -65,11 +68,14 @@ async function handleCalendarEvent(action, meeting) {
     }
     const auth = getGoogleAuth(meeting.ManagerLogin);
     const calendar = google.calendar({ version: 'v3', auth });
-    const isCancelled = (meeting.Status === 'Отмена' || meeting.Status === 'Завершена');
+
+    // --- ИЗМЕНЕНИЕ: Добавлен статус "Завершено" для корректного удаления ---
+    const isCancelled = (meeting.Status === 'Отмена' || meeting.Status === 'Отменено' || meeting.Status === 'Завершена' || meeting.Status === 'Завершено');
 
     if (isCancelled && meeting.calendarEventId) {
         try {
             await calendar.events.delete({ auth, calendarId: 'primary', eventId: meeting.calendarEventId });
+            console.log(`Событие ${meeting.calendarEventId} успешно удалено.`);
         } catch (e) { console.error(`Не удалось удалить событие ${meeting.calendarEventId}:`, e.message); }
         return;
     }
@@ -86,9 +92,12 @@ async function handleCalendarEvent(action, meeting) {
     try {
         if (action === 'updateMeeting' && meeting.calendarEventId) {
             await calendar.events.update({ auth, calendarId: 'primary', eventId: meeting.calendarEventId, resource: eventResource });
-        } else {
+            console.log(`Событие ${meeting.calendarEventId} успешно обновлено.`);
+        } else if (action === 'saveNewMeeting' && !meeting.calendarEventId) { // Добавим проверку, чтобы точно не дублировать
             const newEvent = await calendar.events.insert({ auth, calendarId: 'primary', resource: eventResource });
+            console.log(`Создано новое событие ${newEvent.data.id}.`);
             const payloadTo1C = { action: "updateMeetingCalendarId", payload: { meetingId: meeting.ID, calendarEventId: newEvent.data.id } };
+            // Отправляем ID события в 1С в фоновом режиме
             forwardRequestToOneC(payloadTo1C);
         }
     } catch (e) {
