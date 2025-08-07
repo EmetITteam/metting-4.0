@@ -613,7 +613,7 @@
         if (status === 'Отменено') status = 'Отмена';
         if (!validStatuses.includes(status)) status = 'В работе';
         if (!dateGroups[m.Date]) {
-            dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершена': [], 'Отмена': [], 'Просрочено': [] };
+            dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершено': [], 'Отмена': [], 'Просрочено': [] };
         }
         if (dateGroups[m.Date][status]) {
             dateGroups[m.Date][status].push(m);
@@ -643,17 +643,23 @@
                 meetingsList.appendChild(groupTitle);
                 groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
                     const cleanStatus = m.Status ? m.Status.trim() : '';
-                    
-                    // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+
+                    // --- НАЧАЛО ИСПРАВЛЕННОЙ ЛОГИКИ ---
+                    // Начинаем с обязательного пункта "Итоги встречи"
                     let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
                     
-                    if (cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
-                        dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
+                    // Добавляем "Geo", только если встреча НЕ завершена
+                    if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено') {
+                         dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
+                    }
+                    
+                    // Добавляем остальные кнопки, только если встреча "активна"
+                    if (cleanStatus !== 'Завершено' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
                         dropdownItems += '<li><hr class="dropdown-divider"></li>';
                         dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
                         dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
                     }
-                    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+                    // --- КОНЕЦ ИСПРАВЛЕННОЙ ЛОГИКИ ---
 
                     const actionsMenu = `<div class="dropdown actions-dropdown">${dropdownItems ? `<button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end">${dropdownItems}</ul>` : ''}</div>`;
                     let rescheduleInfo = '';
@@ -704,7 +710,6 @@
     document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
     document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
     document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
-    // Обработчик для кнопок отчета был перенесен в глобальный обработчик
     window.scrollTo(0, 0);
 }
         function handleClientInput(e) {
