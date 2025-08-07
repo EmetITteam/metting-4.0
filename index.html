@@ -1096,7 +1096,7 @@
             const salesRows = brand.salesByMonth.map(sale => 
                 `<li class="list-group-item d-flex justify-content-between">
                     <span>${sale.month}</span> 
-                    <span>${new Intl.NumberFormat('ru-RU').format(sale.amount)} грн</span>
+                    <span>${new Intl.NumberFormat('ru-RU').format(sale.amount)} usd</span>
                 </li>`
             ).join('');
             salesContent += `
@@ -1107,7 +1107,7 @@
                             ${salesRows}
                             <li class="list-group-item d-flex justify-content-between fw-bold">
                                 <span>Итого:</span> 
-                                <span>${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} грн</span>
+                                <span>${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} usd</span>
                             </li>
                         </ul>
                     </div>
