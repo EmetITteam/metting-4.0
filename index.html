@@ -378,27 +378,23 @@
         document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
         const searchInputEl = document.getElementById('searchInput1');
 
-// Новый обработчик для поля поиска: по нажатию Enter или потере фокуса
+// ВОЗВРАЩАЕМ "ЖИВОЙ" ФИЛЬТР: Срабатывает при каждом вводе
+searchInputEl.addEventListener('input', filterAndGroupMeetings);
+
+// ГЛОБАЛЬНЫЙ ПОИСК: Срабатывает по нажатию Enter
 searchInputEl.addEventListener('keyup', (e) => {
     if (e.key === 'Enter') {
         performGlobalSearch();
     }
 });
-searchInputEl.addEventListener('blur', () => {
-    if (searchInputEl.value.length > 2) {
-        performGlobalSearch();
-    }
-});
-
+// (Остальные обработчики, например для blur, можно убрать для простоты)
 
 // Обновленный обработчик для кнопки сброса/сегодня
 document.getElementById('resetFiltersBtn').addEventListener('click', () => {
-    // Эта кнопка теперь всегда сбрасывает поиск и возвращает на сегодняшний день
     isSearchMode = false;
-    document.getElementById('searchInput').value = '';
+    document.getElementById('searchInput1').value = '';
     document.getElementById('resetFiltersBtn').textContent = 'Сегодня';
     datePicker.setDateRange(new Date(), new Date());
-    // Вызов loadInitialData произойдет автоматически через событие 'selected' у datePicker
 });
         
         document.getElementById('get-meeting-location-btn').addEventListener('click', handleGetLocationClick);
@@ -680,7 +676,10 @@ document.getElementById('resetFiltersBtn').addEventListener('click', () => {
     }
 
     function filterAndGroupMeetings() {
-    // УБИРАЕМ СТАРЫЙ ПОИСК ОТСЮДА. Теперь функция просто отображает то, что есть в allMeetings
+    // --- ВОЗВРАЩАЕМ ЛОГИКУ ФИЛЬТРАЦИИ ---
+    const searchTerm = document.getElementById('searchInput1').value.toLowerCase();
+    const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
+    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
     const filtered = allMeetings; 
     const dateGroups = {};
     const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
