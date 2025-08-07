@@ -680,10 +680,11 @@ document.getElementById('resetFiltersBtn').addEventListener('click', () => {
     }
 
     function filterAndGroupMeetings() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
+    // УБИРАЕМ СТАРЫЙ ПОИСК ОТСЮДА. Теперь функция просто отображает то, что есть в allMeetings
+    const filtered = allMeetings; 
     const dateGroups = {};
     const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
+    
     filtered.forEach(m => {
         let status = m.Status ? m.Status.trim() : '';
         if (status === 'Завершено') status = 'Завершена';
@@ -695,16 +696,29 @@ document.getElementById('resetFiltersBtn').addEventListener('click', () => {
         if (dateGroups[m.Date][status]) {
             dateGroups[m.Date][status].push(m);
         } else {
+            // Если статус неизвестен, по умолчанию считаем "В работе"
             dateGroups[m.Date]['В работе'].push(m);
         }
     });
+
     meetingsList.innerHTML = '';
     const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(b.split('.').reverse().join('-')) - new Date(a.split('.').reverse().join('-')));
+    
     if (sortedDates.length === 0) {
-        meetingsList.innerHTML = `<div class="col-12 text-center p-5"><i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i><h4 class="mt-3">Встреч не найдено</h4><p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p><button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button></div>`;
-        document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
+        // Логика для пустого списка остается без изменений
+        let emptyMessage = isSearchMode 
+            ? `<h4>Встреч по этому клиенту не найдено</h4><p class="text-muted">Попробуйте другой поисковый запрос.</p>`
+            : `<h4>Встреч не найдено</h4><p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p><button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button>`;
+        
+        meetingsList.innerHTML = `<div class="col-12 text-center p-5"><i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>${emptyMessage}</div>`;
+        
+        if (!isSearchMode) {
+            document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
+        }
         return;
     }
+
+    // Цикл отрисовки карточек остается без изменений
     sortedDates.forEach(date => {
         const dateTitle = document.createElement('h3');
         dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
@@ -733,12 +747,10 @@ document.getElementById('resetFiltersBtn').addEventListener('click', () => {
 
                     const actionsMenu = `<div class="dropdown actions-dropdown">${dropdownItems ? `<button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end">${dropdownItems}</ul>` : ''}</div>`;
                     
-                    // --- НАЧАЛО ИЗМЕНЕНИЙ: Обновляем логику отображения пометки о переносе ---
                     let rescheduleInfo = '';
                     if (m.Comment && m.Comment.startsWith('Перенесена со старой даты')) {
                         rescheduleInfo = `<p class="card-text text-info small mt-2"><em><i class="bi bi-arrow-repeat me-1"></i>${m.Comment}</em></p>`;
                     }
-                    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
                     const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершено': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
                     const statusColor = statusColors[cleanStatus] || 'gray';
