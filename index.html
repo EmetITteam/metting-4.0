@@ -815,31 +815,44 @@
 }
     
     function handleEditClick(event) {
-        event.preventDefault();
-        const meetingId = event.currentTarget.dataset.id;
-        currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
-        if (!currentEditingMeeting) return;
-        
-        document.getElementById('form-title').textContent = "Редактирование встречи";
-        document.getElementById('meeting-id').value = currentEditingMeeting.ID;
-        document.getElementById('client-id').value = currentEditingMeeting.ClientID;
-        document.getElementById('client-category').value = currentEditingMeeting.ClientCategory || '';
-        document.getElementById('client-autocomplete-results').innerHTML = '';
-        
-        const dateParts = currentEditingMeeting.Date.split('.');
-        document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-        document.getElementById('meeting-time').value = currentEditingMeeting.Time;
-        document.getElementById('client-name').value = currentEditingMeeting.Client;
-        document.getElementById('purpose').value = currentEditingMeeting.Purpose;
-        document.getElementById('phone').value = currentEditingMeeting.Phone;
-        if (phoneMask) phoneMask.updateValue();
-        document.getElementById('location').value = currentEditingMeeting.ClientAddress || '';
-        document.getElementById('meeting-location').value = currentEditingMeeting.Location || '';
-        document.getElementById('meeting-lat').value = currentEditingMeeting.LocationLat || '';
-        document.getElementById('meeting-lon').value = currentEditingMeeting.LocationLon || '';
-        document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
-        showForm(true);
+    event.preventDefault();
+    const meetingId = event.currentTarget.dataset.id;
+    currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
+    if (!currentEditingMeeting) return;
+    
+    document.getElementById('form-title').textContent = "Редактирование встречи";
+    document.getElementById('meeting-id').value = currentEditingMeeting.ID;
+    document.getElementById('client-id').value = currentEditingMeeting.ClientID;
+    document.getElementById('client-category').value = currentEditingMeeting.ClientCategory || '';
+    document.getElementById('client-autocomplete-results').innerHTML = '';
+    
+    const dateParts = currentEditingMeeting.Date.split('.');
+    document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+    document.getElementById('meeting-time').value = currentEditingMeeting.Time;
+    document.getElementById('client-name').value = currentEditingMeeting.Client;
+    document.getElementById('purpose').value = currentEditingMeeting.Purpose;
+    document.getElementById('phone').value = currentEditingMeeting.Phone;
+    if (phoneMask) phoneMask.updateValue();
+    document.getElementById('location').value = currentEditingMeeting.ClientAddress || '';
+    document.getElementById('meeting-location').value = currentEditingMeeting.Location || '';
+    document.getElementById('meeting-lat').value = currentEditingMeeting.LocationLat || '';
+    document.getElementById('meeting-lon').value = currentEditingMeeting.LocationLon || '';
+    document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
+
+    // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+    // Проверяем статус встречи и скрываем/показываем кнопку геолокации
+    const geoButton = document.getElementById('get-meeting-location-btn');
+    const status = currentEditingMeeting.Status ? currentEditingMeeting.Status.trim() : '';
+    
+    if (status === 'Завершена' || status === 'Завершено' || status === 'Отмена' || status === 'Отменено') {
+        geoButton.classList.add('d-none');
+    } else {
+        geoButton.classList.remove('d-none');
     }
+    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+
+    showForm(true);
+}
 
     async function handleCompleteClick(event) {
         const btn = event.target;
@@ -1256,16 +1269,22 @@
 }
 
     function showAddForm() {
-        currentEditingMeeting = null;
-        document.getElementById('form-title').textContent = "Новая встреча";
-        document.getElementById('meeting-form').reset();
-        document.getElementById('client-autocomplete-results').innerHTML = '';
-        if(phoneMask) phoneMask.updateValue();
-        document.getElementById('meeting-date').value = getTodayDateString();
-        document.getElementById('meeting-id').value = '';
-        document.getElementById('status').value = 'В работе';
-        showForm(true);
-    }
+    currentEditingMeeting = null;
+    document.getElementById('form-title').textContent = "Новая встреча";
+    document.getElementById('meeting-form').reset();
+    document.getElementById('client-autocomplete-results').innerHTML = '';
+    if(phoneMask) phoneMask.updateValue();
+    document.getElementById('meeting-date').value = getTodayDateString();
+    document.getElementById('meeting-id').value = '';
+    document.getElementById('status').value = 'В работе';
+
+    // --- ДОБАВЛЕНО ---
+    // Убеждаемся, что кнопка геолокации всегда видна при создании новой встречи
+    document.getElementById('get-meeting-location-btn').classList.remove('d-none');
+    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+
+    showForm(true);
+}
     function onActionComplete() { showForm(false); }
     function handleCancelClick() { cancelConfirmModal.show(); }
     function showForm(show) {
