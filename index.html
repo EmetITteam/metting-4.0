@@ -182,7 +182,6 @@
                             <select id="status" class="form-select">
                                 <option value="В работе">В работе</option>
                                 <option value="Завершено">Завершено</option>
-                                <option value="Перенос">Перенос</option>
                                 <option value="Отмена">Отмена</option>
                             </select>
                         </div>
@@ -622,7 +621,6 @@
         }
     });
     meetingsList.innerHTML = '';
-    // ЗАМЕНИТЕ НА ЭТУ СТРОКУ
     const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(b.split('.').reverse().join('-')) - new Date(a.split('.').reverse().join('-')));
     if (sortedDates.length === 0) {
         meetingsList.innerHTML = `<div class="col-12 text-center p-5"><i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i><h4 class="mt-3">Встреч не найдено</h4><p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p><button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button></div>`;
@@ -645,28 +643,25 @@
                 groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
                     const cleanStatus = m.Status ? m.Status.trim() : '';
 
-                    // --- НАЧАЛО ИСПРАВЛЕННОЙ ЛОГИКИ ---
-                    // Начинаем с обязательного пункта "Итоги встречи"
                     let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
-                    
-                    // Добавляем "Geo", только если встреча НЕ завершена
                     if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено') {
                          dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
                     }
-                    
-                    // Добавляем остальные кнопки, только если встреча "активна"
                     if (cleanStatus !== 'Завершено' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
                         dropdownItems += '<li><hr class="dropdown-divider"></li>';
                         dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
                         dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
                     }
-                    // --- КОНЕЦ ИСПРАВЛЕННОЙ ЛОГИКИ ---
 
                     const actionsMenu = `<div class="dropdown actions-dropdown">${dropdownItems ? `<button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end">${dropdownItems}</ul>` : ''}</div>`;
+                    
+                    // --- НАЧАЛО ИЗМЕНЕНИЙ: Обновляем логику отображения пометки о переносе ---
                     let rescheduleInfo = '';
-                    if (m.Status === 'Перенос' && m.Comment) {
-                        rescheduleInfo = `<p class="card-text text-danger small mt-2"><em>${m.Comment}</em></p>`;
+                    if (m.Comment && m.Comment.startsWith('Перенесена со старой даты')) {
+                        rescheduleInfo = `<p class="card-text text-info small mt-2"><em><i class="bi bi-arrow-repeat me-1"></i>${m.Comment}</em></p>`;
                     }
+                    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+
                     const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершено': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
                     const statusColor = statusColors[cleanStatus] || 'gray';
                     let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
@@ -883,35 +878,49 @@
         rescheduleModal.show();
     }
     async function handleSaveReschedule() {
-        const newDate = document.getElementById('newMeetingDate').value;
-        const newTime = document.getElementById('newMeetingTime').value;
-        const errorDiv = document.getElementById('rescheduleError');
-        if (!newDate || !newTime) {
-            errorDiv.textContent = 'Пожалуйста, укажите дату и время.';
-            errorDiv.classList.remove('d-none');
-            return;
-        }
-        errorDiv.classList.add('d-none');
-        const saveBtn = document.getElementById('saveRescheduleBtn');
-        toggleButtonSpinner(saveBtn, true);
-        try {
-            const newDateFormatted = newDate.split('-').reverse().join('.');
-            meetingToReschedule.Comment = `Перенесена на ${newDateFormatted} ${newTime}`;
-            const newMeetingData = { ...meetingToReschedule, ID: `m${Date.now()}`, Date: newDate.split('-').reverse().join('.'), Time: newTime, Status: 'В работе', Comment: '' };
-            const updatePromise = callApi('updateMeeting', { newData: meetingToReschedule, oldData: currentEditingMeeting });
-            const savePromise = callApi('saveNewMeeting', newMeetingData);
-            await Promise.all([updatePromise, savePromise]);
-            showToast("Встреча успешно перенесена");
-            rescheduleModal.hide();
-            onActionComplete();
-            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-        } catch (error) {
-            onFailure(error);
-        } finally {
-            toggleButtonSpinner(saveBtn, false);
-        }
-    }
+    const newDate = document.getElementById('newMeetingDate').value;
+    const newTime = document.getElementById('newMeetingTime').value;
+    const errorDiv = document.getElementById('rescheduleError');
 
+    if (!newDate || !newTime) {
+        errorDiv.textContent = 'Пожалуйста, укажите дату и время.';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+    errorDiv.classList.add('d-none');
+
+    const saveBtn = document.getElementById('saveRescheduleBtn');
+    toggleButtonSpinner(saveBtn, true);
+
+    try {
+        // Готовим данные для обновления
+        const oldData = currentEditingMeeting; // Старые данные для API
+        const newData = { ...currentEditingMeeting }; // Копия для изменения
+
+        // Формируем комментарий о переносе
+        newData.Comment = `Перенесена со старой даты ${oldData.Date}`;
+        
+        // Обновляем дату и время
+        newData.Date = newDate.split('-').reverse().join('.');
+        newData.Time = newTime;
+        
+        // Статус возвращаем в "В работе"
+        newData.Status = 'В работе';
+
+        // Вызываем API для обновления ОДНОЙ встречи
+        await callApi('updateMeeting', { newData, oldData });
+        
+        showToast("Встреча успешно перенесена");
+        rescheduleModal.hide();
+        onActionComplete(); // Закрываем форму, если она была открыта
+        loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+
+    } catch (error) {
+        onFailure(error);
+    } finally {
+        toggleButtonSpinner(saveBtn, false);
+    }
+}
     function handleOutcomeClick(event) {
         activeMeetingId = event.target.dataset.id;
         const meeting = allMeetings.find(m => m.ID === activeMeetingId);
