@@ -632,7 +632,7 @@ document.getElementById('resetFiltersBtn').addEventListener('click', () => {
         populatePurposes(data.purposes);
         filterAndGroupMeetings();
     }
-       async function performGlobalSearch() {
+    async function performGlobalSearch() {
     const searchInput = document.getElementById('searchInput');
     const searchTerm = searchInput.value;
     if (searchTerm.length < 3) {
@@ -649,7 +649,6 @@ document.getElementById('resetFiltersBtn').addEventListener('click', () => {
     clientHistorySearchModal.show();
 
     try {
-        // ШАГ 1: Ищем КЛИЕНТОВ, а не встречи
         const result = await callApi('findClient', { searchTerm: searchTerm, managerLogin: currentUser });
 
         if (result && result.found && result.clients && result.clients.length > 0) {
@@ -667,25 +666,6 @@ document.getElementById('resetFiltersBtn').addEventListener('click', () => {
     } catch (e) {
         onFailure(e);
         resultsContainer.innerHTML = `<div class="alert alert-danger">Ошибка поиска: ${e.message}</div>`;
-    }
-}
-
-    isSearchMode = true;
-    meetingsList.innerHTML = '<div class="col-12 text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2">Ищем встречи по всей истории...</p></div>';
-    document.getElementById('resetFiltersBtn').textContent = 'Сбросить поиск';
-
-    try {
-        const result = await callApi('getAllMeetingsForClient', { login: currentUser, clientName: searchTerm });
-        allMeetings = result.meetings || [];
-        filterAndGroupMeetings(); 
-        const searchResultTitle = document.createElement('h3');
-        searchResultTitle.className = 'col-12 date-header';
-        searchResultTitle.innerHTML = `Результаты поиска по: <mark>${searchTerm}</mark>`;
-        meetingsList.prepend(searchResultTitle);
-
-    } catch(e) {
-        onFailure(e);
-        meetingsList.innerHTML = `<div class="col-12 text-center p-5"><h4>Ошибка поиска</h4><p class="text-muted">${e.message}</p></div>`;
     }
 }
 
