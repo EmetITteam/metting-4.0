@@ -13,6 +13,7 @@ export default async function handler(request, response) {
         console.log(`Отправка в 1С для действия "${action}":`, JSON.stringify(dataToSendToOneC, null, 2));
         
         const responseFrom1C = await forwardRequestToOneC(dataToSendToOneC);
+        console.log('ПОЛУЧЕН ОТВЕТ ОТ 1С:', JSON.stringify(responseFrom1C, null, 2));
 
         // --- НАЧАЛО ИЗМЕНЕНИЙ ---
         // Проверяем, что 1С вернула успешный статус и есть объект с данными
