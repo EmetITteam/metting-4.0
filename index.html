@@ -376,7 +376,7 @@
         });
         document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
         document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
-        const searchInputEl = document.getElementById('searchInput');
+        const searchInputEl = document.getElementById('searchInput1');
 
 // Новый обработчик для поля поиска: по нажатию Enter или потере фокуса
 searchInputEl.addEventListener('keyup', (e) => {
@@ -608,7 +608,7 @@ document.getElementById('resetFiltersBtn').addEventListener('click', () => {
     function loadInitialData(startDateString, endDateString) {
     // Сбрасываем режим поиска при загрузке по датам
     isSearchMode = false;
-    document.getElementById('searchInput').value = '';
+    document.getElementById('searchInput1').value = '';
     document.getElementById('resetFiltersBtn').textContent = 'Сегодня';
 
     let skeletonHTML = '';
@@ -633,7 +633,7 @@ document.getElementById('resetFiltersBtn').addEventListener('click', () => {
         filterAndGroupMeetings();
     }
     async function performGlobalSearch() {
-    const searchInput = document.getElementById('searchInput');
+    const searchInput = document.getElementById('searchInput1');
     const searchTerm = searchInput.value;
     if (searchTerm.length < 3) {
         if (searchTerm.length === 0) {
