@@ -63,6 +63,7 @@ function getGoogleAuth(userEmail) {
     return auth;
 }
 
+// ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ handleCalendarEvent НА ЭТУ
 async function handleCalendarEvent(action, meeting) {
     if (!meeting || !meeting.ManagerLogin || (action !== 'saveNewMeeting' && action !== 'updateMeeting')) {
         return;
@@ -70,7 +71,6 @@ async function handleCalendarEvent(action, meeting) {
     const auth = getGoogleAuth(meeting.ManagerLogin);
     const calendar = google.calendar({ version: 'v3', auth });
 
-    // --- ИЗМЕНЕНИЕ: Добавлен статус "Завершено" для корректного удаления ---
     const isCancelled = (meeting.Status === 'Отмена' || meeting.Status === 'Отменено' || meeting.Status === 'Завершена' || meeting.Status === 'Завершено');
 
     if (isCancelled && meeting.calendarEventId) {
@@ -82,34 +82,58 @@ async function handleCalendarEvent(action, meeting) {
     }
     if (isCancelled) return;
 
-    const [startTime, endTime] = parseDateTime(meeting.Date, meeting.Time);
+    // Используем новую функцию для получения времени в виде строк
+    const [startTimeStr, endTimeStr] = parseDateTimeToStrings(meeting.Date, meeting.Time);
+
+    // Создаем событие, ЯВНО УКАЗЫВАЯ ЧАСОВОЙ ПОЯС
     const eventResource = {
         summary: `Встреча: ${meeting.Client}`,
         description: `Цель: ${meeting.Purpose}\nМенеджер: ${meeting.ManagerLogin}`,
         location: meeting.Location || '',
-        start: { dateTime: startTime.toISOString() },
-        end: { dateTime: endTime.toISOString() }
+        start: {
+            dateTime: startTimeStr, // например, '2025-08-07T22:00:00'
+            timeZone: 'Europe/Kiev' // Указываем, что это время для Украины
+        },
+        end: {
+            dateTime: endTimeStr,   // например, '2025-08-07T23:00:00'
+            timeZone: 'Europe/Kiev'
+        }
     };
     try {
         if (action === 'updateMeeting' && meeting.calendarEventId) {
             await calendar.events.update({ auth, calendarId: 'primary', eventId: meeting.calendarEventId, resource: eventResource });
             console.log(`Событие ${meeting.calendarEventId} успешно обновлено.`);
-        } else if (action === 'saveNewMeeting' && !meeting.calendarEventId) { // Добавим проверку, чтобы точно не дублировать
+        } else if (action === 'saveNewMeeting' && !meeting.calendarEventId) {
             const newEvent = await calendar.events.insert({ auth, calendarId: 'primary', resource: eventResource });
             console.log(`Создано новое событие ${newEvent.data.id}.`);
             const payloadTo1C = { action: "updateMeetingCalendarId", payload: { meetingId: meeting.ID, calendarEventId: newEvent.data.id } };
-            // Отправляем ID события в 1С в фоновом режиме
             forwardRequestToOneC(payloadTo1C);
         }
     } catch (e) {
-        console.error('Ошибка при работе с Google Calendar API:', e.message);
+        console.error('--- ОШИБКА GOOGLE CALENDAR API ---');
+        console.error('Действие:', action);
+        console.error('Данные встречи:', JSON.stringify(meeting, null, 2));
+        console.error('Сообщение об ошибке:', e.message);
+        console.error('------------------------------------');
     }
 }
 
-function parseDateTime(dateStr, timeStr) {
+// ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ parseDateTime НА ЭТУ НОВУЮ ВЕРСИЮ
+function parseDateTimeToStrings(dateStr, timeStr) {
     const [day, month, year] = dateStr.split('.');
+    
+    // Формируем строку времени начала в формате, нужном Google
+    const startTimeStr = `${year}-${month}-${day}T${timeStr}:00`;
+
+    // Корректно вычисляем время окончания (на 1 час позже)
     const [hours, minutes] = timeStr.split(':');
-    const startTime = new Date(year, month - 1, day, hours, minutes);
-    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
-    return [startTime, endTime];
+    // new Date() здесь используется только для безопасного расчета времени
+    const startDate = new Date(year, month - 1, day, hours, minutes);
+    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+    
+    const pad = (num) => num.toString().padStart(2, '0');
+    const endTimeStr = `${endDate.getFullYear()}-${pad(endDate.getMonth() + 1)}-${pad(endDate.getDate())}` +
+                     `T${pad(endDate.getHours())}:${pad(endDate.getMinutes())}:00`;
+
+    return [startTimeStr, endTimeStr];
 }
