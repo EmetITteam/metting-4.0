@@ -1405,91 +1405,91 @@ document.getElementById('resetFiltersBtn').addEventListener('click', () => {
     }
     
  // --- ЕДИНЫЙ ГЛОБАЛЬНЫЙ ОБРАБОТЧИК ДЛЯ КНОПОК ОТЧЕТА И АВТОЗАПОЛНЕНИЯ ---
-// --- ОБНОВЛЕННЫЙ УНИВЕРСАЛЬНЫЙ ОБРАБОТЧИК КЛИКОВ ---
+// --- ЕДИНЫЙ ГЛОБАЛЬНЫЙ ОБРАБОТЧИК (ИСПРАВЛЕННАЯ ВЕРСИЯ) ---
 document.addEventListener('click', function(e) {
-    // Ищем клик по кнопке отчета
-    const reportBtn = e.target.closest('.report-btn-icon');
+    const target = e.target;
+
+    // --- Обработчик 1: Клик по кнопке "Отчет по клиенту" ---
+    const reportBtn = target.closest('.report-btn-icon');
     if (reportBtn && !reportBtn.disabled) {
-        // ДОБАВЛЕНО: Проверяем, находится ли кнопка внутри модального окна поиска
         if (reportBtn.closest('#clientSearchModal')) {
-            clientSearchModal.hide(); // Если да, то скрываем окно поиска
+            clientSearchModal.hide();
         }
         handleReportClick(e);
-        return; 
+        return; // Важно: выходим из функции, чтобы не проверять другие условия
     }
 
-    // Ищем клик по результату автозаполнения
-    const resultsContainer = document.getElementById('client-autocomplete-results');
-    const autocompleteLink = e.target.closest('#client-autocomplete-results a');
+    // --- Обработчик 2: Выбор клиента из модального окна поиска истории ---
+    const selectClientBtn = target.closest('.js-select-client-for-history');
+    if (selectClientBtn) {
+        e.preventDefault();
+        const clientID = selectClientBtn.dataset.clientId;
+        const clientName = selectClientBtn.dataset.clientName;
+        
+        clientHistorySearchModal.hide();
+
+        isSearchMode = true;
+        meetingsList.innerHTML = '<div class="col-12 text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2">Загружаем историю встреч...</p></div>';
+        document.getElementById('resetFiltersBtn').textContent = 'Сбросить поиск';
+
+        callApi('getAllMeetingsForClient', { login: currentUser, clientID: clientID })
+            .then(result => {
+                allMeetings = result.meetings || [];
+                filterAndGroupMeetings();
+                const searchResultTitle = document.createElement('h3');
+                searchResultTitle.className = 'col-12 date-header';
+                searchResultTitle.innerHTML = `История встреч по клиенту: <mark>${clientName}</mark>`;
+                meetingsList.prepend(searchResultTitle);
+            })
+            .catch(err => {
+                onFailure(err);
+                meetingsList.innerHTML = `<div class="col-12 text-center p-5"><h4>Ошибка загрузки истории</h4><p class="text-muted">${err.message}</p></div>`;
+            });
+        return; // Выходим из функции
+    }
+
+    // --- Обработчик 3: Клик по кнопке "Новая встреча" из отчета ---
+    const createFromReportBtn = target.closest('.js-create-meeting-from-report');
+    if (createFromReportBtn) {
+        reportModal.hide();
+        const btnTarget = createFromReportBtn;
+        const clientName = btnTarget.dataset.clientName;
+        const clientAddress = btnTarget.dataset.clientAddress;
+        const clientID = btnTarget.dataset.clientId;
+        const clientCategory = btnTarget.dataset.clientCategory;
+        const clientPhone = btnTarget.dataset.clientPhone;
+        showAddForm(); 
+        document.getElementById('client-name').value = clientName;
+        document.getElementById('location').value = clientAddress;
+        document.getElementById('client-id').value = clientID;
+        document.getElementById('client-category').value = clientCategory;
+        document.getElementById('phone').value = clientPhone;
+        if (phoneMask) phoneMask.updateValue();
+        return; // Выходим из функции
+    }
+
+    // --- Обработчик 4: Клик по результату автозаполнения клиента ---
+    const autocompleteLink = target.closest('#client-autocomplete-results a');
     if (autocompleteLink) {
         e.preventDefault();
-        const target = autocompleteLink;
-        
-        document.getElementById('client-name').value = target.dataset.clientName;
-        document.getElementById('client-id').value = target.dataset.clientId;
-        document.getElementById('client-category').value = target.dataset.clientCategory;
-        document.getElementById('location').value = target.dataset.clientAddress;
-        document.getElementById('phone').value = target.dataset.clientPhone;
+        const linkTarget = autocompleteLink;
+        document.getElementById('client-name').value = linkTarget.dataset.clientName;
+        document.getElementById('client-id').value = linkTarget.dataset.clientId;
+        document.getElementById('client-category').value = linkTarget.dataset.clientCategory;
+        document.getElementById('location').value = linkTarget.dataset.clientAddress;
+        document.getElementById('phone').value = linkTarget.dataset.clientPhone;
         if (phoneMask) phoneMask.updateValue();
+        document.getElementById('client-autocomplete-results').innerHTML = '';
+        return; // Выходим из функции
+    }
 
-        resultsContainer.innerHTML = '';
-    } else if (!e.target.closest('#client-name')) {
+    // --- Логика 5: Скрытие списка автозаполнения при клике в любом другом месте ---
+    // Эта проверка должна идти последней
+    const resultsContainer = document.getElementById('client-autocomplete-results');
+    if (!target.closest('#client-name') && resultsContainer.innerHTML !== '') {
         resultsContainer.innerHTML = '';
     }
-    // Обработчик для кнопки "Новая встреча" из отчета
-const createFromReportBtn = e.target.closest('.js-create-meeting-from-report');
-if (createFromReportBtn) {
-    // 1. Прячем модальное окно отчета
-    reportModal.hide();
-
-    // 2. Собираем данные клиента из атрибутов кнопки
-    const target = createFromReportBtn;
-    const clientName = target.dataset.clientName;
-    const clientAddress = target.dataset.clientAddress;
-    const clientID = target.dataset.clientId;
-    const clientCategory = target.dataset.clientCategory;
-    const clientPhone = target.dataset.clientPhone;
-
-    // 3. Показываем форму создания встречи
-    showAddForm(); 
-
-    // 4. Заполняем форму данными клиента
-    document.getElementById('client-name').value = clientName;
-    document.getElementById('location').value = clientAddress; // Адрес клиента (юр. адрес)
-    document.getElementById('client-id').value = clientID;
-    document.getElementById('client-category').value = clientCategory;
-    document.getElementById('phone').value = clientPhone;
-    if (phoneMask) phoneMask.updateValue();
-}
-    // --- ДОБАВЬТЕ ЭТОТ БЛОК ВНУТРЬ СУЩЕСТВУЮЩЕГО document.addEventListener('click', ...) ---
-
-// Обработчик для выбора клиента из модального окна поиска истории
-const selectClientBtn = e.target.closest('.js-select-client-for-history');
-if (selectClientBtn) {
-    e.preventDefault();
-    const clientID = selectClientBtn.dataset.clientId;
-    const clientName = selectClientBtn.dataset.clientName;
-    
-    clientHistorySearchModal.hide(); // Прячем окно выбора
-
-    // А теперь запускаем поиск встреч по ID клиента
-    isSearchMode = true;
-    meetingsList.innerHTML = '<div class="col-12 text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2">Загружаем историю встреч...</p></div>';
-    document.getElementById('resetFiltersBtn').textContent = 'Сбросить поиск';
-
-    callApi('getAllMeetingsForClient', { login: currentUser, clientID: clientID })
-        .then(result => {
-            allMeetings = result.meetings || [];
-            filterAndGroupMeetings();
-            const searchResultTitle = document.createElement('h3');
-            searchResultTitle.className = 'col-12 date-header';
-            searchResultTitle.innerHTML = `История встреч по клиенту: <mark>${clientName}</mark>`;
-            meetingsList.prepend(searchResultTitle);
-        })
-        .catch(err => {
-            onFailure(err);
-            meetingsList.innerHTML = `<div class="col-12 text-center p-5"><h4>Ошибка загрузки истории</h4><p class="text-muted">${err.message}</p></div>`;
-        });
+});
 </script>
 </body>
 
