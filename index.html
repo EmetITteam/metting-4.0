@@ -854,11 +854,41 @@ if (widgetsContainer) {
     const widgetsContainer = document.getElementById('dashboard-widgets');
     if (!widgetsContainer) return;
 
-    const todayString = getTodayDateString().split('-').reverse().join('.');
-    
-    // Считаем статистику
-    const meetingsToday = allMeetings.filter(m => m.Date === todayString);
-    const totalToday = meetingsToday.length;
+    // --- НАЧАЛО НОВОЙ ЛОГИКИ ---
+
+    // 1. Получаем даты из фильтра
+    const startDate = datePicker.getStartDate()?.toJSDate();
+    const endDate = datePicker.getEndDate()?.toJSDate();
+    if (!startDate || !endDate) return; // Выходим, если даты не выбраны
+
+    // 2. Определяем, выбран ли только сегодняшний день
+    const today = new Date();
+    const isTodayView = startDate.toDateString() === today.toDateString() && endDate.toDateString() === today.toDateString();
+
+    let meetingsForPeriod;
+    let totalValue;
+    let totalLabel;
+
+    // 3. Считаем общее количество встреч в зависимости от периода
+    if (isTodayView) {
+        const todayString = getTodayDateString().split('-').reverse().join('.');
+        meetingsForPeriod = allMeetings.filter(m => m.Date === todayString);
+        totalValue = meetingsForPeriod.length;
+        totalLabel = "Сегодня";
+    } else {
+        // Фильтруем все встречи, чтобы они попали в диапазон
+        meetingsForPeriod = allMeetings.filter(m => {
+            const dateParts = m.Date.split('.');
+            const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+            return meetingDate >= startDate && meetingDate <= endDate;
+        });
+        totalValue = meetingsForPeriod.length;
+        totalLabel = "Всего";
+    }
+
+    // 4. Считаем остальные виджеты (они всегда показывают статистику на СЕГОДНЯ)
+    const todayStringForStats = getTodayDateString().split('-').reverse().join('.');
+    const meetingsToday = allMeetings.filter(m => m.Date === todayStringForStats);
     const completedToday = meetingsToday.filter(m => m.Status === 'Завершена' || m.Status === 'Завершено').length;
     
     const now = new Date();
@@ -868,13 +898,15 @@ if (widgetsContainer) {
         const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]);
         return meetingDate < now && (m.Status === 'В работе' || m.Status === 'Запланировано');
     }).length;
+    
+    // --- КОНЕЦ НОВОЙ ЛОГИКИ ---
 
-    // Формируем HTML для виджетов, делая "Просрочено" кнопкой
+    // Формируем HTML для виджетов
     widgetsContainer.innerHTML = `
         <div class="col-4">
             <div class="widget-card">
-                <div class="widget-value text-primary">${totalToday}</div>
-                <div class="widget-label">Сегодня</div>
+                <div class="widget-value text-primary">${totalValue}</div>
+                <div class="widget-label">${totalLabel}</div>
             </div>
         </div>
         <div class="col-4">
