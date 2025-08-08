@@ -6,26 +6,25 @@ export default async function handler(request, response) {
         return response.status(405).json({ message: 'Only POST requests allowed' });
     }
 
-    const { action } = request.body; // Получаем action для логирования и внутренней логики
+    const { action } = request.body;
     const dataToSendToOneC = request.body;
 
     try {
         console.log(`Отправка в 1С для действия "${action}":`, JSON.stringify(dataToSendToOneC, null, 2));
         
         const responseFrom1C = await forwardRequestToOneC(dataToSendToOneC);
+        
         console.log('ПОЛУЧЕН ОТВЕТ ОТ 1С:', JSON.stringify(responseFrom1C, null, 2));
 
-        // --- НАЧАЛО ИЗМЕНЕНИЙ ---
-        // Проверяем, что 1С вернула успешный статус и есть объект с данными
         if (responseFrom1C.status === 'success' && responseFrom1C.data) {
-            // Для создания и обновления встреч, используем данные, ВОЗВРАЩЕННЫЕ из 1С.
-            // Это самый надежный источник (включая актуальный calendarEventId).
             if (action === 'saveNewMeeting' || action === 'updateMeeting') {
-                handleCalendarEvent(action, responseFrom1C.data);
+                // --- ИЗМЕНЕНИЕ: Добавлено 'await' ---
+                // Теперь мы ждем, пока работа с календарем полностью завершится
+                await handleCalendarEvent(action, responseFrom1C.data);
             }
         }
-        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
+        // Ответ браузеру отправляется только после того, как все операции завершены
         response.status(200).json(responseFrom1C);
 
     } catch (error) {
@@ -37,7 +36,6 @@ export default async function handler(request, response) {
         }
     }
 }
-
 async function forwardRequestToOneC(requestBody) {
     const ONEC_API_URL = process.env.ONEC_API_URL;
     const ONEC_LOGIN = process.env.ONEC_LOGIN;
