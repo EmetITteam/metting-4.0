@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { google } = require('googleapis');
 
+// --- Основная функция-обработчик ---
 export default async function handler(request, response) {
     if (request.method !== 'POST') {
         return response.status(405).json({ message: 'Only POST requests allowed' });
@@ -10,22 +11,26 @@ export default async function handler(request, response) {
     const dataToSendToOneC = request.body;
 
     try {
+        // --- ШАГ 1: Выполняем основную операцию с 1С ---
         console.log(`Отправка в 1С для действия "${action}":`, JSON.stringify(dataToSendToOneC, null, 2));
-        
         const responseFrom1C = await forwardRequestToOneC(dataToSendToOneC);
-        
         console.log('ПОЛУЧЕН ОТВЕТ ОТ 1С:', JSON.stringify(responseFrom1C, null, 2));
 
+        // --- ШАГ 2: Немедленно отправляем ответ пользователю ---
+        // Пользователь не должен ждать, пока отработает Google Calendar
+        response.status(200).json(responseFrom1C);
+
+        // --- ШАГ 3: ЗАПУСКАЕМ ФОНОВУЮ ЗАДАЧУ для работы с календарем ---
+        // Мы НЕ используем 'await' здесь. Мы запускаем функцию и "забываем" про нее,
+        // но добавляем .catch(), чтобы отловить возможные ошибки в фоне.
         if (responseFrom1C.status === 'success' && responseFrom1C.data) {
             if (action === 'saveNewMeeting' || action === 'updateMeeting') {
-                // --- ИЗМЕНЕНИЕ: Добавлено 'await' ---
-                // Теперь мы ждем, пока работа с календарем полностью завершится
-                await handleCalendarEvent(action, responseFrom1C.data);
+                handleCalendarEvent(action, responseFrom1C.data)
+                    .catch(e => {
+                        console.error('!!! КРИТИЧЕСКАЯ ОШИБКА В ФОНОВОЙ ЗАДАЧЕ КАЛЕНДАРЯ:', e.message);
+                    });
             }
         }
-
-        // Ответ браузеру отправляется только после того, как все операции завершены
-        response.status(200).json(responseFrom1C);
 
     } catch (error) {
         console.error("Proxy error:", error.message);
@@ -36,6 +41,10 @@ export default async function handler(request, response) {
         }
     }
 }
+
+
+// --- Вспомогательные функции (остаются без изменений) ---
+
 async function forwardRequestToOneC(requestBody) {
     const ONEC_API_URL = process.env.ONEC_API_URL;
     const ONEC_LOGIN = process.env.ONEC_LOGIN;
@@ -61,7 +70,7 @@ function getGoogleAuth(userEmail) {
     return auth;
 }
 
-// ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ handleCalendarEvent НА ЭТУ
+// Эта функция теперь всегда будет выполняться в фоне
 async function handleCalendarEvent(action, meeting) {
     if (!meeting || !meeting.ManagerLogin || (action !== 'saveNewMeeting' && action !== 'updateMeeting')) {
         return;
@@ -86,14 +95,8 @@ async function handleCalendarEvent(action, meeting) {
         summary: `Встреча: ${meeting.Client}`,
         description: `Цель: ${meeting.Purpose}\nМенеджер: ${meeting.ManagerLogin}`,
         location: meeting.Location || '',
-        start: {
-            dateTime: startTimeStr,
-            timeZone: 'Europe/Kiev'
-        },
-        end: {
-            dateTime: endTimeStr,
-            timeZone: 'Europe/Kiev'
-        }
+        start: { dateTime: startTimeStr, timeZone: 'Europe/Kiev' },
+        end: { dateTime: endTimeStr, timeZone: 'Europe/Kiev' }
     };
 
     try {
@@ -104,21 +107,14 @@ async function handleCalendarEvent(action, meeting) {
             const newEvent = await calendar.events.insert({ auth, calendarId: 'primary', resource: eventResource });
             console.log(`Создано новое событие в Google Calendar: ${newEvent.data.id}.`);
             
-            // --- НАЧАЛО ИСПРАВЛЕННОЙ ЛОГИКИ ---
             const payloadTo1C = { action: "updateMeetingCalendarId", payload: { meetingId: meeting.ID, calendarEventId: newEvent.data.id } };
             
-            try {
-                console.log('Отправляем ID события из календаря в 1С...');
-                await forwardRequestToOneC(payloadTo1C); // ДОБАВЛЕНО AWAIT
-                console.log('ID события календаря успешно сохранен в 1С.');
-            } catch (e) {
-                // Логируем ошибку именно этого, второго запроса
-                console.error('!!! ОШИБКА при отправке calendarEventId в 1С:', e.message);
-            }
-            // --- КОНЕЦ ИСПРАВЛЕННОЙ ЛОГИКИ ---
+            console.log('Отправляем ID события из календаря в 1С...');
+            await forwardRequestToOneC(payloadTo1C);
+            console.log('ID события календаря успешно сохранен в 1С.');
         }
     } catch (e) {
-        console.error('--- ОШИБКА GOOGLE CALENDAR API ---');
+        console.error('--- ОШИБКА GOOGLE CALENDAR API В ФОНОВОМ РЕЖИМЕ ---');
         console.error('Действие:', action);
         console.error('Данные встречи:', JSON.stringify(meeting, null, 2));
         console.error('Сообщение об ошибке:', e.message);
@@ -126,22 +122,13 @@ async function handleCalendarEvent(action, meeting) {
     }
 }
 
-// ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ parseDateTime НА ЭТУ НОВУЮ ВЕРСИЮ
 function parseDateTimeToStrings(dateStr, timeStr) {
     const [day, month, year] = dateStr.split('.');
-    
-    // Формируем строку времени начала в формате, нужном Google
     const startTimeStr = `${year}-${month}-${day}T${timeStr}:00`;
-
-    // Корректно вычисляем время окончания (на 1 час позже)
     const [hours, minutes] = timeStr.split(':');
-    // new Date() здесь используется только для безопасного расчета времени
     const startDate = new Date(year, month - 1, day, hours, minutes);
     const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
-    
     const pad = (num) => num.toString().padStart(2, '0');
-    const endTimeStr = `${endDate.getFullYear()}-${pad(endDate.getMonth() + 1)}-${pad(endDate.getDate())}` +
-                     `T${pad(endDate.getHours())}:${pad(endDate.getMinutes())}:00`;
-
+    const endTimeStr = `${endDate.getFullYear()}-${pad(endDate.getMonth() + 1)}-${pad(endDate.getDate())}T${pad(endDate.getHours())}:${pad(endDate.getMinutes())}:00`;
     return [startTimeStr, endTimeStr];
 }
