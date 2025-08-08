@@ -235,12 +235,13 @@
         let isSearchMode = false;
 
         // Глобальные экземпляры, которые будут инициализированы позже
-        let rescheduleModal, cancelConfirmModal, outcomeModal, reportModal, clientSearchModal, clientHistorySearchModal, appToast;
+        let meetingsList, rescheduleModal, cancelConfirmModal, outcomeModal, reportModal, clientSearchModal, clientHistorySearchModal, appToast;
         let datePicker, adminDatePicker, phoneMask, searchMask;
 
         // --- ОСНОВНОЙ БЛОК ИНИЦИАЛИЗАЦИИ ПОСЛЕ ЗАГРУЗКИ СТРАНИЦЫ ---
         document.addEventListener('DOMContentLoaded', () => {
             // Инициализация Bootstrap компонентов
+            meetingsList = document.getElementById('meetings-list'); // <-- ДОБАВЬТЕ ЭТУ СТРОКУ
             rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
             cancelConfirmModal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
             outcomeModal = new bootstrap.Modal(document.getElementById('outcomeModal'));
