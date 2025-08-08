@@ -112,11 +112,37 @@
 </head>
 
 <body class="d-none"> 
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="sideMenu" aria-labelledby="sideMenuLabel">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="sideMenuLabel">Меню</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column">
+        <div>
+            <p id="offcanvas-user-info" class="text-muted"></p>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item px-0">
+                    <a href="#" class="text-decoration-none text-dark d-block">Отчеты</a>
+                </li>
+                <li class="list-group-item px-0">
+                    <a href="#" class="text-decoration-none text-dark d-block">Настройки</a>
+                </li>
+                <li class="list-group-item px-0">
+                    <a href="#" id="offcanvas-client-search-btn" class="text-decoration-none text-dark d-block">Поиск контрагента</a>
+                </li>
+            </ul>
+        </div>
+        <div class="mt-auto">
+            <hr>
+            <button class="btn btn-outline-secondary w-100" id="logout-btn-side-menu">Выйти</button>
+        </div>
+    </div>
+</div>
 
     <header class="app-header">
-        <button class="btn border-0 p-0" id="hamburger-menu">
-            <i class="bi bi-list fs-2"></i>
-        </button>
+        <button class="btn border-0 p-0" id="hamburger-menu" type="button" data-bs-toggle="offcanvas" data-bs-target="#sideMenu" aria-controls="sideMenu">
+    <i class="bi bi-list fs-2"></i>
+</button>
         <div id="header-title" class="header-title">Рабочий стол</div>
         <a href="#" id="main-add-btn" class="header-action">
             <i class="bi bi-plus-circle-fill"></i>
@@ -256,6 +282,26 @@
             const headerTitle = document.getElementById('header-title');
             const mainAppContainer = document.querySelector('body');
             const loginContainer = document.getElementById('login-container');
+            // Добавьте этот код внутрь существующего document.addEventListener('DOMContentLoaded', ...)
+
+// Обработчик для кнопки выхода в боковом меню
+const logoutBtnSideMenu = document.getElementById('logout-btn-side-menu');
+if (logoutBtnSideMenu) {
+    logoutBtnSideMenu.addEventListener('click', handleLogout);
+}
+
+// Обработчик для кнопки "Поиск контрагента" в боковом меню
+const offcanvasClientSearchBtn = document.getElementById('offcanvas-client-search-btn');
+if (offcanvasClientSearchBtn) {
+    offcanvasClientSearchBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Просто показываем уже существующее модальное окно
+        clientSearchModal.show();
+        // Можно закрыть боковое меню, чтобы не мешало
+        const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sideMenu'));
+        offcanvas.hide();
+    });
+}
 
             function showMainApp(show) {
                 if (show) {
@@ -453,6 +499,7 @@
             const userRole = result.role;
             const session = { user: currentUser, role: userRole, loginTime: new Date().getTime() };
             localStorage.setItem('crm_session', JSON.stringify(session));
+            document.getElementById('offcanvas-user-info').textContent = `Менеджер: ${currentUser}`;
 
             window.showMainApp(true);
             
