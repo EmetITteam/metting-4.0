@@ -82,33 +82,37 @@ async function handleCalendarEvent(action, meeting) {
     }
     if (isCancelled) return;
 
-    // Используем новую функцию для получения времени в виде строк
     const [startTimeStr, endTimeStr] = parseDateTimeToStrings(meeting.Date, meeting.Time);
 
-    // Создаем событие, ЯВНО УКАЗЫВАЯ ЧАСОВОЙ ПОЯС
     const eventResource = {
         summary: `Встреча: ${meeting.Client}`,
         description: `Цель: ${meeting.Purpose}\nМенеджер: ${meeting.ManagerLogin}`,
         location: meeting.Location || '',
         start: {
-            dateTime: startTimeStr, // например, '2025-08-07T22:00:00'
-            timeZone: 'Europe/Kiev' // Указываем, что это время для Украины
+            dateTime: startTimeStr,
+            timeZone: 'Europe/Kiev'
         },
         end: {
-            dateTime: endTimeStr,   // например, '2025-08-07T23:00:00'
+            dateTime: endTimeStr,
             timeZone: 'Europe/Kiev'
         }
     };
+
     try {
-        if (action === 'updateMeeting' && meeting.calendarEventId) {
+        // --- НАЧАЛО ИСПРАВЛЕННОЙ ЛОГИКИ ---
+        if (meeting.calendarEventId) {
+            // Если ID события уже есть, всегда обновляем его
             await calendar.events.update({ auth, calendarId: 'primary', eventId: meeting.calendarEventId, resource: eventResource });
             console.log(`Событие ${meeting.calendarEventId} успешно обновлено.`);
-        } else if (action === 'saveNewMeeting' && !meeting.calendarEventId) {
+        } else {
+            // Если ID события нет (даже при action='updateMeeting'), значит, оно не было создано ранее. Создаем его.
             const newEvent = await calendar.events.insert({ auth, calendarId: 'primary', resource: eventResource });
-            console.log(`Создано новое событие ${newEvent.data.id}.`);
+            console.log(`Создано новое событие ${newEvent.data.id} (возможно, взамен утерянного).`);
+            // И сразу отправляем его ID в 1С для сохранения
             const payloadTo1C = { action: "updateMeetingCalendarId", payload: { meetingId: meeting.ID, calendarEventId: newEvent.data.id } };
             forwardRequestToOneC(payloadTo1C);
         }
+        // --- КОНЕЦ ИСПРАВЛЕННОЙ ЛОГИКИ ---
     } catch (e) {
         console.error('--- ОШИБКА GOOGLE CALENDAR API ---');
         console.error('Действие:', action);
