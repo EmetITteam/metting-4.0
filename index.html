@@ -585,7 +585,7 @@ if (widgetsContainer) {
 
             // Визуально показываем, что включен фильтр
             isSearchMode = true; // Используем этот флаг для отображения правильного сообщения, если пусто
-            document.getElementById('resetFiltersBtn').textContent = 'Сбросить';
+            document.getElementById('date-preset-btn').textContent = 'Сбросить';
         }
     });
 }
@@ -608,6 +608,14 @@ if (widgetsContainer) {
         onLoginSuccess({ login: session.user, role: session.role });
     }
         function handleDatePresetClick(preset) {
+    // --- НОВАЯ ЛОГИКА ---
+    // Если пользователь выбрал "Сегодня", сбрасываем также и текстовый поиск
+    if (preset === 'today') {
+        isSearchMode = false;
+        document.getElementById('searchInput1').value = '';
+    }
+    // --- КОНЕЦ НОВОЙ ЛОГИКИ ---
+
     const today = new Date();
     let startDate, endDate;
 
@@ -625,7 +633,7 @@ if (widgetsContainer) {
         case 'this-week':
             const firstDayOfWeek = new Date(today);
             const day = today.getDay();
-            const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Monday is the first day
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Понедельник - первый день
             firstDayOfWeek.setDate(diff);
             startDate = firstDayOfWeek;
             endDate = new Date(startDate);
@@ -652,6 +660,7 @@ if (widgetsContainer) {
     
     if (startDate && endDate) {
         datePicker.setDateRange(startDate, endDate);
+        // Обновляем текст на основной кнопке
         document.getElementById('date-preset-btn').textContent = document.querySelector(`.dropdown-item[data-range="${preset}"]`).textContent;
     }
 }
