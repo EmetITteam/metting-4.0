@@ -99,20 +99,26 @@ async function handleCalendarEvent(action, meeting) {
     };
 
     try {
-        // --- НАЧАЛО ИСПРАВЛЕННОЙ ЛОГИКИ ---
         if (meeting.calendarEventId) {
-            // Если ID события уже есть, всегда обновляем его
             await calendar.events.update({ auth, calendarId: 'primary', eventId: meeting.calendarEventId, resource: eventResource });
             console.log(`Событие ${meeting.calendarEventId} успешно обновлено.`);
         } else {
-            // Если ID события нет (даже при action='updateMeeting'), значит, оно не было создано ранее. Создаем его.
             const newEvent = await calendar.events.insert({ auth, calendarId: 'primary', resource: eventResource });
-            console.log(`Создано новое событие ${newEvent.data.id} (возможно, взамен утерянного).`);
-            // И сразу отправляем его ID в 1С для сохранения
+            console.log(`Создано новое событие в Google Calendar: ${newEvent.data.id}.`);
+            
+            // --- НАЧАЛО ИСПРАВЛЕННОЙ ЛОГИКИ ---
             const payloadTo1C = { action: "updateMeetingCalendarId", payload: { meetingId: meeting.ID, calendarEventId: newEvent.data.id } };
-            forwardRequestToOneC(payloadTo1C);
+            
+            try {
+                console.log('Отправляем ID события из календаря в 1С...');
+                await forwardRequestToOneC(payloadTo1C); // ДОБАВЛЕНО AWAIT
+                console.log('ID события календаря успешно сохранен в 1С.');
+            } catch (e) {
+                // Логируем ошибку именно этого, второго запроса
+                console.error('!!! ОШИБКА при отправке calendarEventId в 1С:', e.message);
+            }
+            // --- КОНЕЦ ИСПРАВЛЕННОЙ ЛОГИКИ ---
         }
-        // --- КОНЕЦ ИСПРАВЛЕННОЙ ЛОГИКИ ---
     } catch (e) {
         console.error('--- ОШИБКА GOOGLE CALENDAR API ---');
         console.error('Действие:', action);
