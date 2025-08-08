@@ -428,17 +428,16 @@ body {
         searchInputEl.addEventListener('keyup', (e) => {
             if (e.key === 'Enter') performGlobalSearch();
         });
-        
-        // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+               // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 
-// Обновленный обработчик для кнопки "Сегодня", которая теперь часть выпадающего меню
-document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+// Обработчик для основной кнопки "Сегодня", которая сбрасывает фильтры
+document.getElementById('date-preset-btn').addEventListener('click', () => {
     isSearchMode = false;
     document.getElementById('searchInput1').value = '';
-    handleDatePresetClick('today'); // Вызываем новую функцию для установки "Сегодня"
+    handleDatePresetClick('today');
 });
 
-// Новый обработчик для выпадающего меню с датами
+// Обработчик для выпадающего меню с датами
 const datePresetsContainer = document.getElementById('date-presets-container');
 if (datePresetsContainer) {
     const datePresetDropdown = datePresetsContainer.querySelector('.dropdown-menu');
@@ -452,7 +451,6 @@ if (datePresetsContainer) {
         });
     }
 }
-
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
         
         document.getElementById('get-meeting-location-btn').addEventListener('click', handleGetLocationClick);
