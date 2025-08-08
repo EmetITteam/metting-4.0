@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="format-detection" content="telephone=no">
     <title>Emet CRM Встречи</title>
 
@@ -68,6 +68,8 @@
             justify-content: space-around;
             align-items: flex-start;
             padding-top: 8px;
+            padding-bottom: 8px; /* Базовый отступ для всех устройств */
+            padding-bottom: calc(8px + env(safe-area-inset-bottom)); /* Дополнительный отступ для устройств с "челкой" или нижней полосой */
         }
         
         .nav-button {
