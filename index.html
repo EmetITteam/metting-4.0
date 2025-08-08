@@ -247,658 +247,651 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
     <script>
-        // --- ЕДИНЫЙ, ОБЪЕДИНЕННЫЙ И ИСПРАВЛЕННЫЙ JAVASCRIPT-КОД ---
+    // --- ЕДИНЫЙ, ОБЪЕДИНЕННЫЙ И ИСПРАВЛЕННЫЙ JAVASCRIPT-КОД ---
 
-        // Глобальные переменные и константы
-        const API_URL = "/api/handler";
-        const HIDDEN_CLASS = 'd-none';
+    // Глобальные переменные и константы
+    const API_URL = "/api/handler";
+    const HIDDEN_CLASS = 'd-none';
 
-        let currentUser = null, allMeetings = [], currentEditingMeeting = null;
-        let meetingToReschedule = null, activeMeetingId = null;
-        let questions = [], potentialCategories = [];
-        let adminCharts = {};
-        let searchTimeout = null;
-        let isSearchMode = false;
+    let currentUser = null, allMeetings = [], currentEditingMeeting = null;
+    let meetingToReschedule = null, activeMeetingId = null;
+    let questions = [], potentialCategories = [];
+    let adminCharts = {};
+    let searchTimeout = null;
+    let isSearchMode = false;
 
-        // Глобальные экземпляры, которые будут инициализированы позже
-        let meetingsList, rescheduleModal, cancelConfirmModal, outcomeModal, reportModal, clientSearchModal, clientHistorySearchModal, appToast;
-        let datePicker, adminDatePicker, phoneMask, searchMask;
+    // Глобальные экземпляры, которые будут инициализированы позже
+    let meetingsList, rescheduleModal, cancelConfirmModal, outcomeModal, reportModal, clientSearchModal, clientHistorySearchModal, appToast;
+    let datePicker, adminDatePicker, phoneMask, searchMask;
 
-        // --- ОСНОВНОЙ БЛОК ИНИЦИАЛИЗАЦИИ ПОСЛЕ ЗАГРУЗКИ СТРАНИЦЫ ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // Инициализация Bootstrap компонентов
-            meetingsList = document.getElementById('meetings-list'); // <-- ДОБАВЬТЕ ЭТУ СТРОКУ
-            rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
-            cancelConfirmModal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
-            outcomeModal = new bootstrap.Modal(document.getElementById('outcomeModal'));
-            reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
-            clientSearchModal = new bootstrap.Modal(document.getElementById('clientSearchModal'));
-            clientHistorySearchModal = new bootstrap.Modal(document.getElementById('clientHistorySearchModal'));
-            appToast = new bootstrap.Toast(document.getElementById('appToast'));
+    // --- ОСНОВНОЙ БЛОК ИНИЦИАЛИЗАЦИИ ПОСЛЕ ЗАГРУЗКИ СТРАНИЦЫ ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Сначала находим все нужные элементы DOM ---
+        meetingsList = document.getElementById('meetings-list');
+        const navButtons = document.querySelectorAll('.nav-button');
+        const pages = document.querySelectorAll('.app-page');
+        const headerTitle = document.getElementById('header-title');
+        const header = document.querySelector('.app-header');
+        const main = document.querySelector('.app-main');
+        const bottomNav = document.querySelector('.app-bottom-nav');
+        const loginContainer = document.getElementById('login-container');
+        const bodyEl = document.querySelector('body');
 
-            // Логика новой навигации
-           // Получаем доступ ко всем основным элементам макета
-    const navButtons = document.querySelectorAll('.nav-button');
-    const pages = document.querySelectorAll('.app-page');
-    const headerTitle = document.getElementById('header-title');
-    const header = document.querySelector('.app-header');
-    const main = document.querySelector('.app-main');
-    const bottomNav = document.querySelector('.app-bottom-nav');
-    const loginContainer = document.getElementById('login-container');
-    const bodyEl = document.querySelector('body');
-
-    function showMainApp(show) {
-        if (show) {
-            // Показываем интерфейс приложения
-            header.classList.remove('d-none');
-            main.classList.remove('d-none');
-            bottomNav.classList.remove('d-none');
-            // Прячем контейнер логина
-            loginContainer.classList.add('d-none');
-        } else {
-            // Прячем интерфейс приложения
-            header.classList.add('d-none');
-            main.classList.add('d-none');
-            bottomNav.classList.add('d-none');
-            // Показываем контейнер логина
-            loginContainer.classList.remove('d-none');
-        }
-        // В любом случае, сам body должен быть видимым
-        bodyEl.classList.remove('d-none');
-    }
-    window.showMainApp = showMainApp;
-
-    function switchPage(pageId) {
-        pages.forEach(page => page.classList.toggle('active', page.id === `page-${pageId}`));
-        navButtons.forEach(button => {
-            button.classList.toggle('active', button.dataset.page === pageId);
-            if (button.dataset.page === pageId) {
-                const buttonText = button.querySelector('span').textContent;
-                headerTitle.textContent = buttonText;
-            }
-        });
-    }
-
-    navButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            switchPage(button.dataset.page);
-        });
-    });
-
-    document.getElementById('main-add-btn')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        switchPage('dashboard');
-        showAddForm();
-    });
-});
-            
-            // const adminDatePicker = new Litepicker(...) // для админки
-
-            const phoneInput = document.getElementById('phone');
-            phoneMask = IMask(phoneInput, { mask: '+{38} (000) 000-00-00' });
-            
-            const clientSearchInputEl = document.getElementById('clientSearchInput');
-            searchMask = IMask(clientSearchInputEl, {
-                mask: [ { mask: '+{38} (000) 000-00-00', startsWith: '380', lazy: false }, { mask: /.*/ } ]
-            });
-            
-            // Привязка всех обработчиков событий
-            document.getElementById('login-form').addEventListener('submit', handleLogin);
-            document.getElementById('meeting-form').addEventListener('submit', handleFormSubmit);
-            document.getElementById('cancel-btn').addEventListener('click', handleCancelClick);
-            document.getElementById('confirmCancelBtn').addEventListener('click', () => {
-                cancelConfirmModal.hide();
-                showForm(false);
-            });
-            document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
-            document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
-            
-            const searchInputEl = document.getElementById('searchInput1');
-            searchInputEl.addEventListener('input', filterAndGroupMeetings);
-            searchInputEl.addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') performGlobalSearch();
-            });
-            
-            document.getElementById('resetFiltersBtn').addEventListener('click', () => {
-                isSearchMode = false;
-                document.getElementById('searchInput1').value = '';
-                document.getElementById('resetFiltersBtn').textContent = 'Сегодня';
-                datePicker.setDateRange(new Date(), new Date());
-            });
-            
-            document.getElementById('get-meeting-location-btn').addEventListener('click', handleGetLocationClick);
-            document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
-            document.getElementById('saveOutcomeBtn').addEventListener('click', handleSaveOutcome);
-            
-            // Старая кнопка поиска, ее можно будет убрать/переделать
-            // document.getElementById('show-client-search-btn').addEventListener('click', ...);
-           
-            document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
-            document.getElementById('clientSearchInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') handleClientSearch();
-            });
-            
-            document.getElementById('client-name').addEventListener('input', handleClientInput);
-
-            // Проверка активной сессии при загрузке
-            checkActiveSession();
-      
-
-        // --- Единый глобальный обработчик кликов ---
-        document.addEventListener('click', function(e) {
-            const target = e.target;
-
-            const reportBtn = target.closest('.report-btn-icon');
-            if (reportBtn && !reportBtn.disabled) {
-                 if (reportBtn.closest('#clientSearchModal')) {
-                     clientSearchModal.hide();
-                 }
-                 handleReportClick(e);
-                 return;
-            }
-
-            const selectClientBtn = target.closest('.js-select-client-for-history');
-            if (selectClientBtn && !selectClientBtn.classList.contains('disabled')) {
-                 e.preventDefault();
-                 const clientID = selectClientBtn.dataset.clientId;
-                 const clientName = selectClientBtn.dataset.clientName;
-                 clientHistorySearchModal.hide();
-                 isSearchMode = true;
-                 meetingsList.innerHTML = '<div class="col-12 text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2">Загружаем историю встреч...</p></div>';
-                 document.getElementById('resetFiltersBtn').textContent = 'Сбросить поиск';
-                 callApi('getAllMeetingsForClient', { login: currentUser, clientID: clientID })
-                     .then(result => {
-                         allMeetings = result.meetings || [];
-                         filterAndGroupMeetings();
-                         const searchResultTitle = document.createElement('h3');
-                         searchResultTitle.className = 'col-12 date-header';
-                         searchResultTitle.innerHTML = `История встреч по клиенту: <mark>${clientName}</mark>`;
-                         meetingsList.prepend(searchResultTitle);
-                     })
-                     .catch(err => {
-                         onFailure(err);
-                         meetingsList.innerHTML = `<div class="col-12 text-center p-5"><h4>Ошибка загрузки истории</h4><p class="text-muted">${err.message}</p></div>`;
-                     });
-                 return;
-            }
-
-            const createFromReportBtn = target.closest('.js-create-meeting-from-report');
-            if (createFromReportBtn) {
-                 reportModal.hide();
-                 const btnTarget = createFromReportBtn;
-                 const clientName = btnTarget.dataset.clientName;
-                 const clientAddress = btnTarget.dataset.clientAddress;
-                 const clientID = btnTarget.dataset.clientId;
-                 const clientCategory = btnTarget.dataset.clientCategory;
-                 const clientPhone = btnTarget.dataset.clientPhone;
-                 showAddForm(); 
-                 document.getElementById('client-name').value = clientName;
-                 document.getElementById('location').value = clientAddress;
-                 document.getElementById('client-id').value = clientID;
-                 document.getElementById('client-category').value = clientCategory;
-                 document.getElementById('phone').value = clientPhone;
-                 if (phoneMask) phoneMask.updateValue();
-                 return;
-            }
-
-            const autocompleteLink = target.closest('#client-autocomplete-results a');
-            if (autocompleteLink) {
-                 e.preventDefault();
-                 const linkTarget = autocompleteLink;
-                 document.getElementById('client-name').value = linkTarget.dataset.clientName;
-                 document.getElementById('client-id').value = linkTarget.dataset.clientId;
-                 document.getElementById('client-category').value = linkTarget.dataset.clientCategory;
-                 document.getElementById('location').value = linkTarget.dataset.clientAddress;
-                 document.getElementById('phone').value = linkTarget.dataset.clientPhone;
-                 if (phoneMask) phoneMask.updateValue();
-                 document.getElementById('client-autocomplete-results').innerHTML = '';
-                 return;
-            }
-
-            const resultsContainer = document.getElementById('client-autocomplete-results');
-            if (resultsContainer && !target.closest('#client-name') && resultsContainer.innerHTML !== '') {
-                 resultsContainer.innerHTML = '';
-            }
-        });
-
-        // --- ВСЕ ОСТАЛЬНЫЕ ФУНКЦИИ ---
-        
-        function checkActiveSession() {
-            const savedSession = localStorage.getItem('crm_session');
-            if (!savedSession) {
-                window.showMainApp(false);
-                return;
-            };
-            const session = JSON.parse(savedSession);
-            const oneDay = 24 * 60 * 60 * 1000;
-            const isSessionExpired = (new Date().getTime() - session.loginTime) > oneDay;
-            if (isSessionExpired) {
-                localStorage.removeItem('crm_session');
-                window.showMainApp(false);
+        // --- Затем определяем функции, которые с ними работают ---
+        function showMainApp(show) {
+            if (!header || !main || !bottomNav || !loginContainer || !bodyEl) {
+                console.error('Ошибка: Один из ключевых элементов макета не найден!');
                 return;
             }
-            onLoginSuccess({ login: session.user, role: session.role });
-        }
-
-        function onLoginSuccess(result) {
-            currentUser = result.login;
-            const userRole = result.role;
-            const session = { user: currentUser, role: userRole, loginTime: new Date().getTime() };
-            localStorage.setItem('crm_session', JSON.stringify(session));
-            document.getElementById('offcanvas-user-info').textContent = `Менеджер: ${currentUser}`;
-
-            window.showMainApp(true);
-            
-            const header = document.querySelector('.app-header');
-            const main = document.querySelector('.app-main');
-            const bottomNav = document.querySelector('.app-bottom-nav');
-            const adminDashboard = document.getElementById('admin-dashboard');
-
-            if (userRole === 'admin') {
-                header.classList.add('d-none');
-                main.classList.add('d-none');
-                bottomNav.classList.add('d-none');
-                adminDashboard.classList.remove('d-none');
-                // document.getElementById('admin-header').textContent = `Администратор: ${currentUser}`;
-                // adminDatePicker.setDateRange(new Date(), new Date());
-                // loadAdminStats();
-            } else {
+            if (show) {
                 header.classList.remove('d-none');
                 main.classList.remove('d-none');
                 bottomNav.classList.remove('d-none');
-                adminDashboard.classList.add('d-none');
-                datePicker.setDateRange(new Date(), new Date());
+                loginContainer.classList.add('d-none');
+            } else {
+                header.classList.add('d-none');
+                main.classList.add('d-none');
+                bottomNav.classList.add('d-none');
+                loginContainer.classList.remove('d-none');
             }
+            bodyEl.classList.remove('d-none');
         }
+        window.showMainApp = showMainApp; // Делаем функцию глобальной
+
+        function switchPage(pageId) {
+            pages.forEach(page => page.classList.toggle('active', page.id === `page-${pageId}`));
+            navButtons.forEach(button => {
+                button.classList.toggle('active', button.dataset.page === pageId);
+                if (button.dataset.page === pageId) {
+                    const buttonText = button.querySelector('span').textContent;
+                    headerTitle.textContent = buttonText;
+                }
+            });
+        }
+
+        // --- Инициализация Bootstrap компонентов ---
+        rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
+        cancelConfirmModal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
+        outcomeModal = new bootstrap.Modal(document.getElementById('outcomeModal'));
+        reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+        clientSearchModal = new bootstrap.Modal(document.getElementById('clientSearchModal'));
+        clientHistorySearchModal = new bootstrap.Modal(document.getElementById('clientHistorySearchModal'));
+        appToast = new bootstrap.Toast(document.getElementById('appToast'));
         
-        function handleLogout() {
+        // --- Инициализация плагинов ---
+        datePicker = new Litepicker({
+            element: document.getElementById('dateRangeFilter'),
+            singleMode: false, format: 'DD.MM.YYYY', lang: 'ru-RU',
+            setup: (picker) => {
+                picker.on('selected', (date1, date2) => {
+                    if (date1 && date2) loadInitialData(formatDateToYYYYMMDD(date1.toJSDate()), formatDateToYYYYMMDD(date2.toJSDate()));
+                });
+            }
+        });
+        
+        const phoneInput = document.getElementById('phone');
+        phoneMask = IMask(phoneInput, { mask: '+{38} (000) 000-00-00' });
+        
+        const clientSearchInputEl = document.getElementById('clientSearchInput');
+        searchMask = IMask(clientSearchInputEl, {
+            mask: [ { mask: '+{38} (000) 000-00-00', startsWith: '380', lazy: false }, { mask: /.*/ } ]
+        });
+        
+        // --- Привязка всех обработчиков событий ---
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => switchPage(button.dataset.page));
+        });
+        document.getElementById('main-add-btn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchPage('dashboard');
+            showAddForm();
+        });
+        document.getElementById('login-form').addEventListener('submit', handleLogin);
+        document.getElementById('meeting-form').addEventListener('submit', handleFormSubmit);
+        document.getElementById('cancel-btn').addEventListener('click', handleCancelClick);
+        document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+            cancelConfirmModal.hide();
+            showForm(false);
+        });
+        document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
+        document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
+        
+        const searchInputEl = document.getElementById('searchInput1');
+        searchInputEl.addEventListener('input', filterAndGroupMeetings);
+        searchInputEl.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') performGlobalSearch();
+        });
+        
+        document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+            isSearchMode = false;
+            searchInputEl.value = '';
+            document.getElementById('resetFiltersBtn').textContent = 'Сегодня';
+            datePicker.setDateRange(new Date(), new Date());
+        });
+        
+        document.getElementById('get-meeting-location-btn').addEventListener('click', handleGetLocationClick);
+        document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
+        document.getElementById('saveOutcomeBtn').addEventListener('click', handleSaveOutcome);
+        document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
+        document.getElementById('clientSearchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleClientSearch();
+        });
+        document.getElementById('client-name').addEventListener('input', handleClientInput);
+
+        // --- И ТОЛЬКО ТЕПЕРЬ, когда все готово, проверяем сессию ---
+        checkActiveSession();
+    });
+
+    // --- Единый глобальный обработчик кликов ---
+    document.addEventListener('click', function(e) {
+        const target = e.target;
+
+        const reportBtn = target.closest('.report-btn-icon');
+        if (reportBtn && !reportBtn.disabled) {
+             if (reportBtn.closest('#clientSearchModal')) {
+                 clientSearchModal.hide();
+             }
+             handleReportClick(e);
+             return;
+        }
+
+        const selectClientBtn = target.closest('.js-select-client-for-history');
+        if (selectClientBtn && !selectClientBtn.classList.contains('disabled')) {
+             e.preventDefault();
+             const clientID = selectClientBtn.dataset.clientId;
+             const clientName = selectClientBtn.dataset.clientName;
+             clientHistorySearchModal.hide();
+             isSearchMode = true;
+             meetingsList.innerHTML = '<div class="col-12 text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2">Загружаем историю встреч...</p></div>';
+             document.getElementById('resetFiltersBtn').textContent = 'Сбросить поиск';
+             callApi('getAllMeetingsForClient', { login: currentUser, clientID: clientID })
+                 .then(result => {
+                     allMeetings = result.meetings || [];
+                     filterAndGroupMeetings();
+                     const searchResultTitle = document.createElement('h3');
+                     searchResultTitle.className = 'col-12 date-header';
+                     searchResultTitle.innerHTML = `История встреч по клиенту: <mark>${clientName}</mark>`;
+                     meetingsList.prepend(searchResultTitle);
+                 })
+                 .catch(err => {
+                     onFailure(err);
+                     meetingsList.innerHTML = `<div class="col-12 text-center p-5"><h4>Ошибка загрузки истории</h4><p class="text-muted">${err.message}</p></div>`;
+                 });
+             return;
+        }
+
+        const createFromReportBtn = target.closest('.js-create-meeting-from-report');
+        if (createFromReportBtn) {
+             reportModal.hide();
+             const btnTarget = createFromReportBtn;
+             const clientName = btnTarget.dataset.clientName;
+             const clientAddress = btnTarget.dataset.clientAddress;
+             const clientID = btnTarget.dataset.clientId;
+             const clientCategory = btnTarget.dataset.clientCategory;
+             const clientPhone = btnTarget.dataset.clientPhone;
+             showAddForm(); 
+             document.getElementById('client-name').value = clientName;
+             document.getElementById('location').value = clientAddress;
+             document.getElementById('client-id').value = clientID;
+             document.getElementById('client-category').value = clientCategory;
+             document.getElementById('phone').value = clientPhone;
+             if (phoneMask) phoneMask.updateValue();
+             return;
+        }
+
+        const autocompleteLink = target.closest('#client-autocomplete-results a');
+        if (autocompleteLink) {
+             e.preventDefault();
+             const linkTarget = autocompleteLink;
+             document.getElementById('client-name').value = linkTarget.dataset.clientName;
+             document.getElementById('client-id').value = linkTarget.dataset.clientId;
+             document.getElementById('client-category').value = linkTarget.dataset.clientCategory;
+             document.getElementById('location').value = linkTarget.dataset.clientAddress;
+             document.getElementById('phone').value = linkTarget.dataset.clientPhone;
+             if (phoneMask) phoneMask.updateValue();
+             document.getElementById('client-autocomplete-results').innerHTML = '';
+             return;
+        }
+
+        const resultsContainer = document.getElementById('client-autocomplete-results');
+        if (resultsContainer && !target.closest('#client-name') && resultsContainer.innerHTML !== '') {
+             resultsContainer.innerHTML = '';
+        }
+    });
+    
+    // --- ВСЕ ОСТАЛЬНЫЕ ФУНКЦИИ ---
+    function checkActiveSession() {
+        const savedSession = localStorage.getItem('crm_session');
+        if (!savedSession) {
+            window.showMainApp(false);
+            return;
+        };
+        const session = JSON.parse(savedSession);
+        const oneDay = 24 * 60 * 60 * 1000;
+        const isSessionExpired = (new Date().getTime() - session.loginTime) > oneDay;
+        if (isSessionExpired) {
             localStorage.removeItem('crm_session');
             window.showMainApp(false);
+            return;
         }
+        onLoginSuccess({ login: session.user, role: session.role });
+    }
+    
+    function onLoginSuccess(result) {
+        currentUser = result.login;
+        const userRole = result.role;
+        const session = { user: currentUser, role: userRole, loginTime: new Date().getTime() };
+        localStorage.setItem('crm_session', JSON.stringify(session));
+
+        document.getElementById('offcanvas-user-info').textContent = `Менеджер: ${currentUser}`;
+
+        window.showMainApp(true);
         
-        function getTodayDateString() { return formatDateToYYYYMMDD(new Date()); }
-        function getTomorrowDateString() { const t = new Date(); t.setDate(t.getDate() + 1); return formatDateToYYYYMMDD(t); }
-        function formatDateToYYYYMMDD(date) {
-            const y = date.getFullYear();
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const d = String(date.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
+        const header = document.querySelector('.app-header');
+        const main = document.querySelector('.app-main');
+        const bottomNav = document.querySelector('.app-bottom-nav');
+        const adminDashboard = document.getElementById('admin-dashboard');
+
+        if (userRole === 'admin') {
+            header.classList.add('d-none');
+            main.classList.add('d-none');
+            bottomNav.classList.add('d-none');
+            adminDashboard.classList.remove('d-none');
+            // Здесь будет логика для инициализации админ-панели
+            // document.getElementById('admin-header').textContent = `Администратор: ${currentUser}`;
+            // adminDatePicker.setDateRange(new Date(), new Date());
+            // loadAdminStats();
+        } else {
+            header.classList.remove('d-none');
+            main.classList.remove('d-none');
+            bottomNav.classList.remove('d-none');
+            adminDashboard.classList.add('d-none');
+            datePicker.setDateRange(new Date(), new Date());
         }
-        function toggleButtonSpinner(btn, show) {
-            if (show) {
-                btn.disabled = true;
-                btn.dataset.originalText = btn.innerHTML;
-                btn.innerHTML = `<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>`;
+    }
+    
+    function handleLogout() {
+        localStorage.removeItem('crm_session');
+        window.showMainApp(false);
+    }
+    
+    function getTodayDateString() { return formatDateToYYYYMMDD(new Date()); }
+    function getTomorrowDateString() { const t = new Date(); t.setDate(t.getDate() + 1); return formatDateToYYYYMMDD(t); }
+    function formatDateToYYYYMMDD(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+    function toggleButtonSpinner(btn, show) {
+        if (show) {
+            btn.disabled = true;
+            btn.dataset.originalText = btn.innerHTML;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>`;
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = btn.dataset.originalText || '';
+        }
+    }
+    function showToast(message) {
+        document.querySelector('#appToast .toast-body').textContent = message;
+        appToast.show();
+    }
+    function getCategoryColor(categoryName) {
+        if (!categoryName) return '#6c757d'; 
+        const lowerCategory = categoryName.toLowerCase();
+        if (lowerCategory.includes('новый')) return '#0d6efd';
+        if (lowerCategory.includes('активный')) return '#198754';
+        if (lowerCategory.includes('спящий')) return '#ffc107';
+        if (lowerCategory.includes('без закупок')) return '#fd7e14';
+        if (lowerCategory.includes('потерянный')) return '#dc3545';
+        return '#6c757d';
+    }
+    async function callApi(action, payload) {
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, payload })
+            });
+            if (!response.ok) {
+                const errorText = await response.text(); 
+                throw new Error(`Ошибка сервера: ${response.status}. Ответ: ${errorText}`);
+            }
+            const result = await response.json();
+            if (result.status === 'error') {
+                throw new Error(result.message);
+            }
+            return result.data;
+        } catch (e) {
+            console.error("API call failed:", e);
+            throw e.message ? e : new Error('Ошибка сети или ответа сервера.');
+        }
+    }
+    function onFailure(error, errorElement = null) {
+        console.error(error);
+        if (errorElement) {
+            errorElement.textContent = error.message;
+            errorElement.classList.remove(HIDDEN_CLASS);
+        } else {
+            showToast('Ошибка: ' + error.message);
+        }
+    }
+    function handleLogin(e) {
+        e.preventDefault();
+        const loginBtn = document.getElementById('login-button');
+        toggleButtonSpinner(loginBtn, true);
+        const loginError = document.getElementById('login-error');
+        loginError.classList.add(HIDDEN_CLASS);
+        const payload = { login: document.getElementById('username').value, password: document.getElementById('password').value };
+        callApi('login', payload).then(onLoginSuccess).catch(err => {
+            onFailure(err, loginError);
+            document.getElementById('password').value = '';
+        }).finally(() => {
+            toggleButtonSpinner(loginBtn, false);
+        });
+    }
+    async function loadAdminStats() { /* ... */ }
+    function displayAdminStats(stats) { /* ... */ }
+    function loadInitialData(startDateString, endDateString) {
+        isSearchMode = false;
+        document.getElementById('searchInput1').value = '';
+        document.getElementById('resetFiltersBtn').textContent = 'Сегодня';
+        let skeletonHTML = '';
+        for (let i = 0; i < 4; i++) {
+            skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
+        }
+        meetingsList.innerHTML = skeletonHTML;
+        const payload = { login: currentUser, startDateString, endDateString };
+        callApi('getInitialData', payload)
+            .then(onDataLoaded)
+            .catch(err => {
+                onFailure(err);
+                meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
+            });
+    }
+    function onDataLoaded(data) {
+        allMeetings = data.meetings;
+        questions = data.questions || [];
+        potentialCategories = data.potentialCategories || [];
+        populatePurposes(data.purposes);
+        filterAndGroupMeetings();
+    }
+    async function performGlobalSearch() {
+        const searchInput = document.getElementById('searchInput1');
+        const searchTerm = searchInput.value;
+        if (searchTerm.length < 3) {
+            if (searchTerm.length === 0) {
+                document.getElementById('resetFiltersBtn').click();
             } else {
-                btn.disabled = false;
-                btn.innerHTML = btn.dataset.originalText || '';
+                showToast("Введите минимум 3 символа для поиска.");
             }
+            return;
         }
-        function showToast(message) {
-            document.querySelector('#appToast .toast-body').textContent = message;
-            appToast.show();
-        }
-        function getCategoryColor(categoryName) {
-            if (!categoryName) return '#6c757d'; 
-            const lowerCategory = categoryName.toLowerCase();
-            if (lowerCategory.includes('новый')) return '#0d6efd';
-            if (lowerCategory.includes('активный')) return '#198754';
-            if (lowerCategory.includes('спящий')) return '#ffc107';
-            if (lowerCategory.includes('без закупок')) return '#fd7e14';
-            if (lowerCategory.includes('потерянный')) return '#dc3545';
-            return '#6c757d';
-        }
-        async function callApi(action, payload) {
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action, payload })
-                });
-                if (!response.ok) {
-                    const errorText = await response.text(); 
-                    throw new Error(`Ошибка сервера: ${response.status}. Ответ: ${errorText}`);
-                }
-                const result = await response.json();
-                if (result.status === 'error') {
-                    throw new Error(result.message);
-                }
-                return result.data;
-            } catch (e) {
-                console.error("API call failed:", e);
-                throw e.message ? e : new Error('Ошибка сети или ответа сервера.');
-            }
-        }
-        function onFailure(error, errorElement = null) {
-            console.error(error);
-            if (errorElement) {
-                errorElement.textContent = error.message;
-                errorElement.classList.remove(HIDDEN_CLASS);
+        const resultsContainer = document.getElementById('clientHistorySearchResult');
+        resultsContainer.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>';
+        clientHistorySearchModal.show();
+        try {
+            const result = await callApi('findClient', { searchTerm: searchTerm, managerLogin: currentUser });
+            if (result && result.found && result.clients && result.clients.length > 0) {
+                const clientsHtml = result.clients.map(client => {
+                    const isForeignClient = !client.isMine;
+                    const disabledClass = isForeignClient ? 'disabled list-group-item-light' : '';
+                    const titleText = isForeignClient ? `Закреплен за: ${client.managerName || 'другой менеджер'}` : 'Посмотреть историю встреч';
+                    return `<a href="#" class="list-group-item list-group-item-action js-select-client-for-history ${disabledClass}" data-client-id="${client.ClientID}" data-client-name="${client.clientName}" title="${titleText}"><strong>${client.clientName}</strong><small class="text-muted d-block">Менеджер: ${client.managerName || 'Не назначен'}</small></a>`;
+                }).join('');
+                resultsContainer.innerHTML = `<div class="list-group">${clientsHtml}</div>`;
             } else {
-                showToast('Ошибка: ' + error.message);
+                resultsContainer.innerHTML = `<div class="alert alert-warning">Клиенты не найдены.</div>`;
             }
+        } catch (e) {
+            onFailure(e);
+            resultsContainer.innerHTML = `<div class="alert alert-danger">Ошибка поиска: ${e.message}</div>`;
         }
-        function handleLogin(e) {
-            e.preventDefault();
-            const loginBtn = document.getElementById('login-button');
-            toggleButtonSpinner(loginBtn, true);
-            const loginError = document.getElementById('login-error');
-            loginError.classList.add(HIDDEN_CLASS);
-            const payload = { login: document.getElementById('username').value, password: document.getElementById('password').value };
-            callApi('login', payload).then(onLoginSuccess).catch(err => {
-                onFailure(err, loginError);
-                document.getElementById('password').value = '';
-            }).finally(() => {
-                toggleButtonSpinner(loginBtn, false);
+    }
+    function populatePurposes(purposes) {
+        const purposeSelect = document.getElementById('purpose');
+        purposeSelect.innerHTML = '<option value="">-- Выберите цель --</option>';
+        if (purposes && Array.isArray(purposes)) {
+            purposes.forEach(p => {
+                purposeSelect.innerHTML += `<option value="${p.Purpose}">${p.Purpose}</option>`;
             });
         }
-        async function loadAdminStats() { /* ... */ }
-        function displayAdminStats(stats) { /* ... */ }
-        function loadInitialData(startDateString, endDateString) {
-            isSearchMode = false;
-            document.getElementById('searchInput1').value = '';
-            document.getElementById('resetFiltersBtn').textContent = 'Сегодня';
-            let skeletonHTML = '';
-            for (let i = 0; i < 4; i++) {
-                skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
+    }
+    function filterAndGroupMeetings() {
+        const searchTerm = document.getElementById('searchInput1').value.toLowerCase();
+        const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
+        const dateGroups = {};
+        const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
+        filtered.forEach(m => {
+            let status = m.Status ? m.Status.trim() : '';
+            if (status === 'Завершено') status = 'Завершена';
+            if (status === 'Отменено') status = 'Отмена';
+            if (!validStatuses.includes(status)) status = 'В работе';
+            if (!dateGroups[m.Date]) {
+                dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершено': [], 'Отмена': [], 'Просрочено': [] };
             }
-            meetingsList.innerHTML = skeletonHTML;
-            const payload = { login: currentUser, startDateString, endDateString };
-            callApi('getInitialData', payload)
-                .then(onDataLoaded)
-                .catch(err => {
-                    onFailure(err);
-                    meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
-                });
+            if (dateGroups[m.Date][status]) {
+                dateGroups[m.Date][status].push(m);
+            } else {
+                dateGroups[m.Date]['В работе'].push(m);
+            }
+        });
+        meetingsList.innerHTML = '';
+        const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(b.split('.').reverse().join('-')) - new Date(a.split('.').reverse().join('-')));
+        if (sortedDates.length === 0) {
+            let emptyMessage = isSearchMode ? `<h4>Встреч по этому клиенту не найдено</h4><p class="text-muted">Попробуйте другой поисковый запрос.</p>` : `<h4>Встреч не найдено</h4><p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p><button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button>`;
+            meetingsList.innerHTML = `<div class="col-12 text-center p-5"><i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>${emptyMessage}</div>`;
+            if (!isSearchMode) {
+                document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
+            }
+            return;
         }
-        function onDataLoaded(data) {
-            allMeetings = data.meetings;
-            questions = data.questions || [];
-            potentialCategories = data.potentialCategories || [];
-            populatePurposes(data.purposes);
-            filterAndGroupMeetings();
-        }
-        async function performGlobalSearch() {
-            const searchInput = document.getElementById('searchInput1');
-            const searchTerm = searchInput.value;
-            if (searchTerm.length < 3) {
-                if (searchTerm.length === 0) {
-                    document.getElementById('resetFiltersBtn').click();
-                } else {
-                    showToast("Введите минимум 3 символа для поиска.");
+        sortedDates.forEach(date => {
+            const dateTitle = document.createElement('h3');
+            dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
+            dateTitle.textContent = date;
+            meetingsList.appendChild(dateTitle);
+            const groups = dateGroups[date];
+            const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершено', 'Отмена'];
+            groupOrder.forEach(status => {
+                if (groups[status] && groups[status].length > 0) {
+                    const groupTitle = document.createElement('h4');
+                    groupTitle.className = 'col-12 mt-3 text-muted';
+                    groupTitle.textContent = status;
+                    meetingsList.appendChild(groupTitle);
+                    groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
+                        const cleanStatus = m.Status ? m.Status.trim() : '';
+                        let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
+                        if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено') {
+                             dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
+                        }
+                        if (cleanStatus !== 'Завершено' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
+                            dropdownItems += '<li><hr class="dropdown-divider"></li>';
+                            dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
+                            dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
+                        }
+                        const actionsMenu = `<div class="dropdown actions-dropdown">${dropdownItems ? `<button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end">${dropdownItems}</ul>` : ''}</div>`;
+                        let rescheduleInfo = '';
+                        if (m.Comment && m.Comment.startsWith('Перенесена со старой даты')) {
+                            rescheduleInfo = `<p class="card-text text-info small mt-2"><em><i class="bi bi-arrow-repeat me-1"></i>${m.Comment}</em></p>`;
+                        }
+                        const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершено': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
+                        const statusColor = statusColors[cleanStatus] || 'gray';
+                        let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
+                        if (m.ClientCategory) {
+                            const categoryColor = getCategoryColor(m.ClientCategory);
+                            clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
+                        }
+                        const cardWrapper = document.createElement('div');
+                        cardWrapper.className = "col-12 col-md-6";
+                        cardWrapper.innerHTML = `<div class="card meeting-card shadow-sm border-0"><div class="card-body"><a href="#" class="btn btn-light edit-btn card-edit-btn-top-right" title="Редактировать" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a><div class="flex-grow-1"><h5 class="card-title">${clientTitle}</h5>${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}<p class="card-text mb-1"><small class="text-muted">Место встречи: ${m.Location || 'Не указано'}</small></p><div class="d-flex justify-content-between align-items-center mt-3"><p class="card-text mb-0"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>${actionsMenu}</div>${rescheduleInfo}<div class="mt-3 pt-3 border-top"><button class="btn btn-sm btn-outline-secondary w-100 report-btn-icon" data-client-id="${m.ClientID}" data-client-name="${m.Client}"><i class="bi bi-file-text me-2"></i>Данные по клиенту</button></div></div></div></div>`;
+                        meetingsList.appendChild(cardWrapper);
+                    });
                 }
-                return;
-            }
-            const resultsContainer = document.getElementById('clientHistorySearchResult');
-            resultsContainer.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>';
-            clientHistorySearchModal.show();
+            });
+        });
+        document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
+        document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
+        document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
+        document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
+        document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
+        window.scrollTo(0, 0);
+    }
+    function handleClientInput(e) {
+        const searchTerm = e.target.value;
+        const resultsContainer = document.getElementById('client-autocomplete-results');
+        clearTimeout(searchTimeout);
+        if (searchTerm.length < 3) {
+            resultsContainer.innerHTML = '';
+            return;
+        }
+        searchTimeout = setTimeout(async () => {
             try {
-                const result = await callApi('findClient', { searchTerm: searchTerm, managerLogin: currentUser });
+                const payload = { searchTerm: searchTerm, managerLogin: currentUser };
+                const result = await callApi('findClient', payload);
                 if (result && result.found && result.clients && result.clients.length > 0) {
                     const clientsHtml = result.clients.map(client => {
-                        const isForeignClient = !client.isMine;
-                        const disabledClass = isForeignClient ? 'disabled list-group-item-light' : '';
-                        const titleText = isForeignClient ? `Закреплен за: ${client.managerName || 'другой менеджер'}` : 'Посмотреть историю встреч';
-                        return `<a href="#" class="list-group-item list-group-item-action js-select-client-for-history ${disabledClass}" data-client-id="${client.ClientID}" data-client-name="${client.clientName}" title="${titleText}"><strong>${client.clientName}</strong><small class="text-muted d-block">Менеджер: ${client.managerName || 'Не назначен'}</small></a>`;
+                        if (client.isMine) {
+                            return `<a href="#" class="list-group-item list-group-item-action" data-client-name="${client.clientName}" data-client-address="${client.clientAddress || ''}" data-client-id="${client.ClientID}" data-client-category="${client.ClientCategory || ''}" data-client-phone="${client.Phone || ''}"><strong>${client.clientName}</strong><small class="d-block text-muted">Категория: ${client.ClientCategory || 'Не указана'}</small></a>`;
+                        } else {
+                            return `<span class="list-group-item list-group-item-light text-muted pe-none"><strong>${client.clientName}</strong><small class="d-block">Закреплен за: ${client.managerName || 'другой менеджер'}</small></span>`;
+                        }
                     }).join('');
-                    resultsContainer.innerHTML = `<div class="list-group">${clientsHtml}</div>`;
+                    resultsContainer.innerHTML = clientsHtml;
                 } else {
-                    resultsContainer.innerHTML = `<div class="alert alert-warning">Клиенты не найдены.</div>`;
+                    resultsContainer.innerHTML = '<span class="list-group-item disabled">Клиенты не найдены</span>';
                 }
             } catch (e) {
-                onFailure(e);
-                resultsContainer.innerHTML = `<div class="alert alert-danger">Ошибка поиска: ${e.message}</div>`;
+                console.error("Ошибка автодополнения:", e);
+                resultsContainer.innerHTML = '<span class="list-group-item list-group-item-danger">Ошибка поиска</span>';
+            }
+        }, 500);
+    }
+    function handleFormSubmit(e) {
+        e.preventDefault();
+        const saveBtn = document.getElementById('save-button');
+        toggleButtonSpinner(saveBtn, true);
+        const meetingId = document.getElementById('meeting-id').value;
+        const isUpdating = !!meetingId;
+        const meetingData = {
+            ClientID: document.getElementById('client-id').value,
+            Date: document.getElementById('meeting-date').value.split('-').reverse().join('.'),
+            Time: document.getElementById('meeting-time').value,
+            Client: document.getElementById('client-name').value,
+            Purpose: document.getElementById('purpose').value,
+            Phone: phoneMask.unmaskedValue,
+            Location: document.getElementById('meeting-location').value,
+            LocationLat: document.getElementById('meeting-lat').value,
+            LocationLon: document.getElementById('meeting-lon').value,
+            Status: document.getElementById('status').value,
+            ManagerLogin: currentUser,
+            Comment: isUpdating ? currentEditingMeeting.Comment : ''
+        };
+        if (isUpdating) {
+            meetingData.ID = meetingId;
+            if (currentEditingMeeting.calendarEventId) {
+                meetingData.calendarEventId = currentEditingMeeting.calendarEventId;
             }
         }
-        function populatePurposes(purposes) {
-            const purposeSelect = document.getElementById('purpose');
-            purposeSelect.innerHTML = '<option value="">-- Выберите цель --</option>';
-            if (purposes && Array.isArray(purposes)) {
-                purposes.forEach(p => {
-                    purposeSelect.innerHTML += `<option value="${p.Purpose}">${p.Purpose}</option>`;
-                });
-            }
+        
+        const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
+        const payload = isUpdating ? { newData: meetingData, oldData: currentEditingMeeting } : meetingData;
+        callApi(action, payload).then(() => {
+            showToast(`Встреча с клиентом "${meetingData.Client}" на ${meetingData.Time} успешно сохранена.`);
+            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+            onActionComplete();
+        }).catch(onFailure).finally(() => {
+            toggleButtonSpinner(saveBtn, false);
+        });
+    }
+    function handleEditClick(event) {
+        event.preventDefault();
+        const meetingId = event.currentTarget.dataset.id;
+        currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
+        if (!currentEditingMeeting) return;
+        document.getElementById('form-title').textContent = "Редактирование встречи";
+        document.getElementById('meeting-id').value = currentEditingMeeting.ID;
+        document.getElementById('client-id').value = currentEditingMeeting.ClientID;
+        document.getElementById('client-category').value = currentEditingMeeting.ClientCategory || '';
+        document.getElementById('client-autocomplete-results').innerHTML = '';
+        const dateParts = currentEditingMeeting.Date.split('.');
+        document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+        document.getElementById('meeting-time').value = currentEditingMeeting.Time;
+        document.getElementById('client-name').value = currentEditingMeeting.Client;
+        document.getElementById('purpose').value = currentEditingMeeting.Purpose;
+        document.getElementById('phone').value = currentEditingMeeting.Phone;
+        if (phoneMask) phoneMask.updateValue();
+        document.getElementById('location').value = currentEditingMeeting.ClientAddress || '';
+        document.getElementById('meeting-location').value = currentEditingMeeting.Location || '';
+        document.getElementById('meeting-lat').value = currentEditingMeeting.LocationLat || '';
+        document.getElementById('meeting-lon').value = currentEditingMeeting.LocationLon || '';
+        document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
+        const geoButton = document.getElementById('get-meeting-location-btn');
+        const status = currentEditingMeeting.Status ? currentEditingMeeting.Status.trim() : '';
+        if (status === 'Завершена' || status === 'Завершено' || status === 'Отмена' || status === 'Отменено') {
+            geoButton.classList.add('d-none');
+        } else {
+            geoButton.classList.remove('d-none');
         }
-        function filterAndGroupMeetings() {
-            const searchTerm = document.getElementById('searchInput1').value.toLowerCase();
-            const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
-            const dateGroups = {};
-            const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
-            filtered.forEach(m => {
-                let status = m.Status ? m.Status.trim() : '';
-                if (status === 'Завершено') status = 'Завершена';
-                if (status === 'Отменено') status = 'Отмена';
-                if (!validStatuses.includes(status)) status = 'В работе';
-                if (!dateGroups[m.Date]) {
-                    dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершено': [], 'Отмена': [], 'Просрочено': [] };
-                }
-                if (dateGroups[m.Date][status]) {
-                    dateGroups[m.Date][status].push(m);
-                } else {
-                    dateGroups[m.Date]['В работе'].push(m);
-                }
-            });
-            meetingsList.innerHTML = '';
-            const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(b.split('.').reverse().join('-')) - new Date(a.split('.').reverse().join('-')));
-            if (sortedDates.length === 0) {
-                let emptyMessage = isSearchMode ? `<h4>Встреч по этому клиенту не найдено</h4><p class="text-muted">Попробуйте другой поисковый запрос.</p>` : `<h4>Встреч не найдено</h4><p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p><button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button>`;
-                meetingsList.innerHTML = `<div class="col-12 text-center p-5"><i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>${emptyMessage}</div>`;
-                if (!isSearchMode) {
-                    document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
-                }
-                return;
-            }
-            sortedDates.forEach(date => {
-                const dateTitle = document.createElement('h3');
-                dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
-                dateTitle.textContent = date;
-                meetingsList.appendChild(dateTitle);
-                const groups = dateGroups[date];
-                const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершено', 'Отмена'];
-                groupOrder.forEach(status => {
-                    if (groups[status] && groups[status].length > 0) {
-                        const groupTitle = document.createElement('h4');
-                        groupTitle.className = 'col-12 mt-3 text-muted';
-                        groupTitle.textContent = status;
-                        meetingsList.appendChild(groupTitle);
-                        groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
-                            const cleanStatus = m.Status ? m.Status.trim() : '';
-                            let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
-                            if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено') {
-                                 dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
-                            }
-                            if (cleanStatus !== 'Завершено' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
-                                dropdownItems += '<li><hr class="dropdown-divider"></li>';
-                                dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
-                                dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
-                            }
-                            const actionsMenu = `<div class="dropdown actions-dropdown">${dropdownItems ? `<button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end">${dropdownItems}</ul>` : ''}</div>`;
-                            let rescheduleInfo = '';
-                            if (m.Comment && m.Comment.startsWith('Перенесена со старой даты')) {
-                                rescheduleInfo = `<p class="card-text text-info small mt-2"><em><i class="bi bi-arrow-repeat me-1"></i>${m.Comment}</em></p>`;
-                            }
-                            const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершено': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
-                            const statusColor = statusColors[cleanStatus] || 'gray';
-                            let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
-                            if (m.ClientCategory) {
-                                const categoryColor = getCategoryColor(m.ClientCategory);
-                                clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
-                            }
-                            const cardWrapper = document.createElement('div');
-                            cardWrapper.className = "col-12 col-md-6";
-                            cardWrapper.innerHTML = `<div class="card meeting-card shadow-sm border-0"><div class="card-body"><a href="#" class="btn btn-light edit-btn card-edit-btn-top-right" title="Редактировать" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a><div class="flex-grow-1"><h5 class="card-title">${clientTitle}</h5>${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}<p class="card-text mb-1"><small class="text-muted">Место встречи: ${m.Location || 'Не указано'}</small></p><div class="d-flex justify-content-between align-items-center mt-3"><p class="card-text mb-0"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>${actionsMenu}</div>${rescheduleInfo}<div class="mt-3 pt-3 border-top"><button class="btn btn-sm btn-outline-secondary w-100 report-btn-icon" data-client-id="${m.ClientID}" data-client-name="${m.Client}"><i class="bi bi-file-text me-2"></i>Данные по клиенту</button></div></div></div></div>`;
-                            meetingsList.appendChild(cardWrapper);
-                        });
-                    }
-                });
-            });
-            document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
-            document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
-            document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
-            document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
-            document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
-            window.scrollTo(0, 0);
+        showForm(true);
+    }
+    async function handleCompleteClick(event) {
+        const btn = event.target;
+        toggleButtonSpinner(btn, true);
+        const meetingId = btn.dataset.id;
+        const oldData = allMeetings.find(m => m.ID === meetingId);
+        if (!oldData) { toggleButtonSpinner(btn, false); return; }
+        if (!confirm(`Завершить встречу с клиентом "${oldData.Client}"?`)) { toggleButtonSpinner(btn, false); return; }
+        const newData = { ...oldData, Status: 'Завершено' };
+        try {
+            await callApi('updateMeeting', { newData, oldData });
+            showToast("Встреча завершена");
+            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+        } catch(e) {
+            onFailure(e);
+        } finally {
+            if (btn.disabled) { toggleButtonSpinner(btn, false); }
         }
-        function handleClientInput(e) {
-            const searchTerm = e.target.value;
-            const resultsContainer = document.getElementById('client-autocomplete-results');
-            clearTimeout(searchTimeout);
-            if (searchTerm.length < 3) {
-                resultsContainer.innerHTML = '';
-                return;
-            }
-            searchTimeout = setTimeout(async () => {
-                try {
-                    const payload = { searchTerm: searchTerm, managerLogin: currentUser };
-                    const result = await callApi('findClient', payload);
-                    if (result && result.found && result.clients && result.clients.length > 0) {
-                        const clientsHtml = result.clients.map(client => {
-                            if (client.isMine) {
-                                return `<a href="#" class="list-group-item list-group-item-action" data-client-name="${client.clientName}" data-client-address="${client.clientAddress || ''}" data-client-id="${client.ClientID}" data-client-category="${client.ClientCategory || ''}" data-client-phone="${client.Phone || ''}"><strong>${client.clientName}</strong><small class="d-block text-muted">Категория: ${client.ClientCategory || 'Не указана'}</small></a>`;
-                            } else {
-                                return `<span class="list-group-item list-group-item-light text-muted pe-none"><strong>${client.clientName}</strong><small class="d-block">Закреплен за: ${client.managerName || 'другой менеджер'}</small></span>`;
-                            }
-                        }).join('');
-                        resultsContainer.innerHTML = clientsHtml;
-                    } else {
-                        resultsContainer.innerHTML = '<span class="list-group-item disabled">Клиенты не найдены</span>';
-                    }
-                } catch (e) {
-                    console.error("Ошибка автодополнения:", e);
-                    resultsContainer.innerHTML = '<span class="list-group-item list-group-item-danger">Ошибка поиска</span>';
-                }
-            }, 500);
+    }
+    function handleRescheduleClick(event) {
+        const meetingId = event.target.dataset.id;
+        const meetingData = allMeetings.find(m => m.ID === meetingId);
+        if (!meetingData) return;
+        currentEditingMeeting = meetingData;
+        rescheduleModal.show();
+    }
+    async function handleSaveReschedule() {
+        const newDate = document.getElementById('newMeetingDate').value;
+        const newTime = document.getElementById('newMeetingTime').value;
+        const errorDiv = document.getElementById('rescheduleError');
+        if (!newDate || !newTime) {
+            errorDiv.textContent = 'Пожалуйста, укажите дату и время.';
+            errorDiv.classList.remove('d-none');
+            return;
         }
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            const saveBtn = document.getElementById('save-button');
-            toggleButtonSpinner(saveBtn, true);
-            const meetingId = document.getElementById('meeting-id').value;
-            const isUpdating = !!meetingId;
-            const meetingData = {
-                ClientID: document.getElementById('client-id').value,
-                Date: document.getElementById('meeting-date').value.split('-').reverse().join('.'),
-                Time: document.getElementById('meeting-time').value,
-                Client: document.getElementById('client-name').value,
-                Purpose: document.getElementById('purpose').value,
-                Phone: phoneMask.unmaskedValue,
-                Location: document.getElementById('meeting-location').value,
-                LocationLat: document.getElementById('meeting-lat').value,
-                LocationLon: document.getElementById('meeting-lon').value,
-                Status: document.getElementById('status').value,
-                ManagerLogin: currentUser,
-                Comment: isUpdating ? currentEditingMeeting.Comment : ''
-            };
-            if (isUpdating) {
-                meetingData.ID = meetingId;
-                if (currentEditingMeeting.calendarEventId) { // Переносим ID календаря
-                    meetingData.calendarEventId = currentEditingMeeting.calendarEventId;
-                }
-            }
-            if (isUpdating && meetingData.Status === 'Перенос') { // Эта логика больше не используется
-                meetingToReschedule = meetingData;
-                currentEditingMeeting = allMeetings.find(m => m.ID === meetingData.ID);
-                rescheduleModal.show();
-                toggleButtonSpinner(saveBtn, false);
-                return;
-            }
-            const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
-            const payload = isUpdating ? { newData: meetingData, oldData: currentEditingMeeting } : meetingData;
-            callApi(action, payload).then(() => {
-                showToast(`Встреча с клиентом "${meetingData.Client}" на ${meetingData.Time} успешно сохранена.`);
-                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-                onActionComplete();
-            }).catch(onFailure).finally(() => {
-                toggleButtonSpinner(saveBtn, false);
-            });
+        errorDiv.classList.add('d-none');
+        const saveBtn = document.getElementById('saveRescheduleBtn');
+        toggleButtonSpinner(saveBtn, true);
+        try {
+            const oldData = currentEditingMeeting;
+            const newData = { ...currentEditingMeeting };
+            newData.Comment = `Перенесена со старой даты ${oldData.Date}`;
+            newData.Date = newDate.split('-').reverse().join('.');
+            newData.Time = newTime;
+            newData.Status = 'В работе';
+            await callApi('updateMeeting', { newData, oldData });
+            showToast("Встреча успешно перенесена");
+            rescheduleModal.hide();
+            onActionComplete();
+            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+        } catch (error) {
+            onFailure(error);
+        } finally {
+            toggleButtonSpinner(saveBtn, false);
         }
-        function handleEditClick(event) {
-            event.preventDefault();
-            const meetingId = event.currentTarget.dataset.id;
-            currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
-            if (!currentEditingMeeting) return;
-            document.getElementById('form-title').textContent = "Редактирование встречи";
-            document.getElementById('meeting-id').value = currentEditingMeeting.ID;
-            document.getElementById('client-id').value = currentEditingMeeting.ClientID;
-            document.getElementById('client-category').value = currentEditingMeeting.ClientCategory || '';
-            document.getElementById('client-autocomplete-results').innerHTML = '';
-            const dateParts = currentEditingMeeting.Date.split('.');
-            document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-            document.getElementById('meeting-time').value = currentEditingMeeting.Time;
-            document.getElementById('client-name').value = currentEditingMeeting.Client;
-            document.getElementById('purpose').value = currentEditingMeeting.Purpose;
-            document.getElementById('phone').value = currentEditingMeeting.Phone;
-            if (phoneMask) phoneMask.updateValue();
-            document.getElementById('location').value = currentEditingMeeting.ClientAddress || '';
-            document.getElementById('meeting-location').value = currentEditingMeeting.Location || '';
-            document.getElementById('meeting-lat').value = currentEditingMeeting.LocationLat || '';
-            document.getElementById('meeting-lon').value = currentEditingMeeting.LocationLon || '';
-            document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
-            const geoButton = document.getElementById('get-meeting-location-btn');
-            const status = currentEditingMeeting.Status ? currentEditingMeeting.Status.trim() : '';
-            if (status === 'Завершена' || status === 'Завершено' || status === 'Отмена' || status === 'Отменено') {
-                geoButton.classList.add('d-none');
-            } else {
-                geoButton.classList.remove('d-none');
-            }
-            showForm(true);
-        }
-        async function handleCompleteClick(event) {
-            const btn = event.target;
-            toggleButtonSpinner(btn, true);
-            const meetingId = btn.dataset.id;
-            const oldData = allMeetings.find(m => m.ID === meetingId);
-            if (!oldData) { toggleButtonSpinner(btn, false); return; }
-            if (!confirm(`Завершить встречу с клиентом "${oldData.Client}"?`)) { toggleButtonSpinner(btn, false); return; }
-            const newData = { ...oldData, Status: 'Завершено' };
-            try {
-                await callApi('updateMeeting', { newData, oldData });
-                showToast("Встреча завершена");
-                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-            } catch(e) {
-                onFailure(e);
-            } finally {
-                if (btn.disabled) { toggleButtonSpinner(btn, false); }
-            }
-        }
-        function handleRescheduleClick(event) {
-            const meetingId = event.target.dataset.id;
-            const meetingData = allMeetings.find(m => m.ID === meetingId);
-            if (!meetingData) return;
-            currentEditingMeeting = meetingData;
-            rescheduleModal.show();
-        }
-        async function handleSaveReschedule() {
-            const newDate = document.getElementById('newMeetingDate').value;
-            const newTime = document.getElementById('newMeetingTime').value;
-            const errorDiv = document.getElementById('rescheduleError');
-            if (!newDate || !newTime) {
-                errorDiv.textContent = 'Пожалуйста, укажите дату и время.';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
-            errorDiv.classList.add('d-none');
-            const saveBtn = document.getElementById('saveRescheduleBtn');
-            toggleButtonSpinner(saveBtn, true);
-            try {
-                const oldData = currentEditingMeeting;
-                const newData = { ...currentEditingMeeting };
-                newData.Comment = `Перенесена со старой даты ${oldData.Date}`;
-                newData.Date = newDate.split('-').reverse().join('.');
-                newData.Time = newTime;
-                newData.Status = 'В работе';
-                await callApi('updateMeeting', { newData, oldData });
-                showToast("Встреча успешно перенесена");
-                rescheduleModal.hide();
-                onActionComplete();
-                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-            } catch (error) {
-                onFailure(error);
-            } finally {
-                toggleButtonSpinner(saveBtn, false);
-            }
-        }
-        function handleOutcomeClick(event) {
+    }
+    async function handleOutcomeClick(event) {
         activeMeetingId = event.target.dataset.id;
         const meeting = allMeetings.find(m => m.ID === activeMeetingId);
         if (!meeting) return;
@@ -923,7 +916,6 @@
         });
         outcomeModal.show();
     }
-
     async function handleSaveOutcome() {
         const btn = document.getElementById('saveOutcomeBtn');
         toggleButtonSpinner(btn, true);
@@ -944,7 +936,6 @@
             toggleButtonSpinner(btn, false);
         }
     }
-    
     async function handleGetLocationClick() {
         const btn = document.getElementById('get-meeting-location-btn');
         toggleButtonSpinner(btn, true);
@@ -960,7 +951,6 @@
             toggleButtonSpinner(btn, false);
         }
     }
-
     async function handleGeoClick(event) {
         const btn = event.target;
         toggleButtonSpinner(btn, true);
@@ -979,7 +969,6 @@
             toggleButtonSpinner(btn, false);
         }
     }
-
     async function getAddressFromGeolocation() {
         if (!navigator.geolocation) throw new Error("Геолокация не поддерживается");
         return new Promise((resolve, reject) => {
@@ -1003,280 +992,158 @@
             }, () => reject(new Error("Нет доступа к геолокации")), { timeout: 10000 });
         });
     }
-    
     async function handleReportClick(event) {
-    event.preventDefault();
-
-    // Правильно находим кнопку, по которой кликнули
-    const targetBtn = event.target.closest('.report-btn-icon');
-    if (!targetBtn) return; // Если клик был не по кнопке, ничего не делаем
-
-    const clientID = targetBtn.dataset.clientId;
-    const clientName = targetBtn.dataset.clientName;
-
-    if (!clientID) {
-        showToast("Ошибка: не найден ID клиента для отчета.");
-        return;
+        event.preventDefault();
+        const targetBtn = event.target.closest('.report-btn-icon');
+        if (!targetBtn) return;
+        const clientID = targetBtn.dataset.clientId;
+        const clientName = targetBtn.dataset.clientName;
+        if (!clientID) {
+            showToast("Ошибка: не найден ID клиента для отчета.");
+            return;
+        }
+        const reportModalBody = document.getElementById('reportModalBody');
+        document.getElementById('reportModalTitle').textContent = `Отчет по клиенту: ${clientName}`;
+        reportModalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
+        reportModal.show();
+        try {
+            const data = await callApi('getClientReport', { clientID: clientID }); 
+            renderReport(data);
+        } catch (e) {
+            onFailure(e);
+            reportModal.hide();
+        }
     }
-
-    const reportModalBody = document.getElementById('reportModalBody');
-    document.getElementById('reportModalTitle').textContent = `Отчет по клиенту: ${clientName}`;
-    reportModalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
-    reportModal.show();
-    try {
-        const data = await callApi('getClientReport', { clientID: clientID }); 
-        renderReport(data);
-    } catch (e) {
-        onFailure(e);
-        reportModal.hide();
-    }
-}
-    
     function renderReport(data) {
-    const reportModalBody = document.getElementById('reportModalBody');
-    let content = '';
-
-    // --- Блок 1: Шапка с основной информацией ---
-    if (data.clientInfo) {
-        // Создаем кликабельную ссылку для телефона
-        let phoneHtml = 'Не указан';
-        if (data.clientInfo.phone) {
-            const cleanPhone = data.clientInfo.phone.replace(/[^+\d]/g, '');
-            phoneHtml = `<a href="tel:${cleanPhone}" class="text-decoration-none">${data.clientInfo.phone}</a>`;
-        }
-
-        // Готовим индикатор для документов
-        let documentsStatusHtml = `<span class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Нет</span>`;
-        if (data.clientInfo.documents === true) {
-            documentsStatusHtml = `<span class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Есть</span>`;
-        }
-        
-        // --- НАЧАЛО ИЗМЕНЕНИЙ: Добавляем заголовок с кнопкой "Новая встреча" ---
-        content += `
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h3 class="mb-0">${data.clientInfo.name || 'Имя не указано'}</h3>
-                <button class="btn btn-primary btn-sm js-create-meeting-from-report"
-                        data-client-id="${data.clientInfo.id || ''}"
-                        data-client-name="${data.clientInfo.name || ''}"
-                        data-client-address="${data.clientInfo.address || ''}"
-                        data-client-category="${data.clientInfo.category || ''}"
-                        data-client-phone="${data.clientInfo.phone || ''}">
-                    <i class="bi bi-calendar-plus me-1"></i> Новая встреча
-                </button>
-            </div>
-            <hr class="mt-0 mb-3">
-            <div class="mb-3">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p class="mb-1"><strong><i class="bi bi-telephone-fill me-2"></i>Телефон:</strong> ${phoneHtml}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p class="mb-1"><strong><i class="bi bi-star-fill me-2"></i>Категория:</strong> ${data.clientInfo.category || 'Не указана'}</p>
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-md-6">
-                        <p class="mb-1"><strong><i class="bi bi-mortarboard-fill me-2"></i>Образование:</strong> ${data.clientInfo.education || 'Не указано'}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p class="mb-1"><strong><i class="bi bi-file-earmark-text-fill me-2"></i>Документы:</strong> ${documentsStatusHtml}</p>
-                    </div>
-                </div>
-            </div>`;
-        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
-    }
-
-    // --- Блок 2 и 3 (Навигация и содержимое вкладок) ---
-    content += `
-        <nav>
-            <div class="nav nav-tabs" id="report-tab" role="tablist">
-                <button class="nav-link active" id="sales-tab" data-bs-toggle="tab" data-bs-target="#sales-content" type="button" role="tab">Продажи</button>
-                <button class="nav-link" id="meetings-tab" data-bs-toggle="tab" data-bs-target="#meetings-content" type="button" role="tab">Последние встречи</button>
-                <button class="nav-link" id="seminars-tab" data-bs-toggle="tab" data-bs-target="#seminars-content" type="button" role="tab">Посещенные семинары</button>
-            </div>
-        </nav>`;
-
-    content += `<div class="tab-content p-3 border border-top-0 rounded-bottom" id="report-tab-content">`;
-
-    // Вкладка "Продажи"
-    let salesContent = '';
-    if (data.salesReport && data.salesReport.brands && data.salesReport.brands.length > 0) {
-        salesContent += `<h5 class="mb-3">Продажи по брендам (c ${data.salesReport.periodStart} по ${data.salesReport.periodEnd})</h5>`;
-        salesContent += '<div class="row g-3">';
-        data.salesReport.brands.forEach(brand => {
-            const salesRows = brand.salesByMonth.map(sale => 
-                `<li class="list-group-item d-flex justify-content-between">
-                    <span>${sale.month}</span> 
-                    <span>${new Intl.NumberFormat('ru-RU').format(sale.amount)} usd</span>
-                </li>`
-            ).join('');
-            salesContent += `
-                <div class="col-md-6">
-                    <div class="card h-100">
-                        <div class="card-header bg-light"><strong>${brand.brandName}</strong></div>
-                        <ul class="list-group list-group-flush">
-                            ${salesRows}
-                            <li class="list-group-item d-flex justify-content-between fw-bold">
-                                <span>Итого:</span> 
-                                <span>${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} usd</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>`;
-        });
-        salesContent += '</div>';
-    } else {
-        salesContent += '<p class="text-muted mt-2">Нет данных о продажах за указанный период.</p>';
-    }
-    content += `<div class="tab-pane fade show active" id="sales-content" role="tabpanel">${salesContent}</div>`;
-
-    // Вкладка "Последние встречи"
-    let meetingsContent = '';
-    if (data.lastMeetings && data.lastMeetings.length > 0) {
-        meetingsContent += '<ul class="list-unstyled mt-2">';
-        data.lastMeetings.forEach(meeting => {
-            meetingsContent += `
-                <li class="mb-3">
-                    <p class="mb-0"><strong>${meeting.date}:</strong></p>
-                    <p class="mb-0 text-muted fst-italic">"${meeting.comment || 'Без комментария'}"</p>
-                </li>`;
-        });
-        meetingsContent += '</ul>';
-    } else {
-        meetingsContent += '<p class="text-muted mt-2">Нет данных о последних встречах.</p>';
-    }
-    content += `<div class="tab-pane fade" id="meetings-content" role="tabpanel">${meetingsContent}</div>`;
-
-    // Вкладка "Посещенные семинары"
-    let seminarsContent = '';
-    if (data.seminars && data.seminars.length > 0) {
-        seminarsContent += '<ul class="list-group list-group-flush mt-2">';
-        data.seminars.forEach(seminar => {
-            seminarsContent += `<li class="list-group-item ps-0">${seminar.date} - ${seminar.name}</li>`;
-        });
-        seminarsContent += '</ul>';
-    } else {
-        seminarsContent += '<p class="text-muted mt-2">Нет данных о посещении семинаров.</p>';
-    }
-    content += `<div class="tab-pane fade" id="seminars-content" role="tabpanel">${seminarsContent}</div>`;
-
-    content += `</div>`;
-    reportModalBody.innerHTML = content;
-}
-    
-   async function handleClientSearch() {
-    const searchInput = document.getElementById('clientSearchInput');
-    const resultContainer = document.getElementById('clientSearchResult');
-    const searchBtn = document.getElementById('clientSearchBtn');
-    const searchTerm = searchMask.unmaskedValue || searchInput.value;
-    if (!searchTerm) {
-        resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
-        return;
-    }
-    toggleButtonSpinner(searchBtn, true);
-    resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
-    resultContainer.replaceWith(resultContainer.cloneNode(true));
-    const newResultContainer = document.getElementById('clientSearchResult');
-    try {
-        const payload = { searchTerm: searchTerm, managerLogin: currentUser };
-        const result = await callApi('findClient', payload);
-
-        if (result && result.found && result.clients && result.clients.length > 0) {
-            const clientsHtml = result.clients.map(client => {
-                const isDisabled = !client.isMine;
-                const disabledClass = isDisabled ? 'disabled' : '';
-                const titleText = isDisabled ? `Закреплен за: ${client.managerName || 'другой менеджер'}` : 'Создать встречу';
-
-                // --- НАЧАЛО ИЗМЕНЕНИЙ: Полностью новая структура на Bootstrap Grid ---
-                return `
-                    <li class="list-group-item">
-                        <div class="row align-items-center">
-                            <div class="col">
-                                <strong>${client.clientName}</strong>
-                                <small class="text-muted d-block">Категория: ${client.ClientCategory || 'Не указана'}</small>
-                                <small class="text-muted d-block">Менеджер: ${client.managerName || 'Не назначен'}</small>
-                            </div>
-                            <div class="col-auto">
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-outline-secondary report-btn-icon" 
-                                            data-client-id="${client.ClientID}" 
-                                            data-client-name="${client.clientName}"
-                                            title="Данные по клиенту"
-                                            ${disabledClass}>
-                                        <i class="bi bi-file-text"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-success create-meeting-from-search-btn" 
-                                            data-client-name="${client.clientName}" 
-                                            data-client-address="${client.clientAddress || ''}"
-                                            data-client-id="${client.ClientID}"
-                                            data-client-category="${client.ClientCategory || ''}"
-                                            data-client-phone="${client.Phone || ''}"
-                                            title="${titleText}"
-                                            ${disabledClass}>
-                                        Создать
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </li>`;
-                // --- КОНЕЦ ИЗМЕНЕНИЙ ---
-            }).join('');
-            newResultContainer.innerHTML = `<ul class="list-group">${clientsHtml}</ul>`;
-        } else {
-            newResultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
-        }
-    } catch (e) {
-        newResultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
-    } finally {
-        toggleButtonSpinner(searchBtn, false);
-    }
-    
-    newResultContainer.addEventListener('click', (e) => {
-        const createBtn = e.target.closest('.create-meeting-from-search-btn');
-        if (createBtn && !createBtn.disabled) {
-            const target = createBtn;
-            
-            const clientName = target.dataset.clientName;
-            const clientAddress = target.dataset.clientAddress;
-            const clientID = target.dataset.clientId;
-            const clientCategory = target.dataset.clientCategory;
-            const clientPhone = target.dataset.clientPhone;
-
-            clientSearchModal.hide();
-            showAddForm();
-            
-            document.getElementById('client-name').value = clientName;
-            document.getElementById('location').value = clientAddress;
-            document.getElementById('client-id').value = clientID;
-            document.getElementById('client-category').value = clientCategory;
-            document.getElementById('phone').value = clientPhone;
-            if (phoneMask) phoneMask.updateValue();
-        }
-    });
-}
-
-        function showAddForm() {
-            currentEditingMeeting = null;
-            document.getElementById('form-title').textContent = "Новая встреча";
-            document.getElementById('meeting-form').reset();
-            document.getElementById('client-autocomplete-results').innerHTML = '';
-            if(phoneMask) phoneMask.updateValue();
-            document.getElementById('meeting-date').value = getTodayDateString();
-            document.getElementById('meeting-id').value = '';
-            document.getElementById('status').value = 'В работе';
-            document.getElementById('get-meeting-location-btn').classList.remove('d-none');
-            showForm(true);
-        }
-        function onActionComplete() { showForm(false); }
-        function handleCancelClick() { cancelConfirmModal.show(); }
-        function showForm(show) {
-            const viewMeetings = document.getElementById('view-meetings');
-            const formSection = document.getElementById('form-section');
-            if (viewMeetings && formSection) {
-                viewMeetings.classList.toggle(HIDDEN_CLASS, show);
-                formSection.classList.toggle(HIDDEN_CLASS, !show);
+        const reportModalBody = document.getElementById('reportModalBody');
+        let content = '';
+        if (data.clientInfo) {
+            let phoneHtml = 'Не указан';
+            if (data.clientInfo.phone) {
+                const cleanPhone = data.clientInfo.phone.replace(/[^+\d]/g, '');
+                phoneHtml = `<a href="tel:${cleanPhone}" class="text-decoration-none">${data.clientInfo.phone}</a>`;
             }
+            let documentsStatusHtml = `<span class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Нет</span>`;
+            if (data.clientInfo.documents === true) {
+                documentsStatusHtml = `<span class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Есть</span>`;
+            }
+            content += `<div class="d-flex justify-content-between align-items-center mb-2"><h3 class="mb-0">${data.clientInfo.name || 'Имя не указано'}</h3><button class="btn btn-primary btn-sm js-create-meeting-from-report" data-client-id="${data.clientInfo.id || ''}" data-client-name="${data.clientInfo.name || ''}" data-client-address="${data.clientInfo.address || ''}" data-client-category="${data.clientInfo.category || ''}" data-client-phone="${data.clientInfo.phone || ''}"><i class="bi bi-calendar-plus me-1"></i> Новая встреча</button></div><hr class="mt-0 mb-3"><div class="mb-3"><div class="row"><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-telephone-fill me-2"></i>Телефон:</strong> ${phoneHtml}</p></div><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-star-fill me-2"></i>Категория:</strong> ${data.clientInfo.category || 'Не указана'}</p></div></div><div class="row mt-2"><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-mortarboard-fill me-2"></i>Образование:</strong> ${data.clientInfo.education || 'Не указано'}</p></div><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-file-earmark-text-fill me-2"></i>Документы:</strong> ${documentsStatusHtml}</p></div></div></div>`;
         }
-    </script>
+        content += `<nav><div class="nav nav-tabs" id="report-tab" role="tablist"><button class="nav-link active" id="sales-tab" data-bs-toggle="tab" data-bs-target="#sales-content" type="button" role="tab">Продажи</button><button class="nav-link" id="meetings-tab" data-bs-toggle="tab" data-bs-target="#meetings-content" type="button" role="tab">Последние встречи</button><button class="nav-link" id="seminars-tab" data-bs-toggle="tab" data-bs-target="#seminars-content" type="button" role="tab">Посещенные семинары</button></div></nav>`;
+        content += `<div class="tab-content p-3 border border-top-0 rounded-bottom" id="report-tab-content">`;
+        let salesContent = '';
+        if (data.salesReport && data.salesReport.brands && data.salesReport.brands.length > 0) {
+            salesContent += `<h5 class="mb-3">Продажи по брендам (c ${data.salesReport.periodStart} по ${data.salesReport.periodEnd})</h5>`;
+            salesContent += '<div class="row g-3">';
+            data.salesReport.brands.forEach(brand => {
+                const salesRows = brand.salesByMonth.map(sale =>  `<li class="list-group-item d-flex justify-content-between"><span>${sale.month}</span> <span>${new Intl.NumberFormat('ru-RU').format(sale.amount)} usd</span></li>`).join('');
+                salesContent += `<div class="col-md-6"><div class="card h-100"><div class="card-header bg-light"><strong>${brand.brandName}</strong></div><ul class="list-group list-group-flush">${salesRows}<li class="list-group-item d-flex justify-content-between fw-bold"><span>Итого:</span> <span>${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} usd</span></li></ul></div></div>`;
+            });
+            salesContent += '</div>';
+        } else {
+            salesContent += '<p class="text-muted mt-2">Нет данных о продажах за указанный период.</p>';
+        }
+        content += `<div class="tab-pane fade show active" id="sales-content" role="tabpanel">${salesContent}</div>`;
+        let meetingsContent = '';
+        if (data.lastMeetings && data.lastMeetings.length > 0) {
+            meetingsContent += '<ul class="list-unstyled mt-2">';
+            data.lastMeetings.forEach(meeting => {
+                meetingsContent += `<li class="mb-3"><p class="mb-0"><strong>${meeting.date}:</strong></p><p class="mb-0 text-muted fst-italic">"${meeting.comment || 'Без комментария'}"</p></li>`;
+            });
+            meetingsContent += '</ul>';
+        } else {
+            meetingsContent += '<p class="text-muted mt-2">Нет данных о последних встречах.</p>';
+        }
+        content += `<div class="tab-pane fade" id="meetings-content" role="tabpanel">${meetingsContent}</div>`;
+        let seminarsContent = '';
+        if (data.seminars && data.seminars.length > 0) {
+            seminarsContent += '<ul class="list-group list-group-flush mt-2">';
+            data.seminars.forEach(seminar => {
+                seminarsContent += `<li class="list-group-item ps-0">${seminar.date} - ${seminar.name}</li>`;
+            });
+            seminarsContent += '</ul>';
+        } else {
+            seminarsContent += '<p class="text-muted mt-2">Нет данных о посещении семинаров.</p>';
+        }
+        content += `<div class="tab-pane fade" id="seminars-content" role="tabpanel">${seminarsContent}</div>`;
+        content += `</div>`;
+        reportModalBody.innerHTML = content;
+    }
+    async function handleClientSearch() {
+        const searchInput = document.getElementById('clientSearchInput');
+        const resultContainer = document.getElementById('clientSearchResult');
+        const searchBtn = document.getElementById('clientSearchBtn');
+        const searchTerm = searchMask.unmaskedValue || searchInput.value;
+        if (!searchTerm) {
+            resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
+            return;
+        }
+        toggleButtonSpinner(searchBtn, true);
+        resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
+        resultContainer.replaceWith(resultContainer.cloneNode(true));
+        const newResultContainer = document.getElementById('clientSearchResult');
+        try {
+            const payload = { searchTerm: searchTerm, managerLogin: currentUser };
+            const result = await callApi('findClient', payload);
+            if (result && result.found && result.clients && result.clients.length > 0) {
+                const clientsHtml = result.clients.map(client => {
+                    const isDisabled = !client.isMine;
+                    const disabledClass = isDisabled ? 'disabled' : '';
+                    const titleText = isDisabled ? `Закреплен за: ${client.managerName || 'другой менеджер'}` : 'Создать встречу';
+                    return `<li class="list-group-item"><div class="row align-items-center"><div class="col"><strong>${client.clientName}</strong><small class="text-muted d-block">Категория: ${client.ClientCategory || 'Не указана'}</small><small class="text-muted d-block">Менеджер: ${client.managerName || 'Не назначен'}</small></div><div class="col-auto"><div class="btn-group"><button class="btn btn-sm btn-outline-secondary report-btn-icon" data-client-id="${client.ClientID}" data-client-name="${client.clientName}" title="Данные по клиенту" ${disabledClass}><i class="bi bi-file-text"></i></button><button class="btn btn-sm btn-success create-meeting-from-search-btn" data-client-name="${client.clientName}" data-client-address="${client.clientAddress || ''}" data-client-id="${client.ClientID}" data-client-category="${client.ClientCategory || ''}" data-client-phone="${client.Phone || ''}" title="${titleText}" ${disabledClass}>Создать</button></div></div></div></li>`;
+                }).join('');
+                newResultContainer.innerHTML = `<ul class="list-group">${clientsHtml}</ul>`;
+            } else {
+                newResultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
+            }
+        } catch (e) {
+            newResultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
+        } finally {
+            toggleButtonSpinner(searchBtn, false);
+        }
+        newResultContainer.addEventListener('click', (e) => {
+            const createBtn = e.target.closest('.create-meeting-from-search-btn');
+            if (createBtn && !createBtn.disabled) {
+                const target = createBtn;
+                const clientName = target.dataset.clientName;
+                const clientAddress = target.dataset.clientAddress;
+                const clientID = target.dataset.clientId;
+                const clientCategory = target.dataset.clientCategory;
+                const clientPhone = target.dataset.clientPhone;
+                clientSearchModal.hide();
+                showAddForm();
+                document.getElementById('client-name').value = clientName;
+                document.getElementById('location').value = clientAddress;
+                document.getElementById('client-id').value = clientID;
+                document.getElementById('client-category').value = clientCategory;
+                document.getElementById('phone').value = clientPhone;
+                if (phoneMask) phoneMask.updateValue();
+            }
+        });
+    }
+    function showAddForm() {
+        currentEditingMeeting = null;
+        document.getElementById('form-title').textContent = "Новая встреча";
+        document.getElementById('meeting-form').reset();
+        document.getElementById('client-autocomplete-results').innerHTML = '';
+        if(phoneMask) phoneMask.updateValue();
+        document.getElementById('meeting-date').value = getTodayDateString();
+        document.getElementById('meeting-id').value = '';
+        document.getElementById('status').value = 'В работе';
+        document.getElementById('get-meeting-location-btn').classList.remove('d-none');
+        showForm(true);
+    }
+    function onActionComplete() { showForm(false); }
+    function handleCancelClick() { cancelConfirmModal.show(); }
+    function showForm(show) {
+        const viewMeetings = document.getElementById('view-meetings');
+        const formSection = document.getElementById('form-section');
+        if (viewMeetings && formSection) {
+            viewMeetings.classList.toggle(HIDDEN_CLASS, show);
+            formSection.classList.toggle(HIDDEN_CLASS, !show);
+        }
+    }
+</script>
 </body>
+
 </html>
