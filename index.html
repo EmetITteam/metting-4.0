@@ -16,16 +16,21 @@
 
     <style>
         /* --- НОВЫЕ СТИЛИ МАКЕТА --- */
-        :root {
-            --header-height: 60px;
-            --bottom-nav-height: 65px;
-        }
+        /* Блок с переменными */
+:root {
+    --header-height: 60px;
+    --bottom-nav-height: 65px;
+    /* Новая переменная для безопасной зоны снизу с запасом в 0px */
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px); 
+}
 
-        body {
-            background-color: #f8f9fa;
-            padding-top: var(--header-height);
-            padding-bottom: var(--bottom-nav-height);
-        }
+        /* Стили для body */
+body {
+    background-color: #f8f9fa;
+    padding-top: var(--header-height);
+    /* Нижний отступ body теперь тоже учитывает безопасную зону */
+    padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+}
 
         .app-header {
             position: fixed;
@@ -55,22 +60,24 @@
         .app-page { display: none; }
         .app-page.active { display: block; }
         
-        .app-bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: var(--bottom-nav-height);
-            background-color: #ffffff;
-            border-top: 1px solid #dee2e6;
-            z-index: 1030;
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-start;
-            padding-top: 8px;
-            padding-bottom: 8px; /* Базовый отступ для всех устройств */
-            padding-bottom: calc(8px + env(safe-area-inset-bottom)); /* Дополнительный отступ для устройств с "челкой" или нижней полосой */
-        }
+        /* Стили для нижней навигационной панели */
+.app-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    /* Высота панели теперь динамически увеличивается на размер безопасной зоны */
+    height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+    background-color: #ffffff;
+    border-top: 1px solid #dee2e6;
+    z-index: 1030;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    padding-top: 8px;
+    /* Внутренний отступ снизу равен высоте безопасной зоны, чтобы поднять иконки */
+    padding-bottom: var(--safe-area-bottom);
+}
         
         .nav-button {
             display: flex;
