@@ -101,6 +101,7 @@ body {
             color: var(--bs-primary);
         }
         
+        
         /* --- СТАРЫЕ СТИЛИ --- */
         .meeting-card { height: 100%; position: relative; }
         .toast-container { z-index: 1100; }
@@ -125,6 +126,23 @@ body {
         margin-left: auto;
         margin-right: auto;
     }
+}
+        /* --- Стили для виджетов на рабочем столе --- */
+.widget-card {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 1px 3px rgba(0,0,0, .04);
+}
+.widget-card .widget-value {
+    font-size: 2rem;
+    font-weight: 700;
+}
+.widget-card .widget-label {
+    font-size: 0.875rem;
+    color: #6c757d;
 }
     </style>
 </head>
@@ -170,6 +188,9 @@ body {
     <main class="app-main container-fluid py-3">
         <div id="page-dashboard" class="app-page active">
             <main id="view-meetings">
+                <div class="row g-3 mb-4" id="dashboard-widgets">
+        </div>
+    <div class="row g-3 mb-4 p-3 bg-light border rounded-3 align-items-end">
                 <div class="row g-3 mb-4 p-3 bg-light border rounded-3 align-items-end">
                     <div class="col-lg-5">
                         <label for="searchInput1" class="form-label">Поиск и фильтр встреч</label>
@@ -629,12 +650,15 @@ body {
             });
     }
     function onDataLoaded(data) {
-        allMeetings = data.meetings;
-        questions = data.questions || [];
-        potentialCategories = data.potentialCategories || [];
-        populatePurposes(data.purposes);
-        filterAndGroupMeetings();
-    }
+    allMeetings = data.meetings;
+    questions = data.questions || [];
+    potentialCategories = data.potentialCategories || [];
+    populatePurposes(data.purposes);
+
+    // Обновляем виджеты и список встреч
+    updateDashboardWidgets(); 
+    filterAndGroupMeetings();
+}
     async function performGlobalSearch() {
         const searchInput = document.getElementById('searchInput1');
         const searchTerm = searchInput.value;
@@ -676,6 +700,47 @@ body {
             });
         }
     }
+        function updateDashboardWidgets() {
+    const widgetsContainer = document.getElementById('dashboard-widgets');
+    if (!widgetsContainer) return;
+
+    const todayString = getTodayDateString().split('-').reverse().join('.');
+
+    // Считаем статистику
+    const meetingsToday = allMeetings.filter(m => m.Date === todayString);
+    const totalToday = meetingsToday.length;
+    const completedToday = meetingsToday.filter(m => m.Status === 'Завершена' || m.Status === 'Завершено').length;
+
+    const now = new Date();
+    const overdue = allMeetings.filter(m => {
+        const dateParts = m.Date.split('.');
+        const timeParts = m.Time.split(':');
+        const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]);
+        return meetingDate < now && (m.Status === 'В работе' || m.Status === 'Запланировано');
+    }).length;
+
+    // Формируем HTML для виджетов
+    widgetsContainer.innerHTML = `
+        <div class="col-4">
+            <div class="widget-card">
+                <div class="widget-value text-primary">${totalToday}</div>
+                <div class="widget-label">Сегодня</div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="widget-card">
+                <div class="widget-value text-success">${completedToday}</div>
+                <div class="widget-label">Завершено</div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="widget-card">
+                <div class="widget-value text-danger">${overdue}</div>
+                <div class="widget-label">Просрочено</div>
+            </div>
+        </div>
+    `;
+}
     function filterAndGroupMeetings() {
         const searchTerm = document.getElementById('searchInput1').value.toLowerCase();
         const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
