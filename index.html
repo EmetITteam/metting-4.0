@@ -152,6 +152,10 @@ body {
     font-size: 0.75rem; /* Еще немного уменьшили текст под цифрой */
     color: #6c757d;
 }
+        /* Стили для кнопки-фильтра дат */
+#date-preset-btn {
+    min-width: 100px;
+}
     </style>
 </head>
 
@@ -196,24 +200,40 @@ body {
     <main class="app-main container-fluid py-3">
         <div id="page-dashboard" class="app-page active">
             <main id="view-meetings">
-                <div class="row g-3 mb-4" id="dashboard-widgets">
-        </div>
-    <div class="row g-3 mb-4 p-2 bg-light border rounded-3 align-items-end">
-                <div class="row g-3 mb-4 p-2 bg-light border rounded-3 align-items-end">
-                    <div class="col-lg-5">
-                        <label for="searchInput1" class="form-label">Поиск и фильтр встреч</label>
-                        <input type="text" id="searchInput1" class="form-control" placeholder="Введите имя и нажмите Enter...">
-                    </div>
-                    <div class="col-lg-5">
-                        <label for="dateRangeFilter" class="form-label">Период</label>
-                        <input type="text" id="dateRangeFilter" class="form-control">
-                    </div>
-                    <div class="col-lg-2">
-                        <button id="resetFiltersBtn" class="btn btn-outline-secondary w-100 mt-3 mt-lg-0">Сегодня</button>
-                    </div>
+    <div class="bg-light border rounded-3 p-2">
+        <div class="row g-2 mb-2" id="dashboard-widgets">
+            </div>
+        <div class="row g-2 align-items-end">
+            <div class="col-lg-6 col-12">
+                <label for="searchInput1" class="form-label">Поиск и фильтр встреч</label>
+                <input type="text" id="searchInput1" class="form-control" placeholder="Введите имя и нажмите Enter...">
+            </div>
+            <div class="col-lg-4 col-7">
+                <label for="dateRangeFilter" class="form-label">Период</label>
+                <input type="text" id="dateRangeFilter" class="form-control">
+            </div>
+            <div class="col-lg-2 col-5">
+                <div class="btn-group w-100">
+                    <button type="button" class="btn btn-outline-secondary" id="date-preset-btn">Сегодня</button>
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="visually-hidden">Toggle Dropdown</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#" data-range="today">Сегодня</a></li>
+                        <li><a class="dropdown-item" href="#" data-range="tomorrow">Завтра</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" data-range="this-week">Текущая неделя</a></li>
+                        <li><a class="dropdown-item" href="#" data-range="last-week">Прошлая неделя</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" data-range="this-month">Текущий месяц</a></li>
+                        <li><a class="dropdown-item" href="#" data-range="last-month">Прошлый месяц</a></li>
+                    </ul>
                 </div>
-                <div id="meetings-list" class="row g-3"></div>
-            </main>
+            </div>
+        </div>
+    </div>
+    <div id="meetings-list" class="row g-3 mt-3"></div>
+</main>
 
             <section id="form-section" class="d-none mt-4">
                 <h2 id="form-title" class="h3 mb-3 text-center">Новая встреча</h2>
@@ -556,6 +576,54 @@ if (widgetsContainer) {
         }
         onLoginSuccess({ login: session.user, role: session.role });
     }
+        function handleDatePresetClick(preset) {
+    const today = new Date();
+    let startDate, endDate;
+
+    switch (preset) {
+        case 'today':
+            startDate = today;
+            endDate = today;
+            break;
+        case 'tomorrow':
+            const tomorrow = new Date();
+            tomorrow.setDate(today.getDate() + 1);
+            startDate = tomorrow;
+            endDate = tomorrow;
+            break;
+        case 'this-week':
+            const firstDayOfWeek = new Date(today);
+            const day = today.getDay();
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Monday is the first day
+            firstDayOfWeek.setDate(diff);
+            startDate = firstDayOfWeek;
+            endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6);
+            break;
+        case 'last-week':
+            const lastWeekStart = new Date(today);
+            const dayLW = today.getDay();
+            const diffLW = today.getDate() - dayLW - 6;
+            lastWeekStart.setDate(diffLW);
+            startDate = lastWeekStart;
+            endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6);
+            break;
+        case 'this-month':
+            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            break;
+        case 'last-month':
+            startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+            break;
+    }
+    
+    if (startDate && endDate) {
+        datePicker.setDateRange(startDate, endDate);
+        document.getElementById('date-preset-btn').textContent = document.querySelector(`.dropdown-item[data-range="${preset}"]`).textContent;
+    }
+}
     
     function onLoginSuccess(result) {
         currentUser = result.login;
@@ -676,7 +744,22 @@ if (widgetsContainer) {
     function loadInitialData(startDateString, endDateString) {
         isSearchMode = false;
         document.getElementById('searchInput1').value = '';
-        document.getElementById('resetFiltersBtn').textContent = 'Сегодня';
+        // Найдите старый обработчик для resetFiltersBtn и замените его этим кодом
+document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+    isSearchMode = false;
+    document.getElementById('searchInput1').value = '';
+    handleDatePresetClick('today'); // Теперь просто вызываем новую функцию
+});
+
+// Добавьте этот код для обработки кликов по пунктам меню
+const datePresetDropdown = document.querySelector('.dropdown-menu');
+datePresetDropdown.addEventListener('click', (e) => {
+    if (e.target.classList.contains('dropdown-item')) {
+        e.preventDefault();
+        const range = e.target.dataset.range;
+        handleDatePresetClick(range);
+    }
+});
         let skeletonHTML = '';
         for (let i = 0; i < 4; i++) {
             skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
