@@ -201,37 +201,37 @@ body {
         <div id="page-dashboard" class="app-page active">
             <main id="view-meetings">
     <div class="bg-light border rounded-3 p-2">
-        <div class="row g-2 mb-2" id="dashboard-widgets">
-            </div>
-        <div class="row g-2 align-items-end">
-            <div class="col-lg-6 col-12">
-                <label for="searchInput1" class="form-label">Поиск и фильтр встреч</label>
-                <input type="text" id="searchInput1" class="form-control" placeholder="Введите имя и нажмите Enter...">
-            </div>
-            <div class="col-lg-4 col-7">
-                <label for="dateRangeFilter" class="form-label">Период</label>
-                <input type="text" id="dateRangeFilter" class="form-control">
-            </div>
-            <div class="col-lg-2 col-5">
-                <div class="btn-group w-100">
-                    <button type="button" class="btn btn-outline-secondary" id="date-preset-btn">Сегодня</button>
-                    <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="visually-hidden">Toggle Dropdown</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#" data-range="today">Сегодня</a></li>
-                        <li><a class="dropdown-item" href="#" data-range="tomorrow">Завтра</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" data-range="this-week">Текущая неделя</a></li>
-                        <li><a class="dropdown-item" href="#" data-range="last-week">Прошлая неделя</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" data-range="this-month">Текущий месяц</a></li>
-                        <li><a class="dropdown-item" href="#" data-range="last-month">Прошлый месяц</a></li>
-                    </ul>
-                </div>
+    <div class="row g-2 mb-2" id="dashboard-widgets">
+        </div>
+    <div class="row g-2 align-items-end">
+        <div class="col-lg-6 col-12">
+            <label for="searchInput1" class="form-label">Поиск и фильтр встреч</label>
+            <input type="text" id="searchInput1" class="form-control" placeholder="Введите имя и нажмите Enter...">
+        </div>
+        <div class="col-lg-4 col-7">
+            <label for="dateRangeFilter" class="form-label">Период</label>
+            <input type="text" id="dateRangeFilter" class="form-control">
+        </div>
+        <div class="col-lg-2 col-5">
+            <div class="btn-group w-100" id="date-presets-container">
+                <button type="button" class="btn btn-outline-secondary" id="date-preset-btn">Сегодня</button>
+                <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="visually-hidden">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" data-range="today">Сегодня</a></li>
+                    <li><a class="dropdown-item" href="#" data-range="tomorrow">Завтра</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" data-range="this-week">Текущая неделя</a></li>
+                    <li><a class="dropdown-item" href="#" data-range="last-week">Прошлая неделя</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" data-range="this-month">Текущий месяц</a></li>
+                    <li><a class="dropdown-item" href="#" data-range="last-month">Прошлый месяц</a></li>
+                </ul>
             </div>
         </div>
     </div>
+</div>
     <div id="meetings-list" class="row g-3 mt-3"></div>
 </main>
 
@@ -437,22 +437,36 @@ document.getElementById('date-preset-btn').addEventListener('click', () => {
     handleDatePresetClick('today');
 });
 
-// Обработчик для выпадающего меню с датами
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+
+// Обработчик для нового компонента выбора дат
 const datePresetsContainer = document.getElementById('date-presets-container');
 if (datePresetsContainer) {
+    // Клик по основной кнопке ("Сегодня", "Текущая неделя" и т.д.)
+    const mainPresetBtn = datePresetsContainer.querySelector('#date-preset-btn');
+    if (mainPresetBtn) {
+        mainPresetBtn.addEventListener('click', () => {
+            // Основное действие кнопки - сброс к "Сегодня"
+            isSearchMode = false;
+            document.getElementById('searchInput1').value = '';
+            handleDatePresetClick('today');
+        });
+    }
+
+    // Клик по пунктам выпадающего меню
     const datePresetDropdown = datePresetsContainer.querySelector('.dropdown-menu');
-    if(datePresetDropdown) {
+    if (datePresetDropdown) {
         datePresetDropdown.addEventListener('click', (e) => {
-            if (e.target.classList.contains('dropdown-item')) {
+            const target = e.target;
+            if (target.classList.contains('dropdown-item')) {
                 e.preventDefault();
-                const range = e.target.dataset.range;
+                const range = target.dataset.range;
                 handleDatePresetClick(range);
             }
         });
     }
 }
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
-        
         document.getElementById('get-meeting-location-btn').addEventListener('click', handleGetLocationClick);
         document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
         document.getElementById('saveOutcomeBtn').addEventListener('click', handleSaveOutcome);
