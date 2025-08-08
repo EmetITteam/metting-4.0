@@ -277,74 +277,60 @@
             appToast = new bootstrap.Toast(document.getElementById('appToast'));
 
             // Логика новой навигации
-            const navButtons = document.querySelectorAll('.nav-button');
-            const pages = document.querySelectorAll('.app-page');
-            const headerTitle = document.getElementById('header-title');
-            const mainAppContainer = document.querySelector('body');
-            const loginContainer = document.getElementById('login-container');
-            // Добавьте этот код внутрь существующего document.addEventListener('DOMContentLoaded', ...)
+           // Получаем доступ ко всем основным элементам макета
+    const navButtons = document.querySelectorAll('.nav-button');
+    const pages = document.querySelectorAll('.app-page');
+    const headerTitle = document.getElementById('header-title');
+    const header = document.querySelector('.app-header');
+    const main = document.querySelector('.app-main');
+    const bottomNav = document.querySelector('.app-bottom-nav');
+    const loginContainer = document.getElementById('login-container');
+    const bodyEl = document.querySelector('body');
 
-// Обработчик для кнопки выхода в боковом меню
-const logoutBtnSideMenu = document.getElementById('logout-btn-side-menu');
-if (logoutBtnSideMenu) {
-    logoutBtnSideMenu.addEventListener('click', handleLogout);
-}
+    function showMainApp(show) {
+        if (show) {
+            // Показываем интерфейс приложения
+            header.classList.remove('d-none');
+            main.classList.remove('d-none');
+            bottomNav.classList.remove('d-none');
+            // Прячем контейнер логина
+            loginContainer.classList.add('d-none');
+        } else {
+            // Прячем интерфейс приложения
+            header.classList.add('d-none');
+            main.classList.add('d-none');
+            bottomNav.classList.add('d-none');
+            // Показываем контейнер логина
+            loginContainer.classList.remove('d-none');
+        }
+        // В любом случае, сам body должен быть видимым
+        bodyEl.classList.remove('d-none');
+    }
+    window.showMainApp = showMainApp;
 
-// Обработчик для кнопки "Поиск контрагента" в боковом меню
-const offcanvasClientSearchBtn = document.getElementById('offcanvas-client-search-btn');
-if (offcanvasClientSearchBtn) {
-    offcanvasClientSearchBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        // Просто показываем уже существующее модальное окно
-        clientSearchModal.show();
-        // Можно закрыть боковое меню, чтобы не мешало
-        const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sideMenu'));
-        offcanvas.hide();
+    function switchPage(pageId) {
+        pages.forEach(page => page.classList.toggle('active', page.id === `page-${pageId}`));
+        navButtons.forEach(button => {
+            button.classList.toggle('active', button.dataset.page === pageId);
+            if (button.dataset.page === pageId) {
+                const buttonText = button.querySelector('span').textContent;
+                headerTitle.textContent = buttonText;
+            }
+        });
+    }
+
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            switchPage(button.dataset.page);
+        });
     });
-}
 
-            function showMainApp(show) {
-                if (show) {
-                    mainAppContainer.classList.remove('d-none');
-                    loginContainer.classList.add('d-none');
-                } else {
-                    mainAppContainer.classList.add('d-none');
-                    loginContainer.classList.remove('d-none');
-                }
-            }
-            window.showMainApp = showMainApp;
-
-            function switchPage(pageId) {
-                pages.forEach(page => page.classList.toggle('active', page.id === `page-${pageId}`));
-                navButtons.forEach(button => {
-                    button.classList.toggle('active', button.dataset.page === pageId);
-                    if (button.dataset.page === pageId) {
-                        const buttonText = button.querySelector('span').textContent;
-                        headerTitle.textContent = buttonText;
-                    }
-                });
-            }
-
-            navButtons.forEach(button => {
-                button.addEventListener('click', () => switchPage(button.dataset.page));
-            });
-
-            document.getElementById('main-add-btn')?.addEventListener('click', (e) => {
-                e.preventDefault();
-                switchPage('dashboard');
-                showAddForm();
-            });
-
-            // Инициализация плагинов
-            datePicker = new Litepicker({
-                element: document.getElementById('dateRangeFilter'),
-                singleMode: false, format: 'DD.MM.YYYY', lang: 'ru-RU',
-                setup: (picker) => {
-                    picker.on('selected', (date1, date2) => {
-                        if (date1 && date2) loadInitialData(formatDateToYYYYMMDD(date1.toJSDate()), formatDateToYYYYMMDD(date2.toJSDate()));
-                    });
-                }
-            });
+    document.getElementById('main-add-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchPage('dashboard');
+        showAddForm();
+    });
+});
             
             // const adminDatePicker = new Litepicker(...) // для админки
 
