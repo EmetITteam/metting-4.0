@@ -264,9 +264,14 @@ body {
             <p>Этот раздел будет реализован на следующем этапе.</p>
         </div>
         <div id="page-clients" class="app-page">
-            <h2 class="h4">Клиенты</h2>
-            <p>Этот раздел будет реализован на следующем этапе.</p>
+    <div class="row g-3 mb-3">
+        <div class="col">
+            <input type="text" id="client-list-filter" class="form-control" placeholder="Поиск по вашим клиентам...">
         </div>
+    </div>
+    <div id="client-list-container">
+        </div>
+</div>
     </main>
     
     <nav class="app-bottom-nav">
@@ -326,6 +331,7 @@ body {
     let adminCharts = {};
     let searchTimeout = null;
     let isSearchMode = false;
+    let allClients = []; // Здесь будем хранить список клиентов
 
     // Глобальные экземпляры, которые будут инициализированы позже
     let meetingsList, rescheduleModal, cancelConfirmModal, outcomeModal, reportModal, clientSearchModal, clientHistorySearchModal, appToast;
@@ -343,6 +349,13 @@ body {
         const bottomNav = document.querySelector('.app-bottom-nav');
         const loginContainer = document.getElementById('login-container');
         const bodyEl = document.querySelector('body');
+        // Добавьте этот код внутрь DOMContentLoaded
+        const clientListFilter = document.getElementById('client-list-filter');
+         clientListFilter.addEventListener('input', () => {
+        const searchTerm = clientListFilter.value.toLowerCase();
+        const filteredClients = allClients.filter(c => c.ClientName.toLowerCase().includes(searchTerm));
+         renderClientList(filteredClients);
+});
 
         // --- Затем определяем функции, которые с ними работают ---
         function showMainApp(show) {
@@ -367,14 +380,18 @@ body {
 
         function switchPage(pageId) {
             pages.forEach(page => page.classList.toggle('active', page.id === `page-${pageId}`));
-            navButtons.forEach(button => {
-                button.classList.toggle('active', button.dataset.page === pageId);
-                if (button.dataset.page === pageId) {
-                    const buttonText = button.querySelector('span').textContent;
-                    headerTitle.textContent = buttonText;
-                }
-            });
+            // Замените этот обработчик
+navButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const pageId = button.dataset.page;
+        switchPage(pageId);
+
+        // Если переключились на страницу клиентов и она еще не загружена
+        if (pageId === 'clients' && allClients.length === 0) {
+            loadClientsPage();
         }
+    });
+});
 
         // --- Инициализация Bootstrap компонентов ---
         rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
@@ -403,7 +420,7 @@ body {
         searchMask = IMask(clientSearchInputEl, {
             mask: [ { mask: '+{38} (000) 000-00-00', startsWith: '380', lazy: false }, { mask: /.*/ } ]
         });
-        // Добавьте этот код внутрь существующего document.addEventListener('DOMContentLoaded', ...        
+          
         // --- Привязка всех обработчиков событий ---
         navButtons.forEach(button => {
             button.addEventListener('click', () => switchPage(button.dataset.page));
@@ -589,6 +606,29 @@ if (widgetsContainer) {
         }
     });
 }
+// Обработчик для кнопки "Отчет" из списка клиентов
+const reportBtnFromList = target.closest('.js-report-from-client-list');
+if (reportBtnFromList) {
+    e.preventDefault();
+    handleReportClick({ preventDefault: () => {}, currentTarget: reportBtnFromList });
+    return;
+}
+
+// Обработчик для кнопки "Создать встречу" из списка клиентов
+const createMeetingBtnFromList = target.closest('.js-create-meeting-from-client-list');
+if (createMeetingBtnFromList) {
+    e.preventDefault();
+    switchPage('dashboard'); // Переключаемся на рабочий стол
+    showAddForm(); // Показываем форму
+    // Заполняем форму данными из кнопки
+    document.getElementById('client-name').value = createMeetingBtnFromList.dataset.clientName;
+    document.getElementById('location').value = createMeetingBtnFromList.dataset.clientAddress;
+    document.getElementById('client-id').value = createMeetingBtnFromList.dataset.clientId;
+    document.getElementById('client-category').value = createMeetingBtnFromList.dataset.clientCategory;
+    document.getElementById('phone').value = createMeetingBtnFromList.dataset.clientPhone;
+    if (phoneMask) phoneMask.updateValue();
+    return;
+}
     
     // --- ВСЕ ОСТАЛЬНЫЕ ФУНКЦИИ ---
     function checkActiveSession() {
@@ -607,6 +647,64 @@ if (widgetsContainer) {
         }
         onLoginSuccess({ login: session.user, role: session.role });
     }
+        // --- НОВЫЕ ФУНКЦИИ ДЛЯ РАЗДЕЛА "КЛИЕНТЫ" ---
+
+// Функция для загрузки списка клиентов с сервера
+async function loadClientsPage() {
+    const container = document.getElementById('client-list-container');
+    container.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary"></div></div>';
+
+    try {
+        const result = await callApi('getManagerClients', { login: currentUser });
+        allClients = result.clients || [];
+        renderClientList(allClients); // Отрисовываем полный список
+    } catch (e) {
+        onFailure(e);
+        container.innerHTML = '<div class="alert alert-danger">Не удалось загрузить список клиентов.</div>';
+    }
+}
+
+// Функция для отрисовки списка клиентов (или его отфильтрованной версии)
+function renderClientList(clientsToRender) {
+    const container = document.getElementById('client-list-container');
+    if (clientsToRender.length === 0) {
+        container.innerHTML = '<p class="text-center text-muted mt-4">Клиенты не найдены.</p>';
+        return;
+    }
+
+    const clientHtml = clientsToRender.map(client => {
+        const categoryColor = getCategoryColor(client.ClientCategory);
+        const cleanPhone = client.Phone ? client.Phone.replace(/[^+\d]/g, '') : '';
+
+        return `
+            <div class="card shadow-sm mb-2">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title mb-1">${client.ClientName}</h5>
+                            <span class="badge" style="background-color: ${categoryColor};">${client.ClientCategory || 'Без категории'}</span>
+                        </div>
+                        <div class="btn-group">
+                            <a href="#" class="btn btn-sm btn-outline-secondary js-report-from-client-list" title="Отчет по клиенту" data-client-id="${client.ClientID}" data-client-name="${client.ClientName}"><i class="bi bi-file-text"></i></a>
+                            <a href="#" class="btn btn-sm btn-primary js-create-meeting-from-client-list" title="Создать встречу" 
+                               data-client-id="${client.ClientID}" 
+                               data-client-name="${client.ClientName}"
+                               data-client-category="${client.ClientCategory || ''}"
+                               data-client-address="${client.ClientAddress || ''}"
+                               data-client-phone="${client.Phone || ''}">
+                               <i class="bi bi-calendar-plus"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <hr>
+                    <p class="card-text mb-1"><small class="text-muted">Телефон: <a href="tel:${cleanPhone}">${client.Phone || 'Не указан'}</a></small></p>
+                    <p class="card-text"><small class="text-muted">Последняя встреча: ${client.LastMeetingDate || 'Нет данных'}</small></p>
+                </div>
+            </div>
+        `;
+    }).join('');
+    container.innerHTML = clientHtml;
+}
         function handleDatePresetClick(preset) {
     // --- НОВАЯ ЛОГИКА ---
     // Если пользователь выбрал "Сегодня", сбрасываем также и текстовый поиск
