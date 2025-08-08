@@ -429,12 +429,31 @@ body {
             if (e.key === 'Enter') performGlobalSearch();
         });
         
-        document.getElementById('resetFiltersBtn').addEventListener('click', () => {
-            isSearchMode = false;
-            searchInputEl.value = '';
-            document.getElementById('resetFiltersBtn').textContent = 'Сегодня';
-            datePicker.setDateRange(new Date(), new Date());
+        // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+
+// Обновленный обработчик для кнопки "Сегодня", которая теперь часть выпадающего меню
+document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+    isSearchMode = false;
+    document.getElementById('searchInput1').value = '';
+    handleDatePresetClick('today'); // Вызываем новую функцию для установки "Сегодня"
+});
+
+// Новый обработчик для выпадающего меню с датами
+const datePresetsContainer = document.getElementById('date-presets-container');
+if (datePresetsContainer) {
+    const datePresetDropdown = datePresetsContainer.querySelector('.dropdown-menu');
+    if(datePresetDropdown) {
+        datePresetDropdown.addEventListener('click', (e) => {
+            if (e.target.classList.contains('dropdown-item')) {
+                e.preventDefault();
+                const range = e.target.dataset.range;
+                handleDatePresetClick(range);
+            }
         });
+    }
+}
+
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
         
         document.getElementById('get-meeting-location-btn').addEventListener('click', handleGetLocationClick);
         document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
@@ -744,22 +763,7 @@ if (widgetsContainer) {
     function loadInitialData(startDateString, endDateString) {
         isSearchMode = false;
         document.getElementById('searchInput1').value = '';
-        // Найдите старый обработчик для resetFiltersBtn и замените его этим кодом
-document.getElementById('resetFiltersBtn').addEventListener('click', () => {
-    isSearchMode = false;
-    document.getElementById('searchInput1').value = '';
-    handleDatePresetClick('today'); // Теперь просто вызываем новую функцию
-});
-
-// Добавьте этот код для обработки кликов по пунктам меню
-const datePresetDropdown = document.querySelector('.dropdown-menu');
-datePresetDropdown.addEventListener('click', (e) => {
-    if (e.target.classList.contains('dropdown-item')) {
-        e.preventDefault();
-        const range = e.target.dataset.range;
-        handleDatePresetClick(range);
-    }
-});
+        document.getElementById('resetFiltersBtn').textContent = 'Сегодня';
         let skeletonHTML = '';
         for (let i = 0; i < 4; i++) {
             skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
@@ -773,6 +777,7 @@ datePresetDropdown.addEventListener('click', (e) => {
                 meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
             });
     }
+
     function onDataLoaded(data) {
     allMeetings = data.meetings;
     questions = data.questions || [];
