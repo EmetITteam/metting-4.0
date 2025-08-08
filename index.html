@@ -383,42 +383,7 @@ body {
         searchMask = IMask(clientSearchInputEl, {
             mask: [ { mask: '+{38} (000) 000-00-00', startsWith: '380', lazy: false }, { mask: /.*/ } ]
         });
-        // Добавьте этот код внутрь существующего document.addEventListener('DOMContentLoaded', ...)
-
-// Обработчик для клика по виджетам (через делегирование)
-const widgetsContainer = document.getElementById('dashboard-widgets');
-if (widgetsContainer) {
-    widgetsContainer.addEventListener('click', (e) => {
-        const overdueFilter = e.target.closest('#widget-overdue-filter');
-        if (overdueFilter) {
-            e.preventDefault();
-            
-            // Фильтруем встречи, чтобы найти просроченные
-            const now = new Date();
-            const overdueMeetings = allMeetings.filter(m => {
-                const dateParts = m.Date.split('.');
-                const timeParts = m.Time.split(':');
-                const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]);
-                return meetingDate < now && (m.Status === 'В работе' || m.Status === 'Запланировано');
-            });
-            
-            // Временно заменяем основной массив встреч на отфильтрованный
-            const originalMeetings = allMeetings; // Сохраняем оригинал
-            allMeetings = overdueMeetings;
-            
-            // Перерисовываем список
-            filterAndGroupMeetings();
-            
-            // Возвращаем основной массив обратно для будущих фильтраций
-            allMeetings = originalMeetings;
-
-            // Визуально показываем, что включен фильтр
-            isSearchMode = true; // Используем этот флаг для отображения правильного сообщения, если пусто
-            document.getElementById('resetFiltersBtn').textContent = 'Сбросить';
-        }
-    });
-}
-        
+        // Добавьте этот код внутрь существующего document.addEventListener('DOMContentLoaded', ...        
         // --- Привязка всех обработчиков событий ---
         navButtons.forEach(button => {
             button.addEventListener('click', () => switchPage(button.dataset.page));
@@ -540,6 +505,39 @@ if (widgetsContainer) {
              resultsContainer.innerHTML = '';
         }
     });
+        // Обработчик для клика по виджетам (через делегирование)
+const widgetsContainer = document.getElementById('dashboard-widgets');
+if (widgetsContainer) {
+    widgetsContainer.addEventListener('click', (e) => {
+        const overdueFilter = e.target.closest('#widget-overdue-filter');
+        if (overdueFilter) {
+            e.preventDefault();
+            
+            // Фильтруем встречи, чтобы найти просроченные
+            const now = new Date();
+            const overdueMeetings = allMeetings.filter(m => {
+                const dateParts = m.Date.split('.');
+                const timeParts = m.Time.split(':');
+                const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]);
+                return meetingDate < now && (m.Status === 'В работе' || m.Status === 'Запланировано');
+            });
+            
+            // Временно заменяем основной массив встреч на отфильтрованный
+            const originalMeetings = allMeetings; // Сохраняем оригинал
+            allMeetings = overdueMeetings;
+            
+            // Перерисовываем список
+            filterAndGroupMeetings();
+            
+            // Возвращаем основной массив обратно для будущих фильтраций
+            allMeetings = originalMeetings;
+
+            // Визуально показываем, что включен фильтр
+            isSearchMode = true; // Используем этот флаг для отображения правильного сообщения, если пусто
+            document.getElementById('resetFiltersBtn').textContent = 'Сбросить';
+        }
+    });
+}
     
     // --- ВСЕ ОСТАЛЬНЫЕ ФУНКЦИИ ---
     function checkActiveSession() {
