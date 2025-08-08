@@ -127,21 +127,29 @@ body {
         margin-right: auto;
     }
 }
-        /* --- Стили для виджетов на рабочем столе --- */
+        /* --- Стили для виджетов на рабочем столе (обновлено) --- */
 .widget-card {
     background-color: #ffffff;
     border-radius: 0.75rem;
-    padding: 1rem;
+    padding: 0.75rem; /* Уменьшили внутренние отступы */
     text-align: center;
     border: 1px solid #dee2e6;
     box-shadow: 0 1px 3px rgba(0,0,0, .04);
+    text-decoration: none; /* Для кликабельных виджетов */
+    display: block; /* Для кликабельных виджетов */
+    color: inherit; /* Для кликабельных виджетов */
+    transition: box-shadow .2s ease-in-out;
+}
+.widget-card:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0, .08); /* Эффект при наведении */
 }
 .widget-card .widget-value {
-    font-size: 2rem;
+    font-size: 1.75rem; /* Уменьшили размер цифры */
     font-weight: 700;
+    line-height: 1.2; /* Уменьшили межстрочный интервал */
 }
 .widget-card .widget-label {
-    font-size: 0.875rem;
+    font-size: 0.8rem; /* Немного уменьшили текст */
     color: #6c757d;
 }
     </style>
@@ -375,6 +383,41 @@ body {
         searchMask = IMask(clientSearchInputEl, {
             mask: [ { mask: '+{38} (000) 000-00-00', startsWith: '380', lazy: false }, { mask: /.*/ } ]
         });
+        // Добавьте этот код внутрь существующего document.addEventListener('DOMContentLoaded', ...)
+
+// Обработчик для клика по виджетам (через делегирование)
+const widgetsContainer = document.getElementById('dashboard-widgets');
+if (widgetsContainer) {
+    widgetsContainer.addEventListener('click', (e) => {
+        const overdueFilter = e.target.closest('#widget-overdue-filter');
+        if (overdueFilter) {
+            e.preventDefault();
+            
+            // Фильтруем встречи, чтобы найти просроченные
+            const now = new Date();
+            const overdueMeetings = allMeetings.filter(m => {
+                const dateParts = m.Date.split('.');
+                const timeParts = m.Time.split(':');
+                const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]);
+                return meetingDate < now && (m.Status === 'В работе' || m.Status === 'Запланировано');
+            });
+            
+            // Временно заменяем основной массив встреч на отфильтрованный
+            const originalMeetings = allMeetings; // Сохраняем оригинал
+            allMeetings = overdueMeetings;
+            
+            // Перерисовываем список
+            filterAndGroupMeetings();
+            
+            // Возвращаем основной массив обратно для будущих фильтраций
+            allMeetings = originalMeetings;
+
+            // Визуально показываем, что включен фильтр
+            isSearchMode = true; // Используем этот флаг для отображения правильного сообщения, если пусто
+            document.getElementById('resetFiltersBtn').textContent = 'Сбросить';
+        }
+    });
+}
         
         // --- Привязка всех обработчиков событий ---
         navButtons.forEach(button => {
@@ -705,12 +748,12 @@ body {
     if (!widgetsContainer) return;
 
     const todayString = getTodayDateString().split('-').reverse().join('.');
-
+    
     // Считаем статистику
     const meetingsToday = allMeetings.filter(m => m.Date === todayString);
     const totalToday = meetingsToday.length;
     const completedToday = meetingsToday.filter(m => m.Status === 'Завершена' || m.Status === 'Завершено').length;
-
+    
     const now = new Date();
     const overdue = allMeetings.filter(m => {
         const dateParts = m.Date.split('.');
@@ -719,7 +762,7 @@ body {
         return meetingDate < now && (m.Status === 'В работе' || m.Status === 'Запланировано');
     }).length;
 
-    // Формируем HTML для виджетов
+    // Формируем HTML для виджетов, делая "Просрочено" кнопкой
     widgetsContainer.innerHTML = `
         <div class="col-4">
             <div class="widget-card">
@@ -734,10 +777,10 @@ body {
             </div>
         </div>
         <div class="col-4">
-            <div class="widget-card">
+            <a href="#" id="widget-overdue-filter" class="widget-card">
                 <div class="widget-value text-danger">${overdue}</div>
                 <div class="widget-label">Просрочено</div>
-            </div>
+            </a>
         </div>
     `;
 }
