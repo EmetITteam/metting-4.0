@@ -1403,8 +1403,118 @@ function showForm(show) {
             viewMeetings.classList.toggle(HIDDEN_CLASS, show);
             formSection.classList.toggle(HIDDEN_CLASS, !show);
         }
+    // --- ВСТАВЬТЕ ЭТОТ БЛОК В КОНЕЦ СКРИПТА ---
+
+// Функция для загрузки списка клиентов с сервера
+async function loadClientsPage() {
+    const container = document.getElementById('client-list-container');
+    container.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary"></div></div>';
+
+    try {
+        const result = await callApi('getManagerClients', { login: currentUser });
+        allClients = result.clients || [];
+        renderClientList(allClients); // Отрисовываем полный список
+    } catch (e) {
+        onFailure(e);
+        container.innerHTML = '<div class="alert alert-danger">Не удалось загрузить список клиентов.</div>';
+    }
+}
+
+// Функция для отрисовки списка клиентов (или его отфильтрованной версии)
+function renderClientList(clientsToRender) {
+    const container = document.getElementById('client-list-container');
+    if (!container) return;
+    if (clientsToRender.length === 0) {
+        container.innerHTML = '<p class="text-center text-muted mt-4">Клиенты не найдены.</p>';
+        return;
     }
 
+    const clientHtml = clientsToRender.map(client => {
+        const categoryColor = getCategoryColor(client.ClientCategory);
+        const cleanPhone = client.Phone ? client.Phone.replace(/[^+\d]/g, '') : '';
+
+        return `
+            <div class="card shadow-sm mb-2">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title mb-1">${client.ClientName}</h5>
+                            <span class="badge" style="background-color: ${categoryColor};">${client.ClientCategory || 'Без категории'}</span>
+                        </div>
+                        <div class="btn-group">
+                            <a href="#" class="btn btn-sm btn-outline-secondary js-report-from-client-list" title="Отчет по клиенту" data-client-id="${client.ClientID}" data-client-name="${client.ClientName}"><i class="bi bi-file-text"></i></a>
+                            <a href="#" class="btn btn-sm btn-primary js-create-meeting-from-client-list" title="Создать встречу" 
+                               data-client-id="${client.ClientID}" 
+                               data-client-name="${client.ClientName}"
+                               data-client-category="${client.ClientCategory || ''}"
+                               data-client-address="${client.ClientAddress || ''}"
+                               data-client-phone="${client.Phone || ''}">
+                               <i class="bi bi-calendar-plus"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <hr>
+                    <p class="card-text mb-1"><small class="text-muted">Телефон: <a href="tel:${cleanPhone}">${client.Phone || 'Не указан'}</a></small></p>
+                    <p class="card-text"><small class="text-muted">Последняя встреча: ${client.LastMeetingDate || 'Нет данных'}</small></p>
+                </div>
+            </div>
+        `;
+    }).join('');
+    container.innerHTML = clientHtml;
+}
+    // --- ВСТАВЬТЕ ЭТУ ФУНКЦИЮ В КОНЕЦ СКРИПТА ---
+
+function handleDatePresetClick(preset) {
+    if (preset === 'today') {
+        isSearchMode = false;
+        document.getElementById('searchInput1').value = '';
+    }
+    const today = new Date();
+    let startDate, endDate;
+    switch (preset) {
+        case 'today':
+            startDate = today;
+            endDate = today;
+            break;
+        case 'tomorrow':
+            const tomorrow = new Date();
+            tomorrow.setDate(today.getDate() + 1);
+            startDate = tomorrow;
+            endDate = tomorrow;
+            break;
+        case 'this-week':
+            const firstDayOfWeek = new Date(today);
+            const day = today.getDay();
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Понедельник - первый день
+            firstDayOfWeek.setDate(diff);
+            startDate = firstDayOfWeek;
+            endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6);
+            break;
+        case 'last-week':
+            const lastWeekStart = new Date(today);
+            const dayLW = today.getDay();
+            const diffLW = today.getDate() - dayLW - 6;
+            lastWeekStart.setDate(diffLW);
+            startDate = lastWeekStart;
+            endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6);
+            break;
+        case 'this-month':
+            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            break;
+        case 'last-month':
+            startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+            break;
+    }
+    
+    if (startDate && endDate) {
+        datePicker.setDateRange(startDate, endDate);
+        document.getElementById('date-preset-btn').textContent = document.querySelector(`.dropdown-item[data-range="${preset}"]`).textContent;
+    }
+}
     </script>
 </body>
 
