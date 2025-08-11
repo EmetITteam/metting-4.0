@@ -783,25 +783,24 @@ document.getElementById('confirmCompleteBtn').addEventListener('click', () => {
 
         // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 const clientListFilter = document.getElementById('client-list-filter');
 clientListFilter.addEventListener('input', () => {
-    clearTimeout(searchTimeout); 
-    searchTimeout = setTimeout(() => {
-        // Используем .unmaskedValue для получения "чистых" цифр, если это телефон
-        const searchTermDigits = clientListMask.unmaskedValue;
-        // А .value используем для поиска по имени
-        const searchTermText = clientListFilter.value.toLowerCase();
-        
+    clearTimeout(searchTimeout); // Сбрасываем предыдущий таймер
+    searchTimeout = setTimeout(() => { // Устанавливаем новый таймер
+        const searchTerm = clientListFilter.value.toLowerCase();
+        const searchTermDigits = searchTerm.replace(/\D/g, '');
+
         const filteredClients = allClients.filter(c => {
             const clientName = c.ClientName.toLowerCase();
             const clientPhone = c.Phone ? c.Phone.replace(/\D/g, '') : '';
 
             // Ищем или по тексту в имени, или по цифрам в телефоне
-            return clientName.includes(searchTermText) || (searchTermDigits && clientPhone.includes(searchTermDigits));
+            return clientName.includes(searchTerm) || (searchTermDigits && clientPhone.includes(searchTermDigits));
         });
         
         renderClientList(filteredClients);
-    }, 300);
+    }, 300); // Задержка в 300 миллисекунд
 });
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
 
