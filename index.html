@@ -284,10 +284,16 @@ body {
                 <label for="new-client-address" class="form-label">Адрес клиента</label>
                 <textarea id="new-client-address" class="form-control" rows="2"></textarea>
             </div>
-            <div class="col-12">
-                <label for="new-client-education" class="form-label">Образование</label>
-                <input type="text" id="new-client-education" class="form-control">
-            </div>
+           <div class="col-12">
+    <label for="new-client-education" class="form-label">Образование</label>
+    <select id="new-client-education" class="form-select">
+        <option selected disabled value="">Выберите образование...</option>
+        <option value="Высшее мед.">Высшее мед.</option>
+        <option value="Средне мед.">Средне мед.</option>
+        <option value="Клиника">Клиника</option>
+        <option value="Без.мед образования">Без.мед образования</option>
+    </select>
+</div>
             <div class="col-12">
                 <label for="new-client-files" class="form-label">Документы</label>
                 <input class="form-control" type="file" id="new-client-files" multiple>
