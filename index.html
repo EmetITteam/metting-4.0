@@ -956,19 +956,20 @@ async function loadClientsPage() {
         container.innerHTML = '<div class="alert alert-danger">Не удалось загрузить список клиентов.</div>';
     }
 }
-      // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+     // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 function renderCategoryFilters() {
     const filtersContainer = document.getElementById('client-category-filters');
     if (!filtersContainer) return;
 
     const categories = [...new Set(allClients.map(client => client.ClientCategory || "Без категории"))];
     
+    // Кнопка "Все" всегда основная, синяя
     let filtersHtml = '<button class="btn btn-sm btn-primary active" data-category="all">Все</button>';
 
     categories.forEach(category => {
         const categoryColor = getCategoryColor(category);
-        // Теперь для всех кнопок с кастомным цветом текст будет темным
-        const textColorClass = 'text-dark';
+        // Для новой палитры белый текст будет выглядеть лучше
+        const textColorClass = 'text-white'; 
         
         filtersHtml += `
             <button class="btn btn-sm ${textColorClass}" style="background-color: ${categoryColor}; border-color: ${categoryColor};" data-category="${category}">
