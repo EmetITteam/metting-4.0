@@ -310,7 +310,7 @@ body {
     </div>
     
     <div class="modal fade" id="reportModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5" id="reportModalTitle">Отчет по клиенту</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="reportModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
-    <div class="modal fade" id="outcomeModal" tabindex="-1">
+   <div class="modal fade" id="outcomeModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
@@ -375,8 +375,8 @@ body {
                         <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
                             <div class="accordion-body">
                                 <div class="mb-3">
-                                    <label class="form-label">З якими брендами працює зараз (ботулотоксини, філери, і т.д.):</label>
-                                    <textarea class="form-control" rows="3" data-question="Бренди в роботі"></textarea>
+                                    <label class="form-label">З якими брендами працює зараз:</label>
+                                    <textarea class="form-control" rows="3" data-question="Бренди в роботі" placeholder="ботулотоксини, філери, біоревіталізанти..."></textarea>
                                 </div>
                                 <div class="mb-3"><label class="form-label">Скільки шприців філерів на місяць (орієнтовно):</label><input type="number" class="form-control" data-question="Філери на місяць"></div>
                                 <div class="mb-3"><label class="form-label">Скільки шприців поліонуклеотидів на місяць (орієнтовно):</label><input type="number" class="form-control" data-question="Поліонуклеотиди на місяць"></div>
@@ -385,21 +385,21 @@ body {
                                     <label class="form-label d-block">Чи використовує екзосоми?</label>
                                     <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesExosomes" value="Так" data-question="Використовує екзосоми"><label class="form-check-label">Так</label></div>
                                     <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesExosomes" value="Ні" data-question="Використовує екзосоми"><label class="form-check-label">Ні</label></div>
-                                    <textarea class="form-control mt-2 d-none" rows="2" placeholder="Які бренди, скільки пацієнтів..." data-question="Екзосоми коментар"></textarea>
+                                    <textarea class="form-control mt-2 d-none" rows="2" placeholder="Які бренди, скільки пацієнтів на тиждень..." data-question="Екзосоми коментар"></textarea>
                                 </div>
                                 
                                 <div class="p-2 border rounded mb-3">
                                     <label class="form-label d-block">Чи використовує PLLA, PCL, CaHA?</label>
                                     <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesPLLA" value="Так" data-question="Використовує PLLA"><label class="form-check-label">Так</label></div>
                                     <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesPLLA" value="Ні" data-question="Використовує PLLA"><label class="form-check-label">Ні</label></div>
-                                    <textarea class="form-control mt-2 d-none" rows="2" placeholder="Які бренди, скільки пацієнтів..." data-question="PLLA коментар"></textarea>
+                                    <textarea class="form-control mt-2 d-none" rows="2" placeholder="Які бренди, скільки пацієнтів на тиждень..." data-question="PLLA коментар"></textarea>
                                 </div>
 
                                 <div class="p-2 border rounded mb-3">
                                     <label class="form-label d-block">Чи працює зі шкірою голови?</label>
                                     <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesHair" value="Так" data-question="Працює з волоссям"><label class="form-check-label">Так</label></div>
                                     <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesHair" value="Ні" data-question="Працює з волоссям"><label class="form-check-label">Ні</label></div>
-                                    <textarea class="form-control mt-2 d-none" rows="2" placeholder="Які бренди, скільки пацієнтів..." data-question="Волосся коментар"></textarea>
+                                    <textarea class="form-control mt-2 d-none" rows="2" placeholder="Які бренди, скільки пацієнтів на тиждень..." data-question="Волосся коментар"></textarea>
                                 </div>
                                 
                                 <div class="mb-3">
@@ -420,9 +420,9 @@ body {
                             <div class="accordion-body">
                                 <label class="form-label d-block">Основна вікова категорія пацієнтів:</label>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="до 25" data-question="Вік пацієнтів"><label class="form-check-label">до 25</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="25-35" data-question="Вік пацієнтів"><label class="form-check-label">25-35</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="35-45" data-question="Вік пацієнтів"><label class="form-check-label">35-45</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="45-55" data-question="Вік пацієнтів"><label class="form-check-label">45-55</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="25-35" data-question="Вік пацієнтів"><label class="form-check-label">25–35</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="35-45" data-question="Вік пацієнтів"><label class="form-check-label">35–45</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="45-55" data-question="Вік пацієнтів"><label class="form-check-label">45–55</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="55+" data-question="Вік пацієнтів"><label class="form-check-label">55+</label></div>
                                 <hr>
                                 <label class="form-label d-block">Основні запити пацієнтів:</label>
@@ -438,8 +438,78 @@ body {
                             </div>
                         </div>
                     </div>
-                    
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
+                                4. Ціновий сегмент і середній чек
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+                            <div class="accordion-body">
+                                <label class="form-label d-block">Ціновий сегмент процедур:</label>
+                                <div class="form-check"><input class="form-check-input" type="radio" name="priceSegment" value="Бюджетний" data-question="Ціновий сегмент"><label class="form-check-label">Бюджетний</label></div>
+                                <div class="form-check"><input class="form-check-input" type="radio" name="priceSegment" value="Середній" data-question="Ціновий сегмент"><label class="form-check-label">Середній</label></div>
+                                <div class="form-check"><input class="form-check-input" type="radio" name="priceSegment" value="Преміум" data-question="Ціновий сегмент"><label class="form-check-label">Преміум</label></div>
+                                <hr>
+                                <div class="mb-3"><label class="form-label">Середній чек на процедуру ботулінотерапії (грн):</label><input type="number" class="form-control" data-question="Чек ботулінотерапія"></div>
+                                <div class="mb-3"><label class="form-label">Середній чек на біоревіталізацію (грн):</label><input type="number" class="form-control" data-question="Чек біоревіталізація"></div>
+                                <div class="mb-3"><label class="form-label">Середній чек на філери (грн):</label><input type="number" class="form-control" data-question="Чек філери"></div>
+                            </div>
+                        </div>
                     </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix">
+                                6. Навчання та розвиток
+                            </button>
+                        </h2>
+                        <div id="collapseSix" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+                            <div class="accordion-body">
+                                <label class="form-label d-block">Чи відвідує навчальні заходи / конференції?</label>
+                                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="attendsEvents" value="Так" data-question="Відвідує навчання"><label class="form-check-label">Так</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="attendsEvents" value="Ні" data-question="Відвідує навчання"><label class="form-check-label">Ні</label></div>
+                                <div class="my-3">
+                                    <label class="form-label">Останні відвідані заходи (якщо є):</label>
+                                    <textarea class="form-control" rows="2" data-question="Останні заходи"></textarea>
+                                </div>
+                                <hr>
+                                <label class="form-label d-block">Чи зацікавлений(-а) у партнерстві, навчанні?</label>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Онлайн-навчання" data-question="Тип навчання"><label class="form-check-label">Онлайн-навчання</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Офлайн семінари, конференції" data-question="Тип навчання"><label class="form-check-label">Офлайн семінари, конференції</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Виїздні навчання" data-question="Тип навчання"><label class="form-check-label">Виїздні навчання</label></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven">
+                                7. Наступні кроки
+                            </button>
+                        </h2>
+                        <div id="collapseSeven" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+                            <div class="accordion-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Які продукти з портфелю ЕМЕТ з якими Ви не працюєте цікавлять найбільше зараз?</label>
+                                    <textarea class="form-control" rows="2" data-question="Цікаві продукти"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Що Вам заважає почати працювати з цими продуктами вже сьогодні?</label>
+                                    <textarea class="form-control" rows="2" data-question="Що заважає"></textarea>
+                                </div>
+                                <hr>
+                                <label class="form-label d-block">Переважний спосіб отримання інформації:</label>
+                                <div class="form-check"><input class="form-check-input" type="radio" name="commMethod" value="Телефон" data-question="Спосіб звʼязку"><label class="form-check-label">Телефон</label></div>
+                                <div class="form-check"><input class="form-check-input" type="radio" name="commMethod" value="Viber / Telegram" data-question="Спосіб звʼязку"><label class="form-check-label">Viber / Telegram</label></div>
+                                <div class="form-check"><input class="form-check-input" type="radio" name="commMethod" value="Email" data-question="Спосіб звʼязку"><label class="form-check-label">Email</label></div>
+                                <div class="form-check"><input class="form-check-input" type="radio" name="commMethod" value="Особисто через менеджера" data-question="Спосіб звʼязку"><label class="form-check-label">Особисто через менеджера</label></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
