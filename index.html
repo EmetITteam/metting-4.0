@@ -316,324 +316,376 @@ body {
     <script>
     // --- ЕДИНЫЙ, ОБЪЕДИНЕННЫЙ И ИСПРАВЛЕННЫЙ JAVASCRIPT-КОД ---
 
-    // Глобальные переменные и константы
-    const API_URL = "/api/handler";
-    const HIDDEN_CLASS = 'd-none';
+// Глобальные переменные и константы
+const API_URL = "/api/handler";
+const HIDDEN_CLASS = 'd-none';
 
-    let currentUser = null, allMeetings = [], currentEditingMeeting = null;
-    let meetingToReschedule = null, activeMeetingId = null;
-    let questions = [], potentialCategories = [];
-    let adminCharts = {};
-    let searchTimeout = null;
-    let isSearchMode = false;
+let currentUser = null, allMeetings = [], allClients = [], currentEditingMeeting = null;
+let meetingToReschedule = null, activeMeetingId = null;
+let questions = [], potentialCategories = [];
+let adminCharts = {};
+let searchTimeout = null;
+let isSearchMode = false;
 
-    // Глобальные экземпляры, которые будут инициализированы позже
-    let meetingsList, rescheduleModal, cancelConfirmModal, outcomeModal, reportModal, clientSearchModal, clientHistorySearchModal, appToast;
-    let datePicker, adminDatePicker, phoneMask, searchMask;
+// Глобальные экземпляры, которые будут инициализированы позже
+let meetingsList, rescheduleModal, cancelConfirmModal, outcomeModal, reportModal, clientSearchModal, clientHistorySearchModal, appToast;
+let datePicker, adminDatePicker, phoneMask, searchMask;
 
-    // --- ОСНОВНОЙ БЛОК ИНИЦИАЛИЗАЦИИ ПОСЛЕ ЗАГРУЗКИ СТРАНИЦЫ ---
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- Сначала находим все нужные элементы DOM ---
-        meetingsList = document.getElementById('meetings-list');
-        const navButtons = document.querySelectorAll('.nav-button');
-        const pages = document.querySelectorAll('.app-page');
-        const headerTitle = document.getElementById('header-title');
-        const header = document.querySelector('.app-header');
-        const main = document.querySelector('.app-main');
-        const bottomNav = document.querySelector('.app-bottom-nav');
-        const loginContainer = document.getElementById('login-container');
-        const bodyEl = document.querySelector('body');
+// --- ОСНОВНОЙ БЛОК ИНИЦИАЛИЗАЦИИ ПОСЛЕ ЗАГРУЗКИ СТРАНИЦЫ ---
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Сначала находим все нужные элементы DOM ---
+    meetingsList = document.getElementById('meetings-list');
+    const navButtons = document.querySelectorAll('.nav-button');
+    const pages = document.querySelectorAll('.app-page');
+    const headerTitle = document.getElementById('header-title');
+    const header = document.querySelector('.app-header');
+    const main = document.querySelector('.app-main');
+    const bottomNav = document.querySelector('.app-bottom-nav');
+    const loginContainer = document.getElementById('login-container');
+    const bodyEl = document.querySelector('body');
 
-        // --- Затем определяем функции, которые с ними работают ---
-        function showMainApp(show) {
-            if (!header || !main || !bottomNav || !loginContainer || !bodyEl) {
-                console.error('Ошибка: Один из ключевых элементов макета не найден!');
-                return;
-            }
-            if (show) {
-                header.classList.remove('d-none');
-                main.classList.remove('d-none');
-                bottomNav.classList.remove('d-none');
-                loginContainer.classList.add('d-none');
-            } else {
-                header.classList.add('d-none');
-                main.classList.add('d-none');
-                bottomNav.classList.add('d-none');
-                loginContainer.classList.remove('d-none');
-            }
-            bodyEl.classList.remove('d-none');
+    // --- Затем определяем функции, которые с ними работают ---
+    function showMainApp(show) {
+        if (!header || !main || !bottomNav || !loginContainer || !bodyEl) {
+            console.error('Ошибка: Один из ключевых элементов макета не найден!');
+            return;
         }
-        window.showMainApp = showMainApp; // Делаем функцию глобальной
+        if (show) {
+            header.classList.remove('d-none');
+            main.classList.remove('d-none');
+            bottomNav.classList.remove('d-none');
+            loginContainer.classList.add('d-none');
+        } else {
+            header.classList.add('d-none');
+            main.classList.add('d-none');
+            bottomNav.classList.add('d-none');
+            loginContainer.classList.remove('d-none');
+        }
+        bodyEl.classList.remove('d-none');
+    }
+    window.showMainApp = showMainApp;
 
-        function switchPage(pageId) {
-            pages.forEach(page => page.classList.toggle('active', page.id === `page-${pageId}`));
-            navButtons.forEach(button => {
-                button.classList.toggle('active', button.dataset.page === pageId);
-                if (button.dataset.page === pageId) {
-                    const buttonText = button.querySelector('span').textContent;
-                    headerTitle.textContent = buttonText;
+    function switchPage(pageId) {
+        pages.forEach(page => page.classList.toggle('active', page.id === `page-${pageId}`));
+        navButtons.forEach(button => {
+            button.classList.toggle('active', button.dataset.page === pageId);
+            if (button.dataset.page === pageId) {
+                const buttonText = button.querySelector('span').textContent;
+                headerTitle.textContent = buttonText;
+            }
+        });
+    }
+
+    // --- Инициализация Bootstrap компонентов ---
+    rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
+    cancelConfirmModal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
+    outcomeModal = new bootstrap.Modal(document.getElementById('outcomeModal'));
+    reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+    clientSearchModal = new bootstrap.Modal(document.getElementById('clientSearchModal'));
+    clientHistorySearchModal = new bootstrap.Modal(document.getElementById('clientHistorySearchModal'));
+    appToast = new bootstrap.Toast(document.getElementById('appToast'));
+    
+    // --- Инициализация плагинов ---
+    datePicker = new Litepicker({
+        element: document.getElementById('dateRangeFilter'),
+        singleMode: false, format: 'DD.MM.YYYY', lang: 'ru-RU',
+        setup: (picker) => {
+            picker.on('selected', (date1, date2) => {
+                if (date1 && date2) loadInitialData(formatDateToYYYYMMDD(date1.toJSDate()), formatDateToYYYYMMDD(date2.toJSDate()));
+            });
+        }
+    });
+    
+    const phoneInput = document.getElementById('phone');
+    phoneMask = IMask(phoneInput, { mask: '+{38} (000) 000-00-00' });
+    
+    const clientSearchInputEl = document.getElementById('clientSearchInput');
+    searchMask = IMask(clientSearchInputEl, {
+        mask: [ { mask: '+{38} (000) 000-00-00', startsWith: '380', lazy: false }, { mask: /.*/ } ]
+    });
+    
+    // --- Привязка всех обработчиков событий ---
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const pageId = button.dataset.page;
+            switchPage(pageId);
+            if (pageId === 'clients' && allClients.length === 0) {
+                loadClientsPage();
+            }
+        });
+    });
+
+    document.getElementById('main-add-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchPage('dashboard');
+        showAddForm();
+    });
+
+    document.getElementById('login-form').addEventListener('submit', handleLogin);
+    document.getElementById('meeting-form').addEventListener('submit', handleFormSubmit);
+    document.getElementById('cancel-btn').addEventListener('click', handleCancelClick);
+    document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+        cancelConfirmModal.hide();
+        showForm(false);
+    });
+
+    document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
+    document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
+    
+    const searchInputEl = document.getElementById('searchInput1');
+    searchInputEl.addEventListener('input', filterAndGroupMeetings);
+    searchInputEl.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') performGlobalSearch();
+    });
+    
+    const datePresetsContainer = document.getElementById('date-presets-container');
+    if (datePresetsContainer) {
+        const mainPresetBtn = datePresetsContainer.querySelector('#date-preset-btn');
+        if (mainPresetBtn) {
+            mainPresetBtn.addEventListener('click', () => {
+                isSearchMode = false;
+                document.getElementById('searchInput1').value = '';
+                handleDatePresetClick('today');
+            });
+        }
+        const datePresetDropdown = datePresetsContainer.querySelector('.dropdown-menu');
+        if (datePresetDropdown) {
+            datePresetDropdown.addEventListener('click', (e) => {
+                if (e.target.classList.contains('dropdown-item')) {
+                    e.preventDefault();
+                    const range = e.target.dataset.range;
+                    handleDatePresetClick(range);
                 }
             });
         }
+    }
+    
+    document.getElementById('get-meeting-location-btn').addEventListener('click', handleGetLocationClick);
+    document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
+    document.getElementById('saveOutcomeBtn').addEventListener('click', handleSaveOutcome);
+    document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
+    document.getElementById('clientSearchInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleClientSearch();
+    });
+    document.getElementById('client-name').addEventListener('input', handleClientInput);
 
-        // --- Инициализация Bootstrap компонентов ---
-        rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
-        cancelConfirmModal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
-        outcomeModal = new bootstrap.Modal(document.getElementById('outcomeModal'));
-        reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
-        clientSearchModal = new bootstrap.Modal(document.getElementById('clientSearchModal'));
-        clientHistorySearchModal = new bootstrap.Modal(document.getElementById('clientHistorySearchModal'));
-        appToast = new bootstrap.Toast(document.getElementById('appToast'));
-        
-        // --- Инициализация плагинов ---
-        datePicker = new Litepicker({
-            element: document.getElementById('dateRangeFilter'),
-            singleMode: false, format: 'DD.MM.YYYY', lang: 'ru-RU',
-            setup: (picker) => {
-                picker.on('selected', (date1, date2) => {
-                    if (date1 && date2) loadInitialData(formatDateToYYYYMMDD(date1.toJSDate()), formatDateToYYYYMMDD(date2.toJSDate()));
+    const clientListFilter = document.getElementById('client-list-filter');
+    clientListFilter.addEventListener('input', () => {
+        const searchTerm = clientListFilter.value.toLowerCase();
+        const filteredClients = allClients.filter(c => c.ClientName.toLowerCase().includes(searchTerm));
+        renderClientList(filteredClients);
+    });
+
+    const logoutBtnSideMenu = document.getElementById('logout-btn-side-menu');
+    if (logoutBtnSideMenu) {
+        logoutBtnSideMenu.addEventListener('click', handleLogout);
+    }
+
+    const offcanvasClientSearchBtn = document.getElementById('offcanvas-client-search-btn');
+    if (offcanvasClientSearchBtn) {
+        offcanvasClientSearchBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            clientSearchModal.show();
+            const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sideMenu'));
+            offcanvas.hide();
+        });
+    }
+
+    const widgetsContainer = document.getElementById('dashboard-widgets');
+    if (widgetsContainer) {
+        widgetsContainer.addEventListener('click', (e) => {
+            const overdueFilter = e.target.closest('#widget-overdue-filter');
+            if (overdueFilter) {
+                e.preventDefault();
+                const now = new Date();
+                const overdueMeetings = allMeetings.filter(m => {
+                    const dateParts = m.Date.split('.');
+                    const timeParts = m.Time.split(':');
+                    const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]);
+                    return meetingDate < now && (m.Status === 'В работе' || m.Status === 'Запланировано');
                 });
+                
+                const originalMeetings = allMeetings;
+                allMeetings = overdueMeetings;
+                
+                filterAndGroupMeetings();
+                
+                allMeetings = originalMeetings;
+
+                isSearchMode = true; 
+                document.getElementById('date-preset-btn').textContent = 'Сбросить';
             }
         });
-        
-        const phoneInput = document.getElementById('phone');
-        phoneMask = IMask(phoneInput, { mask: '+{38} (000) 000-00-00' });
-        
-        const clientSearchInputEl = document.getElementById('clientSearchInput');
-        searchMask = IMask(clientSearchInputEl, {
-            mask: [ { mask: '+{38} (000) 000-00-00', startsWith: '380', lazy: false }, { mask: /.*/ } ]
-        });
-        // Добавьте этот код внутрь существующего document.addEventListener('DOMContentLoaded', ...        
-        // --- Привязка всех обработчиков событий ---
-        navButtons.forEach(button => {
-            button.addEventListener('click', () => switchPage(button.dataset.page));
-        });
-        document.getElementById('main-add-btn')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchPage('dashboard');
-            showAddForm();
-        });
-        document.getElementById('login-form').addEventListener('submit', handleLogin);
-        document.getElementById('meeting-form').addEventListener('submit', handleFormSubmit);
-        document.getElementById('cancel-btn').addEventListener('click', handleCancelClick);
-        document.getElementById('confirmCancelBtn').addEventListener('click', () => {
-            cancelConfirmModal.hide();
-            showForm(false);
-        });
-        document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
-        document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
-        
-        const searchInputEl = document.getElementById('searchInput1');
-        searchInputEl.addEventListener('input', filterAndGroupMeetings);
-        searchInputEl.addEventListener('keyup', (e) => {
-            if (e.key === 'Enter') performGlobalSearch();
-        });
-               // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+    }
 
-// Обработчик для основной кнопки "Сегодня", которая сбрасывает фильтры
-document.getElementById('date-preset-btn').addEventListener('click', () => {
-    isSearchMode = false;
-    document.getElementById('searchInput1').value = '';
-    handleDatePresetClick('today');
+    checkActiveSession();
 });
 
-// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+// --- Единый глобальный обработчик кликов ---
+document.addEventListener('click', function(e) {
+    const target = e.target;
 
-// Обработчик для нового компонента выбора дат
-const datePresetsContainer = document.getElementById('date-presets-container');
-if (datePresetsContainer) {
-    // Клик по основной кнопке ("Сегодня", "Текущая неделя" и т.д.)
-    const mainPresetBtn = datePresetsContainer.querySelector('#date-preset-btn');
-    if (mainPresetBtn) {
-        mainPresetBtn.addEventListener('click', () => {
-            // Основное действие кнопки - сброс к "Сегодня"
-            isSearchMode = false;
-            document.getElementById('searchInput1').value = '';
-            handleDatePresetClick('today');
-        });
+    const reportBtn = target.closest('.report-btn-icon');
+    if (reportBtn && !reportBtn.disabled) {
+         if (reportBtn.closest('#clientSearchModal')) {
+             clientSearchModal.hide();
+         }
+         handleReportClick({ preventDefault: () => {}, currentTarget: reportBtn });
+         return;
     }
 
-    // Клик по пунктам выпадающего меню
-    const datePresetDropdown = datePresetsContainer.querySelector('.dropdown-menu');
-    if (datePresetDropdown) {
-        datePresetDropdown.addEventListener('click', (e) => {
-            const target = e.target;
-            if (target.classList.contains('dropdown-item')) {
-                e.preventDefault();
-                const range = target.dataset.range;
-                handleDatePresetClick(range);
-            }
-        });
+    const selectClientBtn = target.closest('.js-select-client-for-history');
+    if (selectClientBtn && !selectClientBtn.classList.contains('disabled')) {
+         e.preventDefault();
+         const clientID = selectClientBtn.dataset.clientId;
+         const clientName = selectClientBtn.dataset.clientName;
+         clientHistorySearchModal.hide();
+         isSearchMode = true;
+         meetingsList.innerHTML = '<div class="col-12 text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2">Загружаем историю встреч...</p></div>';
+         document.getElementById('date-preset-btn').textContent = 'Сбросить';
+         callApi('getAllMeetingsForClient', { login: currentUser, clientID: clientID })
+             .then(result => {
+                 allMeetings = result.meetings || [];
+                 filterAndGroupMeetings();
+                 const searchResultTitle = document.createElement('h3');
+                 searchResultTitle.className = 'col-12 date-header';
+                 searchResultTitle.innerHTML = `История встреч по клиенту: <mark>${clientName}</mark>`;
+                 meetingsList.prepend(searchResultTitle);
+             })
+             .catch(err => {
+                 onFailure(err);
+                 meetingsList.innerHTML = `<div class="col-12 text-center p-5"><h4>Ошибка загрузки истории</h4><p class="text-muted">${err.message}</p></div>`;
+             });
+         return;
     }
-}
-// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
-        document.getElementById('get-meeting-location-btn').addEventListener('click', handleGetLocationClick);
-        document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
-        document.getElementById('saveOutcomeBtn').addEventListener('click', handleSaveOutcome);
-        document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
-        document.getElementById('clientSearchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleClientSearch();
-        });
-        document.getElementById('client-name').addEventListener('input', handleClientInput);
 
-        // --- И ТОЛЬКО ТЕПЕРЬ, когда все готово, проверяем сессию ---
-        checkActiveSession();
-    });
+    const createFromReportBtn = target.closest('.js-create-meeting-from-report');
+    if (createFromReportBtn) {
+         reportModal.hide();
+         const btnTarget = createFromReportBtn;
+         document.querySelector('.nav-button[data-page="dashboard"]').click();
+         showAddForm();
+         document.getElementById('client-name').value = btnTarget.dataset.clientName;
+         document.getElementById('location').value = btnTarget.dataset.clientAddress;
+         document.getElementById('client-id').value = btnTarget.dataset.clientId;
+         document.getElementById('client-category').value = btnTarget.dataset.clientCategory;
+         document.getElementById('phone').value = btnTarget.dataset.clientPhone;
+         if (phoneMask) phoneMask.updateValue();
+         return;
+    }
 
-    // --- Единый глобальный обработчик кликов ---
-    document.addEventListener('click', function(e) {
-        const target = e.target;
-
-        const reportBtn = target.closest('.report-btn-icon');
-        if (reportBtn && !reportBtn.disabled) {
-             if (reportBtn.closest('#clientSearchModal')) {
-                 clientSearchModal.hide();
-             }
-             handleReportClick(e);
-             return;
-        }
-
-        const selectClientBtn = target.closest('.js-select-client-for-history');
-        if (selectClientBtn && !selectClientBtn.classList.contains('disabled')) {
-             e.preventDefault();
-             const clientID = selectClientBtn.dataset.clientId;
-             const clientName = selectClientBtn.dataset.clientName;
-             clientHistorySearchModal.hide();
-             isSearchMode = true;
-             meetingsList.innerHTML = '<div class="col-12 text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2">Загружаем историю встреч...</p></div>';
-             document.getElementById('resetFiltersBtn').textContent = 'Сбросить поиск';
-             callApi('getAllMeetingsForClient', { login: currentUser, clientID: clientID })
-                 .then(result => {
-                     allMeetings = result.meetings || [];
-                     filterAndGroupMeetings();
-                     const searchResultTitle = document.createElement('h3');
-                     searchResultTitle.className = 'col-12 date-header';
-                     searchResultTitle.innerHTML = `История встреч по клиенту: <mark>${clientName}</mark>`;
-                     meetingsList.prepend(searchResultTitle);
-                 })
-                 .catch(err => {
-                     onFailure(err);
-                     meetingsList.innerHTML = `<div class="col-12 text-center p-5"><h4>Ошибка загрузки истории</h4><p class="text-muted">${err.message}</p></div>`;
-                 });
-             return;
-        }
-
-        const createFromReportBtn = target.closest('.js-create-meeting-from-report');
-        if (createFromReportBtn) {
-             reportModal.hide();
-             const btnTarget = createFromReportBtn;
-             const clientName = btnTarget.dataset.clientName;
-             const clientAddress = btnTarget.dataset.clientAddress;
-             const clientID = btnTarget.dataset.clientId;
-             const clientCategory = btnTarget.dataset.clientCategory;
-             const clientPhone = btnTarget.dataset.clientPhone;
-             showAddForm(); 
-             document.getElementById('client-name').value = clientName;
-             document.getElementById('location').value = clientAddress;
-             document.getElementById('client-id').value = clientID;
-             document.getElementById('client-category').value = clientCategory;
-             document.getElementById('phone').value = clientPhone;
-             if (phoneMask) phoneMask.updateValue();
-             return;
-        }
-
-        const autocompleteLink = target.closest('#client-autocomplete-results a');
-        if (autocompleteLink) {
-             e.preventDefault();
-             const linkTarget = autocompleteLink;
-             document.getElementById('client-name').value = linkTarget.dataset.clientName;
-             document.getElementById('client-id').value = linkTarget.dataset.clientId;
-             document.getElementById('client-category').value = linkTarget.dataset.clientCategory;
-             document.getElementById('location').value = linkTarget.dataset.clientAddress;
-             document.getElementById('phone').value = linkTarget.dataset.clientPhone;
-             if (phoneMask) phoneMask.updateValue();
-             document.getElementById('client-autocomplete-results').innerHTML = '';
-             return;
-        }
-
-        const resultsContainer = document.getElementById('client-autocomplete-results');
-        if (resultsContainer && !target.closest('#client-name') && resultsContainer.innerHTML !== '') {
-             resultsContainer.innerHTML = '';
-        }
-    });
-        // Обработчик для клика по виджетам (через делегирование)
-const widgetsContainer = document.getElementById('dashboard-widgets');
-if (widgetsContainer) {
-    widgetsContainer.addEventListener('click', (e) => {
-        const overdueFilter = e.target.closest('#widget-overdue-filter');
-        if (overdueFilter) {
-            e.preventDefault();
-            
-            // Фильтруем встречи, чтобы найти просроченные
-            const now = new Date();
-            const overdueMeetings = allMeetings.filter(m => {
-                const dateParts = m.Date.split('.');
-                const timeParts = m.Time.split(':');
-                const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]);
-                return meetingDate < now && (m.Status === 'В работе' || m.Status === 'Запланировано');
-            });
-            
-            // Временно заменяем основной массив встреч на отфильтрованный
-            const originalMeetings = allMeetings; // Сохраняем оригинал
-            allMeetings = overdueMeetings;
-            
-            // Перерисовываем список
-            filterAndGroupMeetings();
-            
-            // Возвращаем основной массив обратно для будущих фильтраций
-            allMeetings = originalMeetings;
-
-            // Визуально показываем, что включен фильтр
-            isSearchMode = true; // Используем этот флаг для отображения правильного сообщения, если пусто
-            document.getElementById('date-preset-btn').textContent = 'Сбросить';
-        }
-    });
-}
+    const autocompleteLink = target.closest('#client-autocomplete-results a');
+    if (autocompleteLink) {
+         e.preventDefault();
+         const linkTarget = autocompleteLink;
+         document.getElementById('client-name').value = linkTarget.dataset.clientName;
+         document.getElementById('client-id').value = linkTarget.dataset.clientId;
+         document.getElementById('client-category').value = linkTarget.dataset.clientCategory;
+         document.getElementById('location').value = linkTarget.dataset.clientAddress;
+         document.getElementById('phone').value = linkTarget.dataset.clientPhone;
+         if (phoneMask) phoneMask.updateValue();
+         document.getElementById('client-autocomplete-results').innerHTML = '';
+         return;
+    }
     
-    // --- ВСЕ ОСТАЛЬНЫЕ ФУНКЦИИ ---
-    function checkActiveSession() {
-        const savedSession = localStorage.getItem('crm_session');
-        if (!savedSession) {
-            window.showMainApp(false);
-            return;
-        };
-        const session = JSON.parse(savedSession);
-        const oneDay = 24 * 60 * 60 * 1000;
-        const isSessionExpired = (new Date().getTime() - session.loginTime) > oneDay;
-        if (isSessionExpired) {
-            localStorage.removeItem('crm_session');
-            window.showMainApp(false);
-            return;
-        }
-        onLoginSuccess({ login: session.user, role: session.role });
+    const reportBtnFromList = target.closest('.js-report-from-client-list');
+    if (reportBtnFromList) {
+        e.preventDefault();
+        handleReportClick({ preventDefault: () => {}, currentTarget: reportBtnFromList });
+        return;
     }
-        function handleDatePresetClick(preset) {
-    // --- НОВАЯ ЛОГИКА ---
-    // Если пользователь выбрал "Сегодня", сбрасываем также и текстовый поиск
+
+    const createMeetingBtnFromList = target.closest('.js-create-meeting-from-client-list');
+    if (createMeetingBtnFromList) {
+        e.preventDefault();
+        document.querySelector('.nav-button[data-page="dashboard"]').click();
+        showAddForm();
+        document.getElementById('client-name').value = createMeetingBtnFromList.dataset.clientName;
+        document.getElementById('location').value = createMeetingBtnFromList.dataset.clientAddress;
+        document.getElementById('client-id').value = createMeetingBtnFromList.dataset.clientId;
+        document.getElementById('client-category').value = createMeetingBtnFromList.dataset.clientCategory;
+        document.getElementById('phone').value = createMeetingBtnFromList.dataset.clientPhone;
+        if (phoneMask) phoneMask.updateValue();
+        return;
+    }
+
+    const resultsContainer = document.getElementById('client-autocomplete-results');
+    if (resultsContainer && !target.closest('#client-name') && resultsContainer.innerHTML !== '') {
+         resultsContainer.innerHTML = '';
+    }
+});
+
+// --- ВСЕ ОСТАЛЬНЫЕ ФУНКЦИИ ---
+
+async function loadClientsPage() {
+    const container = document.getElementById('client-list-container');
+    container.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary"></div></div>';
+    try {
+        const result = await callApi('getManagerClients', { login: currentUser });
+        allClients = result.clients || [];
+        renderClientList(allClients);
+    } catch (e) {
+        onFailure(e);
+        container.innerHTML = '<div class="alert alert-danger">Не удалось загрузить список клиентов.</div>';
+    }
+}
+
+function renderClientList(clientsToRender) {
+    const container = document.getElementById('client-list-container');
+    if (!container) return;
+    if (clientsToRender.length === 0) {
+        container.innerHTML = '<p class="text-center text-muted mt-4">Клиенты не найдены.</p>';
+        return;
+    }
+    const clientHtml = clientsToRender.map(client => {
+        const categoryColor = getCategoryColor(client.ClientCategory);
+        const cleanPhone = client.Phone ? client.Phone.replace(/[^+\d]/g, '') : '';
+        return `
+            <div class="card shadow-sm mb-2">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title mb-1">${client.ClientName}</h5>
+                            <span class="badge" style="background-color: ${categoryColor};">${client.ClientCategory || 'Без категории'}</span>
+                        </div>
+                        <div class="btn-group">
+                            <a href="#" class="btn btn-sm btn-outline-secondary js-report-from-client-list" title="Отчет по клиенту" data-client-id="${client.ClientID}" data-client-name="${client.ClientName}"><i class="bi bi-file-text"></i></a>
+                            <a href="#" class="btn btn-sm btn-primary js-create-meeting-from-client-list" title="Создать встречу" 
+                               data-client-id="${client.ClientID}" data-client-name="${client.ClientName}"
+                               data-client-category="${client.ClientCategory || ''}" data-client-address="${client.ClientAddress || ''}"
+                               data-client-phone="${client.Phone || ''}">
+                               <i class="bi bi-calendar-plus"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <hr>
+                    <p class="card-text mb-1"><small class="text-muted">Телефон: <a href="tel:${cleanPhone}">${client.Phone || 'Не указан'}</a></small></p>
+                    <p class="card-text"><small class="text-muted">Последняя встреча: ${client.LastMeetingDate || 'Нет данных'}</small></p>
+                </div>
+            </div>
+        `;
+    }).join('');
+    container.innerHTML = clientHtml;
+}
+
+function handleDatePresetClick(preset) {
     if (preset === 'today') {
         isSearchMode = false;
         document.getElementById('searchInput1').value = '';
     }
-    // --- КОНЕЦ НОВОЙ ЛОГИКИ ---
-
     const today = new Date();
     let startDate, endDate;
-
     switch (preset) {
-        case 'today':
-            startDate = today;
-            endDate = today;
-            break;
+        case 'today': startDate = endDate = today; break;
         case 'tomorrow':
             const tomorrow = new Date();
             tomorrow.setDate(today.getDate() + 1);
-            startDate = tomorrow;
-            endDate = tomorrow;
+            startDate = endDate = tomorrow;
             break;
         case 'this-week':
             const firstDayOfWeek = new Date(today);
             const day = today.getDay();
-            const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Понедельник - первый день
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1);
             firstDayOfWeek.setDate(diff);
             startDate = firstDayOfWeek;
             endDate = new Date(startDate);
@@ -657,226 +709,192 @@ if (widgetsContainer) {
             endDate = new Date(today.getFullYear(), today.getMonth(), 0);
             break;
     }
-    
     if (startDate && endDate) {
         datePicker.setDateRange(startDate, endDate);
-        // Обновляем текст на основной кнопке
         document.getElementById('date-preset-btn').textContent = document.querySelector(`.dropdown-item[data-range="${preset}"]`).textContent;
     }
 }
     
-    function onLoginSuccess(result) {
-        currentUser = result.login;
-        const userRole = result.role;
-        const session = { user: currentUser, role: userRole, loginTime: new Date().getTime() };
-        localStorage.setItem('crm_session', JSON.stringify(session));
-
-        document.getElementById('offcanvas-user-info').textContent = `Менеджер: ${currentUser}`;
-
-        window.showMainApp(true);
-        
-        const header = document.querySelector('.app-header');
-        const main = document.querySelector('.app-main');
-        const bottomNav = document.querySelector('.app-bottom-nav');
-        const adminDashboard = document.getElementById('admin-dashboard');
-
-        if (userRole === 'admin') {
-            header.classList.add('d-none');
-            main.classList.add('d-none');
-            bottomNav.classList.add('d-none');
-            adminDashboard.classList.remove('d-none');
-            // Здесь будет логика для инициализации админ-панели
-            // document.getElementById('admin-header').textContent = `Администратор: ${currentUser}`;
-            // adminDatePicker.setDateRange(new Date(), new Date());
-            // loadAdminStats();
-        } else {
-            header.classList.remove('d-none');
-            main.classList.remove('d-none');
-            bottomNav.classList.remove('d-none');
-            adminDashboard.classList.add('d-none');
-            datePicker.setDateRange(new Date(), new Date());
-        }
-    }
-    
-    function handleLogout() {
+function checkActiveSession() {
+    const savedSession = localStorage.getItem('crm_session');
+    if (!savedSession) {
+        window.showMainApp(false);
+        return;
+    };
+    const session = JSON.parse(savedSession);
+    const oneDay = 24 * 60 * 60 * 1000;
+    const isSessionExpired = (new Date().getTime() - session.loginTime) > oneDay;
+    if (isSessionExpired) {
         localStorage.removeItem('crm_session');
         window.showMainApp(false);
+        return;
     }
-    
-    function getTodayDateString() { return formatDateToYYYYMMDD(new Date()); }
-    function getTomorrowDateString() { const t = new Date(); t.setDate(t.getDate() + 1); return formatDateToYYYYMMDD(t); }
-    function formatDateToYYYYMMDD(date) {
-        const y = date.getFullYear();
-        const m = String(date.getMonth() + 1).padStart(2, '0');
-        const d = String(date.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
+    onLoginSuccess({ login: session.user, role: session.role });
+}
+
+function onLoginSuccess(result) { /* ... This function is defined in the DOMContentLoaded ... */ }
+function handleLogout() { /* ... This function is defined in the DOMContentLoaded ... */ }
+function getTodayDateString() { return formatDateToYYYYMMDD(new Date()); }
+function getTomorrowDateString() { const t = new Date(); t.setDate(t.getDate() + 1); return formatDateToYYYYMMDD(t); }
+function formatDateToYYYYMMDD(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+function toggleButtonSpinner(btn, show) {
+    if (show) {
+        btn.disabled = true;
+        btn.dataset.originalText = btn.innerHTML;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>`;
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.originalText || '';
     }
-    function toggleButtonSpinner(btn, show) {
-        if (show) {
-            btn.disabled = true;
-            btn.dataset.originalText = btn.innerHTML;
-            btn.innerHTML = `<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>`;
-        } else {
-            btn.disabled = false;
-            btn.innerHTML = btn.dataset.originalText || '';
-        }
-    }
-    function showToast(message) {
+}
+function showToast(message) {
+    if (appToast) {
         document.querySelector('#appToast .toast-body').textContent = message;
         appToast.show();
     }
-    function getCategoryColor(categoryName) {
-        if (!categoryName) return '#6c757d'; 
-        const lowerCategory = categoryName.toLowerCase();
-        if (lowerCategory.includes('новый')) return '#0d6efd';
-        if (lowerCategory.includes('активный')) return '#198754';
-        if (lowerCategory.includes('спящий')) return '#ffc107';
-        if (lowerCategory.includes('без закупок')) return '#fd7e14';
-        if (lowerCategory.includes('потерянный')) return '#dc3545';
-        return '#6c757d';
-    }
-    async function callApi(action, payload) {
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action, payload })
-            });
-            if (!response.ok) {
-                const errorText = await response.text(); 
-                throw new Error(`Ошибка сервера: ${response.status}. Ответ: ${errorText}`);
-            }
-            const result = await response.json();
-            if (result.status === 'error') {
-                throw new Error(result.message);
-            }
-            return result.data;
-        } catch (e) {
-            console.error("API call failed:", e);
-            throw e.message ? e : new Error('Ошибка сети или ответа сервера.');
-        }
-    }
-    function onFailure(error, errorElement = null) {
-        console.error(error);
-        if (errorElement) {
-            errorElement.textContent = error.message;
-            errorElement.classList.remove(HIDDEN_CLASS);
-        } else {
-            showToast('Ошибка: ' + error.message);
-        }
-    }
-    function handleLogin(e) {
-        e.preventDefault();
-        const loginBtn = document.getElementById('login-button');
-        toggleButtonSpinner(loginBtn, true);
-        const loginError = document.getElementById('login-error');
-        loginError.classList.add(HIDDEN_CLASS);
-        const payload = { login: document.getElementById('username').value, password: document.getElementById('password').value };
-        callApi('login', payload).then(onLoginSuccess).catch(err => {
-            onFailure(err, loginError);
-            document.getElementById('password').value = '';
-        }).finally(() => {
-            toggleButtonSpinner(loginBtn, false);
+}
+function getCategoryColor(categoryName) {
+    if (!categoryName) return '#6c757d'; 
+    const lowerCategory = categoryName.toLowerCase();
+    if (lowerCategory.includes('новый')) return '#0d6efd';
+    if (lowerCategory.includes('активный')) return '#198754';
+    if (lowerCategory.includes('спящий')) return '#ffc107';
+    if (lowerCategory.includes('без закупок')) return '#fd7e14';
+    if (lowerCategory.includes('потерянный')) return '#dc3545';
+    return '#6c757d';
+}
+async function callApi(action, payload) {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, payload })
         });
-    }
-    async function loadAdminStats() { /* ... */ }
-    function displayAdminStats(stats) { /* ... */ }
-    function loadInitialData(startDateString, endDateString) {
-        isSearchMode = false;
-        document.getElementById('searchInput1').value = '';
-        document.getElementById('date-preset-btn').textContent = 'Сегодня';
-        let skeletonHTML = '';
-        for (let i = 0; i < 4; i++) {
-            skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
+        if (!response.ok) {
+            const errorText = await response.text(); 
+            throw new Error(`Ошибка сервера: ${response.status}. Ответ: ${errorText}`);
         }
-        meetingsList.innerHTML = skeletonHTML;
-        const payload = { login: currentUser, startDateString, endDateString };
-        callApi('getInitialData', payload)
-            .then(onDataLoaded)
-            .catch(err => {
-                onFailure(err);
-                meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
-            });
+        const result = await response.json();
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
+        return result.data;
+    } catch (e) {
+        console.error("API call failed:", e);
+        throw e.message ? e : new Error('Ошибка сети или ответа сервера.');
     }
-
-    function onDataLoaded(data) {
-    allMeetings = data.meetings;
+}
+function onFailure(error, errorElement = null) {
+    console.error(error);
+    if (errorElement) {
+        errorElement.textContent = error.message;
+        errorElement.classList.remove(HIDDEN_CLASS);
+    } else {
+        showToast('Ошибка: ' + error.message);
+    }
+}
+function handleLogin(e) {
+    e.preventDefault();
+    const loginBtn = document.getElementById('login-button');
+    toggleButtonSpinner(loginBtn, true);
+    const loginError = document.getElementById('login-error');
+    loginError.classList.add(HIDDEN_CLASS);
+    const payload = { login: document.getElementById('username').value, password: document.getElementById('password').value };
+    callApi('login', payload).then(onLoginSuccess).catch(err => {
+        onFailure(err, loginError);
+        document.getElementById('password').value = '';
+    }).finally(() => {
+        toggleButtonSpinner(loginBtn, false);
+    });
+}
+function loadInitialData(startDateString, endDateString) {
+    isSearchMode = false;
+    document.getElementById('searchInput1').value = '';
+    document.getElementById('date-preset-btn').textContent = 'Сегодня';
+    let skeletonHTML = '';
+    for (let i = 0; i < 4; i++) {
+        skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
+    }
+    meetingsList.innerHTML = skeletonHTML;
+    const payload = { login: currentUser, startDateString, endDateString };
+    callApi('getInitialData', payload)
+        .then(onDataLoaded)
+        .catch(err => {
+            onFailure(err);
+            meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
+        });
+}
+function onDataLoaded(data) {
+    allMeetings = data.meetings || [];
     questions = data.questions || [];
     potentialCategories = data.potentialCategories || [];
     populatePurposes(data.purposes);
-
-    // Обновляем виджеты и список встреч
     updateDashboardWidgets(); 
     filterAndGroupMeetings();
 }
-    async function performGlobalSearch() {
-        const searchInput = document.getElementById('searchInput1');
-        const searchTerm = searchInput.value;
-        if (searchTerm.length < 3) {
-            if (searchTerm.length === 0) {
-                document.getElementById('resetFiltersBtn').click();
-            } else {
-                showToast("Введите минимум 3 символа для поиска.");
-            }
-            return;
+async function performGlobalSearch() {
+    const searchInput = document.getElementById('searchInput1');
+    const searchTerm = searchInput.value;
+    if (searchTerm.length < 3) {
+        if (searchTerm.length === 0) {
+            document.getElementById('date-preset-btn').click();
+        } else {
+            showToast("Введите минимум 3 символа для поиска.");
         }
-        const resultsContainer = document.getElementById('clientHistorySearchResult');
-        resultsContainer.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>';
-        clientHistorySearchModal.show();
-        try {
-            const result = await callApi('findClient', { searchTerm: searchTerm, managerLogin: currentUser });
-            if (result && result.found && result.clients && result.clients.length > 0) {
-                const clientsHtml = result.clients.map(client => {
-                    const isForeignClient = !client.isMine;
-                    const disabledClass = isForeignClient ? 'disabled list-group-item-light' : '';
-                    const titleText = isForeignClient ? `Закреплен за: ${client.managerName || 'другой менеджер'}` : 'Посмотреть историю встреч';
-                    return `<a href="#" class="list-group-item list-group-item-action js-select-client-for-history ${disabledClass}" data-client-id="${client.ClientID}" data-client-name="${client.clientName}" title="${titleText}"><strong>${client.clientName}</strong><small class="text-muted d-block">Менеджер: ${client.managerName || 'Не назначен'}</small></a>`;
-                }).join('');
-                resultsContainer.innerHTML = `<div class="list-group">${clientsHtml}</div>`;
-            } else {
-                resultsContainer.innerHTML = `<div class="alert alert-warning">Клиенты не найдены.</div>`;
-            }
-        } catch (e) {
-            onFailure(e);
-            resultsContainer.innerHTML = `<div class="alert alert-danger">Ошибка поиска: ${e.message}</div>`;
-        }
+        return;
     }
-    function populatePurposes(purposes) {
-        const purposeSelect = document.getElementById('purpose');
-        purposeSelect.innerHTML = '<option value="">-- Выберите цель --</option>';
-        if (purposes && Array.isArray(purposes)) {
-            purposes.forEach(p => {
-                purposeSelect.innerHTML += `<option value="${p.Purpose}">${p.Purpose}</option>`;
-            });
+    const resultsContainer = document.getElementById('clientHistorySearchResult');
+    resultsContainer.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>';
+    clientHistorySearchModal.show();
+    try {
+        const result = await callApi('findClient', { searchTerm: searchTerm, managerLogin: currentUser });
+        if (result && result.found && result.clients && result.clients.length > 0) {
+            const clientsHtml = result.clients.map(client => {
+                const isForeignClient = !client.isMine;
+                const disabledClass = isForeignClient ? 'disabled list-group-item-light' : '';
+                const titleText = isForeignClient ? `Закреплен за: ${client.managerName || 'другой менеджер'}` : 'Посмотреть историю встреч';
+                return `<a href="#" class="list-group-item list-group-item-action js-select-client-for-history ${disabledClass}" data-client-id="${client.ClientID}" data-client-name="${client.clientName}" title="${titleText}"><strong>${client.clientName}</strong><small class="text-muted d-block">Менеджер: ${client.managerName || 'Не назначен'}</small></a>`;
+            }).join('');
+            resultsContainer.innerHTML = `<div class="list-group">${clientsHtml}</div>`;
+        } else {
+            resultsContainer.innerHTML = `<div class="alert alert-warning">Клиенты не найдены.</div>`;
         }
+    } catch (e) {
+        onFailure(e);
+        resultsContainer.innerHTML = `<div class="alert alert-danger">Ошибка поиска: ${e.message}</div>`;
     }
-        function updateDashboardWidgets() {
+}
+function populatePurposes(purposes) {
+    const purposeSelect = document.getElementById('purpose');
+    purposeSelect.innerHTML = '<option value="">-- Выберите цель --</option>';
+    if (purposes && Array.isArray(purposes)) {
+        purposes.forEach(p => {
+            purposeSelect.innerHTML += `<option value="${p.Purpose}">${p.Purpose}</option>`;
+        });
+    }
+}
+function updateDashboardWidgets() {
     const widgetsContainer = document.getElementById('dashboard-widgets');
     if (!widgetsContainer) return;
-
-    // --- НАЧАЛО НОВОЙ ЛОГИКИ ---
-
-    // 1. Получаем даты из фильтра
     const startDate = datePicker.getStartDate()?.toJSDate();
     const endDate = datePicker.getEndDate()?.toJSDate();
-    if (!startDate || !endDate) return; // Выходим, если даты не выбраны
-
-    // 2. Определяем, выбран ли только сегодняшний день
+    if (!startDate || !endDate) return;
     const today = new Date();
     const isTodayView = startDate.toDateString() === today.toDateString() && endDate.toDateString() === today.toDateString();
-
     let meetingsForPeriod;
     let totalValue;
     let totalLabel;
-
-    // 3. Считаем общее количество встреч в зависимости от периода
     if (isTodayView) {
         const todayString = getTodayDateString().split('-').reverse().join('.');
         meetingsForPeriod = allMeetings.filter(m => m.Date === todayString);
         totalValue = meetingsForPeriod.length;
         totalLabel = "Сегодня";
     } else {
-        // Фильтруем все встречи, чтобы они попали в диапазон
         meetingsForPeriod = allMeetings.filter(m => {
             const dateParts = m.Date.split('.');
             const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
@@ -885,12 +903,9 @@ if (widgetsContainer) {
         totalValue = meetingsForPeriod.length;
         totalLabel = "Всего";
     }
-
-    // 4. Считаем остальные виджеты (они всегда показывают статистику на СЕГОДНЯ)
     const todayStringForStats = getTodayDateString().split('-').reverse().join('.');
     const meetingsToday = allMeetings.filter(m => m.Date === todayStringForStats);
     const completedToday = meetingsToday.filter(m => m.Status === 'Завершена' || m.Status === 'Завершено').length;
-    
     const now = new Date();
     const overdue = allMeetings.filter(m => {
         const dateParts = m.Date.split('.');
@@ -898,112 +913,89 @@ if (widgetsContainer) {
         const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]);
         return meetingDate < now && (m.Status === 'В работе' || m.Status === 'Запланировано');
     }).length;
-    
-    // --- КОНЕЦ НОВОЙ ЛОГИКИ ---
-
-    // Формируем HTML для виджетов
-    widgetsContainer.innerHTML = `
-        <div class="col-4">
-            <div class="widget-card">
-                <div class="widget-value text-primary">${totalValue}</div>
-                <div class="widget-label">${totalLabel}</div>
-            </div>
-        </div>
-        <div class="col-4">
-            <div class="widget-card">
-                <div class="widget-value text-success">${completedToday}</div>
-                <div class="widget-label">Завершено</div>
-            </div>
-        </div>
-        <div class="col-4">
-            <a href="#" id="widget-overdue-filter" class="widget-card">
-                <div class="widget-value text-danger">${overdue}</div>
-                <div class="widget-label">Просрочено</div>
-            </a>
-        </div>
-    `;
+    widgetsContainer.innerHTML = `<div class="col-4"><div class="widget-card"><div class="widget-value text-primary">${totalValue}</div><div class="widget-label">${totalLabel}</div></div></div><div class="col-4"><div class="widget-card"><div class="widget-value text-success">${completedToday}</div><div class="widget-label">Завершено</div></div></div><div class="col-4"><a href="#" id="widget-overdue-filter" class="widget-card"><div class="widget-value text-danger">${overdue}</div><div class="widget-label">Просрочено</div></a></div>`;
 }
-    function filterAndGroupMeetings() {
-        const searchTerm = document.getElementById('searchInput1').value.toLowerCase();
-        const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
-        const dateGroups = {};
-        const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
-        filtered.forEach(m => {
-            let status = m.Status ? m.Status.trim() : '';
-            if (status === 'Завершено') status = 'Завершена';
-            if (status === 'Отменено') status = 'Отмена';
-            if (!validStatuses.includes(status)) status = 'В работе';
-            if (!dateGroups[m.Date]) {
-                dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершено': [], 'Отмена': [], 'Просрочено': [] };
-            }
-            if (dateGroups[m.Date][status]) {
-                dateGroups[m.Date][status].push(m);
-            } else {
-                dateGroups[m.Date]['В работе'].push(m);
-            }
-        });
-        meetingsList.innerHTML = '';
-        const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(b.split('.').reverse().join('-')) - new Date(a.split('.').reverse().join('-')));
-        if (sortedDates.length === 0) {
-            let emptyMessage = isSearchMode ? `<h4>Встреч по этому клиенту не найдено</h4><p class="text-muted">Попробуйте другой поисковый запрос.</p>` : `<h4>Встреч не найдено</h4><p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p><button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button>`;
-            meetingsList.innerHTML = `<div class="col-12 text-center p-5"><i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>${emptyMessage}</div>`;
-            if (!isSearchMode) {
-                document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
-            }
-            return;
+function filterAndGroupMeetings() {
+    const searchTerm = document.getElementById('searchInput1').value.toLowerCase();
+    const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
+    const dateGroups = {};
+    const validStatuses = ['В работе', 'Запланировано', 'Перенос', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
+    filtered.forEach(m => {
+        let status = m.Status ? m.Status.trim() : '';
+        if (status === 'Завершено') status = 'Завершена';
+        if (status === 'Отменено') status = 'Отмена';
+        if (!validStatuses.includes(status)) status = 'В работе';
+        if (!dateGroups[m.Date]) {
+            dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Перенос': [], 'Завершено': [], 'Отмена': [], 'Просрочено': [] };
         }
-        sortedDates.forEach(date => {
-            const dateTitle = document.createElement('h3');
-            dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
-            dateTitle.textContent = date;
-            meetingsList.appendChild(dateTitle);
-            const groups = dateGroups[date];
-            const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершено', 'Отмена'];
-            groupOrder.forEach(status => {
-                if (groups[status] && groups[status].length > 0) {
-                    const groupTitle = document.createElement('h4');
-                    groupTitle.className = 'col-12 mt-3 text-muted';
-                    groupTitle.textContent = status;
-                    meetingsList.appendChild(groupTitle);
-                    groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
-                        const cleanStatus = m.Status ? m.Status.trim() : '';
-                        let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
-                        if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено') {
-                             dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
-                        }
-                        if (cleanStatus !== 'Завершено' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
-                            dropdownItems += '<li><hr class="dropdown-divider"></li>';
-                            dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
-                            dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
-                        }
-                        const actionsMenu = `<div class="dropdown actions-dropdown">${dropdownItems ? `<button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end">${dropdownItems}</ul>` : ''}</div>`;
-                        let rescheduleInfo = '';
-                        if (m.Comment && m.Comment.startsWith('Перенесена со старой даты')) {
-                            rescheduleInfo = `<p class="card-text text-info small mt-2"><em><i class="bi bi-arrow-repeat me-1"></i>${m.Comment}</em></p>`;
-                        }
-                        const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершено': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
-                        const statusColor = statusColors[cleanStatus] || 'gray';
-                        let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
-                        if (m.ClientCategory) {
-                            const categoryColor = getCategoryColor(m.ClientCategory);
-                            clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
-                        }
-                        const cardWrapper = document.createElement('div');
-                        cardWrapper.className = "col-12 col-md-6";
-                        cardWrapper.innerHTML = `<div class="card meeting-card shadow-sm border-0"><div class="card-body"><a href="#" class="btn btn-light edit-btn card-edit-btn-top-right" title="Редактировать" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a><div class="flex-grow-1"><h5 class="card-title">${clientTitle}</h5>${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}<p class="card-text mb-1"><small class="text-muted">Место встречи: ${m.Location || 'Не указано'}</small></p><div class="d-flex justify-content-between align-items-center mt-3"><p class="card-text mb-0"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>${actionsMenu}</div>${rescheduleInfo}<div class="mt-3 pt-3 border-top"><button class="btn btn-sm btn-outline-secondary w-100 report-btn-icon" data-client-id="${m.ClientID}" data-client-name="${m.Client}"><i class="bi bi-file-text me-2"></i>Данные по клиенту</button></div></div></div></div>`;
-                        meetingsList.appendChild(cardWrapper);
-                    });
-                }
-            });
-        });
-        document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
-        document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
-        document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
-        document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
-        document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
-        window.scrollTo(0, 0);
+        if (dateGroups[m.Date][status]) {
+            dateGroups[m.Date][status].push(m);
+        } else {
+            dateGroups[m.Date]['В работе'].push(m);
+        }
+    });
+    meetingsList.innerHTML = '';
+    const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(b.split('.').reverse().join('-')) - new Date(a.split('.').reverse().join('-')));
+    if (sortedDates.length === 0) {
+        let emptyMessage = isSearchMode ? `<h4>Встреч по этому клиенту не найдено</h4><p class="text-muted">Попробуйте другой поисковый запрос.</p>` : `<h4>Встреч не найдено</h4><p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p><button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button>`;
+        meetingsList.innerHTML = `<div class="col-12 text-center p-5"><i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>${emptyMessage}</div>`;
+        if (!isSearchMode) {
+            document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
+        }
+        return;
     }
-    function handleClientInput(e) {
+    sortedDates.forEach(date => {
+        const dateTitle = document.createElement('h3');
+        dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
+        dateTitle.textContent = date;
+        meetingsList.appendChild(dateTitle);
+        const groups = dateGroups[date];
+        const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Перенос', 'Завершено', 'Отмена'];
+        groupOrder.forEach(status => {
+            if (groups[status] && groups[status].length > 0) {
+                const groupTitle = document.createElement('h4');
+                groupTitle.className = 'col-12 mt-3 text-muted';
+                groupTitle.textContent = status;
+                meetingsList.appendChild(groupTitle);
+                groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
+                    const cleanStatus = m.Status ? m.Status.trim() : '';
+                    let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}">Итоги встречи</a></li>`;
+                    if (cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено') {
+                         dropdownItems += `<li><a class="dropdown-item geo-btn" href="#" data-id="${m.ID}">📍 Geo</a></li>`;
+                    }
+                    if (cleanStatus !== 'Завершено' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено') {
+                        dropdownItems += '<li><hr class="dropdown-divider"></li>';
+                        dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}">Перенести</a></li>`;
+                        dropdownItems += `<li><a class="dropdown-item complete-btn" href="#" data-id="${m.ID}">Завершить</a></li>`;
+                    }
+                    const actionsMenu = `<div class="dropdown actions-dropdown">${dropdownItems ? `<button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end">${dropdownItems}</ul>` : ''}</div>`;
+                    let rescheduleInfo = '';
+                    if (m.Comment && m.Comment.startsWith('Перенесена со старой даты')) {
+                        rescheduleInfo = `<p class="card-text text-info small mt-2"><em><i class="bi bi-arrow-repeat me-1"></i>${m.Comment}</em></p>`;
+                    }
+                    const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершено': 'green', 'Перенос': 'orange', 'Отмена': 'gray', 'Просрочено': 'red' };
+                    const statusColor = statusColors[cleanStatus] || 'gray';
+                    let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
+                    if (m.ClientCategory) {
+                        const categoryColor = getCategoryColor(m.ClientCategory);
+                        clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
+                    }
+                    const cardWrapper = document.createElement('div');
+                    cardWrapper.className = "col-12 col-md-6";
+                    cardWrapper.innerHTML = `<div class="card meeting-card shadow-sm border-0"><div class="card-body"><a href="#" class="btn btn-light edit-btn card-edit-btn-top-right" title="Редактировать" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a><div class="flex-grow-1"><h5 class="card-title">${clientTitle}</h5>${m.Purpose ? `<p class="card-text mb-1"><small class="text-muted">Цель: ${m.Purpose}</small></p>` : ''}<p class="card-text mb-1"><small class="text-muted">Место встречи: ${m.Location || 'Не указано'}</small></p><div class="d-flex justify-content-between align-items-center mt-3"><p class="card-text mb-0"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>${actionsMenu}</div>${rescheduleInfo}<div class="mt-3 pt-3 border-top"><button class="btn btn-sm btn-outline-secondary w-100 report-btn-icon" data-client-id="${m.ClientID}" data-client-name="${m.Client}"><i class="bi bi-file-text me-2"></i>Данные по клиенту</button></div></div></div></div>`;
+                    meetingsList.appendChild(cardWrapper);
+                });
+            }
+        });
+    });
+    document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
+    document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
+    document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
+    document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
+    document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
+    window.scrollTo(0, 0);
+}
+function handleClientInput(e) {
         const searchTerm = e.target.value;
         const resultsContainer = document.getElementById('client-autocomplete-results');
         clearTimeout(searchTimeout);
@@ -1181,7 +1173,8 @@ if (widgetsContainer) {
         });
         outcomeModal.show();
     }
-    async function handleSaveOutcome() {
+
+async function handleSaveOutcome() {
         const btn = document.getElementById('saveOutcomeBtn');
         toggleButtonSpinner(btn, true);
         const oldData = allMeetings.find(m => m.ID === activeMeetingId);
@@ -1201,7 +1194,8 @@ if (widgetsContainer) {
             toggleButtonSpinner(btn, false);
         }
     }
-    async function handleGetLocationClick() {
+
+async function handleGetLocationClick() {
         const btn = document.getElementById('get-meeting-location-btn');
         toggleButtonSpinner(btn, true);
         try {
@@ -1234,7 +1228,8 @@ if (widgetsContainer) {
             toggleButtonSpinner(btn, false);
         }
     }
-    async function getAddressFromGeolocation() {
+
+ async function getAddressFromGeolocation() {
         if (!navigator.geolocation) throw new Error("Геолокация не поддерживается");
         return new Promise((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(async (position) => {
@@ -1398,9 +1393,10 @@ if (widgetsContainer) {
         document.getElementById('get-meeting-location-btn').classList.remove('d-none');
         showForm(true);
     }
-    function onActionComplete() { showForm(false); }
-    function handleCancelClick() { cancelConfirmModal.show(); }
-    function showForm(show) {
+
+function onActionComplete() { showForm(false); }
+function handleCancelClick() { cancelConfirmModal.show(); }
+function showForm(show) {
         const viewMeetings = document.getElementById('view-meetings');
         const formSection = document.getElementById('form-section');
         if (viewMeetings && formSection) {
@@ -1408,7 +1404,8 @@ if (widgetsContainer) {
             formSection.classList.toggle(HIDDEN_CLASS, !show);
         }
     }
-</script>
+
+    </script>
 </body>
 
 </html>
