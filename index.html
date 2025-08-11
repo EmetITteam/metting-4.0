@@ -546,11 +546,12 @@ body {
     let isSearchMode = false;
     let meetingToCompleteId = null;
     let completeConfirmModal;
+       
 
     // Глобальные экземпляры, которые будут инициализированы позже
     let meetingsList, rescheduleModal, cancelConfirmModal, outcomeModal, reportModal, clientSearchModal, clientHistorySearchModal, appToast;
-    let datePicker, adminDatePicker, phoneMask, searchMask;
-
+    let datePicker, adminDatePicker, phoneMask, clientListMask;
+       
     // --- ОСНОВНОЙ БЛОК ИНИЦИАЛИЗАЦИИ ПОСЛЕ ЗАГРУЗКИ СТРАНИЦЫ ---
     document.addEventListener('DOMContentLoaded', () => {
         // --- Сначала находим все нужные элементы DOM ---
@@ -609,6 +610,21 @@ outcomeModalEl.addEventListener('change', (e) => {
             commentField.classList.add('d-none');
         }
     }
+});
+        // ВСТАВЬТЕ ЭТОТ БЛОК ВНУТРЬ DOMContentLoaded
+
+const clientListFilterInput = document.getElementById('client-list-filter');
+clientListMask = IMask(clientListFilterInput, {
+    mask: [
+        {
+            mask: '+{38} (000) 000-00-00',
+            startsWith: '38', // Маска включается, как только вводятся цифры '38'
+            lazy: false
+        },
+        {
+            mask: /.*/ // Разрешает любой другой текст, если это не номер
+        }
+    ]
 });
 
         // --- Затем определяем функции, которые с ними работают ---
@@ -766,21 +782,22 @@ document.getElementById('confirmCompleteBtn').addEventListener('click', () => {
         document.getElementById('client-name').addEventListener('input', handleClientInput);
 
         // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 const clientListFilter = document.getElementById('client-list-filter');
 clientListFilter.addEventListener('input', () => {
-    clearTimeout(searchTimeout);
+    clearTimeout(searchTimeout); 
     searchTimeout = setTimeout(() => {
-        const searchTerm = clientListFilter.value.toLowerCase();
-        // Убираем из поискового запроса все, кроме цифр, для поиска по телефону
-        const searchTermDigits = searchTerm.replace(/\D/g, '');
-
+        // Используем .unmaskedValue для получения "чистых" цифр, если это телефон
+        const searchTermDigits = clientListMask.unmaskedValue;
+        // А .value используем для поиска по имени
+        const searchTermText = clientListFilter.value.toLowerCase();
+        
         const filteredClients = allClients.filter(c => {
             const clientName = c.ClientName.toLowerCase();
-            // Убираем форматирование из телефона клиента для точного поиска
             const clientPhone = c.Phone ? c.Phone.replace(/\D/g, '') : '';
 
-            // Ищем совпадение или в имени, или в номере телефона
-            return clientName.includes(searchTerm) || (searchTermDigits && clientPhone.includes(searchTermDigits));
+            // Ищем или по тексту в имени, или по цифрам в телефоне
+            return clientName.includes(searchTermText) || (searchTermDigits && clientPhone.includes(searchTermDigits));
         });
         
         renderClientList(filteredClients);
