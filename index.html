@@ -1142,17 +1142,18 @@ function renderCategoryFilters() {
     }
    // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 function getCategoryColor(categoryName) {
-    if (!categoryName) return '#cdd4da'; // Светло-серый
+    if (!categoryName || categoryName.toLowerCase().includes('без категории')) return '#A0AEC0'; // Нейтральный серый
+
     const lowerCategory = categoryName.toLowerCase();
 
-    // Новая пастельная палитра
-    if (lowerCategory.includes('новый')) return '#a2d2ff';       // Нежно-голубой
-    if (lowerCategory.includes('активный')) return '#bde0fe';   // Светло-зеленый
-    if (lowerCategory.includes('спящий')) return '#ffecb3';     // Бледно-желтый
-    if (lowerCategory.includes('без закупок')) return '#ffdcb3'; // Персиковый
-    if (lowerCategory.includes('потерянный')) return '#ffb3b3';  // Светло-красный
+    // Новая сбалансированная палитра
+    if (lowerCategory.includes('новый')) return '#4A90E2';       // Современный синий
+    if (lowerCategory.includes('активный')) return '#48BB78';   // Насыщенный зеленый
+    if (lowerCategory.includes('спящий')) return '#F2C94C';     // Теплый янтарный
+    if (lowerCategory.includes('без закупок')) return '#F2994A'; // Мягкий оранжевый
+    if (lowerCategory.includes('потерянный')) return '#EB5757';  // Спокойный красный
     
-    return '#cdd4da'; // Светло-серый по умолчанию
+    return '#A0AEC0'; // Нейтральный серый по умолчанию
 }
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     async function callApi(action, payload) {
