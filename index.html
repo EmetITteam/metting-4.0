@@ -1652,8 +1652,9 @@ function handleSaveOutcome() {
         });
     }
     // ЗАМЕНИТЕ СТАРУЮ ФУНКЦИЮ НА ЭТУ
+// ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ НА ЭТУ
 async function handleReportClick(btnElement) {
-    if (!btnElement) return; // Защита на случай ошибки
+    if (!btnElement) return;
 
     const clientID = btnElement.dataset.clientId;
     const clientName = btnElement.dataset.clientName;
@@ -1663,17 +1664,27 @@ async function handleReportClick(btnElement) {
         return;
     }
 
-    const reportModalBody = document.getElementById('reportModalBody');
-    document.getElementById('reportModalTitle').textContent = `Отчет по клиенту: ${clientName}`;
-    reportModalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
-    reportModal.show();
-    
+    // 1. Показываем спиннер на самой кнопке, давая понять, что идет загрузка
+    toggleButtonSpinner(btnElement, true);
+
     try {
-        const data = await callApi('getClientReport', { clientID: clientID }); 
+        // 2. СНАЧАЛА полностью загружаем данные
+        const data = await callApi('getClientReport', { clientID: clientID });
+
+        const reportModalBody = document.getElementById('reportModalBody');
+        document.getElementById('reportModalTitle').textContent = `Отчет по клиенту: ${clientName}`;
+
+        // 3. ПОТОМ отрисовываем готовый отчет в (пока еще скрытом) модальном окне
         renderReport(data);
+
+        // 4. И ТОЛЬКО ТЕПЕРЬ показываем пользователю полностью готовое окно
+        reportModal.show();
+
     } catch (e) {
         onFailure(e);
-        reportModal.hide();
+    } finally {
+        // 5. В любом случае (успех или ошибка) убираем спиннер с кнопки
+        toggleButtonSpinner(btnElement, false);
     }
 }
     function renderReport(data) {
