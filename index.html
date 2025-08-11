@@ -255,7 +255,7 @@ body {
         <div id="page-clients" class="app-page">
     <div class="row g-3 mb-3">
         <div class="col">
-            <input type="text" id="client-list-filter" class="form-control" placeholder="Поиск по вашим клиентам...">
+           <input type="text" id="client-list-filter" class="form-control" placeholder="Введите ФИО или телефон...">
         </div>
     </div>
     <div id="client-category-filters" class="d-flex flex-wrap gap-2 mb-3">
@@ -611,21 +611,31 @@ outcomeModalEl.addEventListener('change', (e) => {
         }
     }
 });
-        // ВСТАВЬТЕ ЭТОТ БЛОК ВНУТРЬ DOMContentLoaded
-
+        /// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 const clientListFilterInput = document.getElementById('client-list-filter');
 clientListMask = IMask(clientListFilterInput, {
-    mask: [
-        {
+    mask: IMask.MaskedDynamic, // Включаем динамический режим
+    blocks: {
+        phone: {
             mask: '+{38} (000) 000-00-00',
-            startsWith: '38', // Маска включается, как только вводятся цифры '38'
-            lazy: false
+            lazy: true, // ВАЖНО: не показывать маску сразу
+            placeholderChar: '_'
         },
-        {
-            mask: /.*/ // Разрешает любой другой текст, если это не номер
+        text: {
+            mask: /.*/ // Маска для обычного текста (имен)
         }
-    ]
+    },
+    // Эта функция решает, какую маску применить в зависимости от ввода
+    dispatch: function (appended, dynamicMasked) {
+        // Если вводится любая цифра - применяем маску телефона
+        if (/\d/.test(dynamicMasked.value)) {
+            return dynamicMasked.compiledMasks.phone;
+        }
+        // Иначе - позволяем вводить любой текст (для ФИО)
+        return dynamicMasked.compiledMasks.text;
+    }
 });
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
 
         // --- Затем определяем функции, которые с ними работают ---
         function showMainApp(show) {
