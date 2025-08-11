@@ -175,9 +175,7 @@ body {
     <li class="list-group-item px-0">
         <a href="#" class="text-decoration-none text-dark d-block">Настройки</a>
     </li>
-    <li class="list-group-item px-0">
-        <a href="#" id="offcanvas-client-search-btn" class="text-decoration-none text-dark d-block">Поиск по всей базе</a>
-    </li>
+    
 </ul>
         </div>
         <div class="mt-auto">
@@ -256,8 +254,13 @@ body {
         </div>
         <div id="page-clients" class="app-page">
     <div class="row g-3 mb-3">
-        <div class="col">
-           <input type="text" id="client-list-filter" class="form-control" placeholder="Введите ФИО или телефон...">
+        <div class="col-md-7">
+            <input type="text" id="client-list-filter" class="form-control" placeholder="Поиск по вашим клиентам (ФИО или телефон)...">
+        </div>
+        <div class="col-md-5">
+            <button class="btn btn-outline-primary w-100" id="global-search-trigger-btn">
+                <i class="bi bi-search"></i> Поиск по всей базе
+            </button>
         </div>
     </div>
     <div id="client-category-filters" class="d-flex flex-wrap gap-2 mb-3">
@@ -600,16 +603,15 @@ document.getElementById('clientSearchInput').addEventListener('keypress', (e) =>
     if (e.key === 'Enter') handleClientSearch();
 });
 
-const offcanvasClientSearchBtn = document.getElementById('offcanvas-client-search-btn');
-if (offcanvasClientSearchBtn) {
-    offcanvasClientSearchBtn.addEventListener('click', (e) => {
-        e.preventDefault();
+// ВСТАВЬТЕ ЭТОТ НОВЫЙ БЛОК
+const globalSearchTriggerBtn = document.getElementById('global-search-trigger-btn');
+if (globalSearchTriggerBtn) {
+    globalSearchTriggerBtn.addEventListener('click', () => {
+        // Очищаем и показываем модальное окно для глобального поиска
         document.getElementById('clientSearchInput').value = '';
         document.getElementById('clientSearchResult').innerHTML = '';
         if (searchMask) searchMask.updateValue();
         clientSearchModal.show();
-        const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sideMenu'));
-        offcanvas.hide();
     });
 }
       
