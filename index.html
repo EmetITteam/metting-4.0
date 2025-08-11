@@ -118,10 +118,11 @@ body {
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         #client-autocomplete-results .list-group-item { cursor: pointer; }
         #client-autocomplete-results .list-group-item:hover { background-color: #f0f0f0; }
-        /* --- Стили для адаптации карточек на ПК --- */
-        @media (min-width: 992px) {
-    /* На больших экранах (lg и выше) ограничиваем ширину основного контейнера */
-    #page-dashboard {
+      
+        /* --- Стили для адаптации на ПК --- */
+@media (min-width: 992px) {
+    /* Ограничиваем ширину и центрируем основные рабочие страницы */
+    #page-dashboard, #page-clients, #page-add-client {
         max-width: 1200px;
         margin-left: auto;
         margin-right: auto;
@@ -254,18 +255,20 @@ body {
         </div>
         <div id="page-clients" class="app-page">
     <div class="row g-3 mb-3 align-items-end">
-        <div class="col-md-7">
-            <label for="client-list-filter" class="form-label">Поиск по вашим клиентам</label>
-            <input type="text" id="client-list-filter" class="form-control" placeholder="Введите ФИО или телефон...">
-        </div>
-        <div class="col-md-5">
-            <button class="btn btn-primary w-100" id="show-add-client-form-btn">
-                <i class="bi bi-plus-lg me-2"></i>Добавить клиента
-            </button>
-        </div>
+    <div class="col-lg-6 col-md-12">
+        <label for="client-list-filter" class="form-label">Поиск по вашим клиентам</label>
+        <input type="text" id="client-list-filter" class="form-control" placeholder="Введите ФИО или телефон...">
     </div>
-    <div id="client-category-filters" class="d-flex flex-wrap gap-2 mb-3"></div>
-    <div id="client-list-container"></div>
+    <div class="col-lg-3 col-6">
+        <button class="btn btn-primary w-100" id="show-add-client-form-btn">
+            <i class="bi bi-plus-lg"></i> Добавить
+        </button>
+    </div>
+    <div class="col-lg-3 col-6">
+        <button class="btn btn-outline-primary w-100" id="global-search-trigger-btn">
+            <i class="bi bi-search"></i> По всей базе
+        </button>
+    </div>
 </div>
     </main>
     <div id="page-add-client" class="app-page">
