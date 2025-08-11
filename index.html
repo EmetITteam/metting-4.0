@@ -260,6 +260,8 @@ body {
             <input type="text" id="client-list-filter" class="form-control" placeholder="Поиск по вашим клиентам...">
         </div>
     </div>
+    <div id="client-category-filters" class="d-flex flex-wrap gap-2 mb-3">
+        </div>
     <div id="client-list-container">
         </div>
 </div>
@@ -563,7 +565,32 @@ body {
         const bottomNav = document.querySelector('.app-bottom-nav');
         const loginContainer = document.getElementById('login-container');
         const bodyEl = document.querySelector('body');
-        // ВСТАВЬТЕ ЭТОТ КОД ВНУТРЬ DOMContentLoaded
+      
+
+// Обработчик для кликов по фильтрам категорий
+const filtersContainer = document.getElementById('client-category-filters');
+if (filtersContainer) {
+    filtersContainer.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            // Убираем класс 'active' со всех кнопок и добавляем на нажатую
+            filtersContainer.querySelectorAll('button').forEach(btn => btn.classList.remove('active', 'btn-primary'));
+            e.target.classList.add('active');
+
+            const selectedCategory = e.target.dataset.category;
+            
+            let filteredClients;
+            if (selectedCategory === 'all') {
+                filteredClients = allClients; // Показываем всех
+            } else if (selectedCategory === 'Без категории') {
+                filteredClients = allClients.filter(c => !c.ClientCategory);
+            } else {
+                filteredClients = allClients.filter(c => c.ClientCategory === selectedCategory);
+            }
+            
+            renderClientList(filteredClients); // Перерисовываем список
+        }
+    });
+}
 
 // Логика для условных полей в анкете
 const outcomeModalEl = document.getElementById('outcomeModal');
@@ -895,18 +922,48 @@ document.addEventListener('click', function(e) {
     
     // --- ВСЕ ОСТАЛЬНЫЕ ФУНКЦИИ ---
     
-    async function loadClientsPage() {
-        const container = document.getElementById('client-list-container');
-        container.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary"></div></div>';
-        try {
-            const result = await callApi('getManagerClients', { login: currentUser });
-            allClients = result.clients || [];
-            renderClientList(allClients);
-        } catch (e) {
-            onFailure(e);
-            container.innerHTML = '<div class="alert alert-danger">Не удалось загрузить список клиентов.</div>';
-        }
+    // ЗАМЕНИТЕ ЭТУ ФУНКЦИЮ
+async function loadClientsPage() {
+    const container = document.getElementById('client-list-container');
+    container.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary"></div></div>';
+
+    try {
+        const result = await callApi('getManagerClients', { login: currentUser });
+        allClients = result.clients || [];
+        
+        // --- ДОБАВЛЕНО ---
+        renderCategoryFilters(); // Создаем кнопки фильтров
+        
+        renderClientList(allClients); // Отрисовываем полный список
+    } catch (e) {
+        onFailure(e);
+        container.innerHTML = '<div class="alert alert-danger">Не удалось загрузить список клиентов.</div>';
     }
+}
+       // ДОБАВЬТЕ ЭТУ НОВУЮ ФУНКЦИЮ
+function renderCategoryFilters() {
+    const filtersContainer = document.getElementById('client-category-filters');
+    if (!filtersContainer) return;
+
+    // Собираем все уникальные категории клиентов
+    const categories = [...new Set(allClients.map(client => client.ClientCategory || "Без категории"))];
+    
+    let filtersHtml = '<button class="btn btn-sm btn-primary active" data-category="all">Все</button>';
+
+    categories.forEach(category => {
+        const categoryColor = getCategoryColor(category);
+        // Используем Bootstrap классы для цвета текста, чтобы он был читаемым на светлом фоне
+        const textColorClass = (category === 'Спящий' || category === 'Без закупок') ? 'text-dark' : 'text-white';
+        
+        filtersHtml += `
+            <button class="btn btn-sm ${textColorClass}" style="background-color: ${categoryColor};" data-category="${category}">
+                ${category}
+            </button>
+        `;
+    });
+
+    filtersContainer.innerHTML = filtersHtml;
+}
 
     function renderClientList(clientsToRender) {
         const container = document.getElementById('client-list-container');
