@@ -947,23 +947,22 @@ async function loadClientsPage() {
         container.innerHTML = '<div class="alert alert-danger">Не удалось загрузить список клиентов.</div>';
     }
 }
-       // ДОБАВЬТЕ ЭТУ НОВУЮ ФУНКЦИЮ
+      // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 function renderCategoryFilters() {
     const filtersContainer = document.getElementById('client-category-filters');
     if (!filtersContainer) return;
 
-    // Собираем все уникальные категории клиентов
     const categories = [...new Set(allClients.map(client => client.ClientCategory || "Без категории"))];
     
     let filtersHtml = '<button class="btn btn-sm btn-primary active" data-category="all">Все</button>';
 
     categories.forEach(category => {
         const categoryColor = getCategoryColor(category);
-        // Используем Bootstrap классы для цвета текста, чтобы он был читаемым на светлом фоне
-        const textColorClass = (category === 'Спящий' || category === 'Без закупок') ? 'text-dark' : 'text-white';
+        // Теперь для всех кнопок с кастомным цветом текст будет темным
+        const textColorClass = 'text-dark';
         
         filtersHtml += `
-            <button class="btn btn-sm ${textColorClass}" style="background-color: ${categoryColor};" data-category="${category}">
+            <button class="btn btn-sm ${textColorClass}" style="background-color: ${categoryColor}; border-color: ${categoryColor};" data-category="${category}">
                 ${category}
             </button>
         `;
@@ -971,7 +970,7 @@ function renderCategoryFilters() {
 
     filtersContainer.innerHTML = filtersHtml;
 }
-
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     function renderClientList(clientsToRender) {
         const container = document.getElementById('client-list-container');
         if (!container) return;
@@ -1132,16 +1131,21 @@ function renderCategoryFilters() {
             appToast.show();
         }
     }
-    function getCategoryColor(categoryName) {
-        if (!categoryName) return '#6c757d'; 
-        const lowerCategory = categoryName.toLowerCase();
-        if (lowerCategory.includes('новый')) return '#0d6efd';
-        if (lowerCategory.includes('активный')) return '#198754';
-        if (lowerCategory.includes('спящий')) return '#ffc107';
-        if (lowerCategory.includes('без закупок')) return '#fd7e14';
-        if (lowerCategory.includes('потерянный')) return '#dc3545';
-        return '#6c757d';
-    }
+   // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+function getCategoryColor(categoryName) {
+    if (!categoryName) return '#cdd4da'; // Светло-серый
+    const lowerCategory = categoryName.toLowerCase();
+
+    // Новая пастельная палитра
+    if (lowerCategory.includes('новый')) return '#a2d2ff';       // Нежно-голубой
+    if (lowerCategory.includes('активный')) return '#bde0fe';   // Светло-зеленый
+    if (lowerCategory.includes('спящий')) return '#ffecb3';     // Бледно-желтый
+    if (lowerCategory.includes('без закупок')) return '#ffdcb3'; // Персиковый
+    if (lowerCategory.includes('потерянный')) return '#ffb3b3';  // Светло-красный
+    
+    return '#cdd4da'; // Светло-серый по умолчанию
+}
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     async function callApi(action, payload) {
         try {
             const response = await fetch(API_URL, {
