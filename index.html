@@ -310,7 +310,144 @@ body {
     </div>
     
     <div class="modal fade" id="reportModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5" id="reportModalTitle">Отчет по клиенту</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="reportModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
-    <div class="modal fade" id="outcomeModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Итоги встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><nav><div class="nav nav-tabs" id="nav-tab" role="tablist"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#nav-potential" type="button">Потенциал</button><button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-comments" type="button">Комментарии и Вопросы</button></div></nav><div class="tab-content p-3 border border-top-0 rounded-bottom"><div class="tab-pane fade show active" id="nav-potential" role="tabpanel"><div id="potentialCategories"></div></div><div class="tab-pane fade" id="nav-comments" role="tabpanel"><div class="mb-3"><label for="meetingComment" class="form-label">Общий комментарий:</label><textarea class="form-control" id="meetingComment" rows="3"></textarea></div><hr><h6>Ответы на вопросы:</h6><div id="surveyQuestions"></div></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveOutcomeBtn">Сохранить итоги</button></div></div></div></div>
+    <div class="modal fade" id="outcomeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">Итоги встречи</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                
+                <h5 class="mb-3">Общий комментарий</h5>
+                <div class="mb-4">
+                    <textarea class="form-control" id="meetingComment" rows="3" placeholder="Ваши заметки по встрече..."></textarea>
+                </div>
+
+                <h5 class="mb-3">Анкета потенциала клиента</h5>
+                <div class="accordion" id="surveyAccordion">
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                1. Загальна інформація про практику
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+                            <div class="accordion-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Стаж роботи в естетичній медицині (років):</label>
+                                    <input type="number" class="form-control" data-question="Стаж роботи">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Середня кількість пацієнтів на тиждень:</label>
+                                    <input type="number" class="form-control" data-question="Кількість пацієнтів">
+                                </div>
+                                <div>
+                                    <label class="form-label d-block">Працює:</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="workType" value="Самостійно" data-question="Тип практики">
+                                        <label class="form-check-label">Самостійно</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="workType" value="У клініці найманий фахівець" data-question="Тип практики">
+                                        <label class="form-check-label">У клініці найманий фахівець</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="workType" value="Власник" id="workTypeOwner" data-question="Тип практики">
+                                        <label class="form-check-label">Власник та/або керівник клініки</label>
+                                    </div>
+                                    <div class="mt-2 d-none" id="specialistCountContainer">
+                                        <label class="form-label">Кількість спеціалістів:</label>
+                                        <input type="number" class="form-control" data-question="Кількість спеціалістів">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                2. Портфель і обсяги
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+                            <div class="accordion-body">
+                                <div class="mb-3">
+                                    <label class="form-label">З якими брендами працює зараз (ботулотоксини, філери, і т.д.):</label>
+                                    <textarea class="form-control" rows="3" data-question="Бренди в роботі"></textarea>
+                                </div>
+                                <div class="mb-3"><label class="form-label">Скільки шприців філерів на місяць (орієнтовно):</label><input type="number" class="form-control" data-question="Філери на місяць"></div>
+                                <div class="mb-3"><label class="form-label">Скільки шприців поліонуклеотидів на місяць (орієнтовно):</label><input type="number" class="form-control" data-question="Поліонуклеотиди на місяць"></div>
+                                
+                                <div class="p-2 border rounded mb-3">
+                                    <label class="form-label d-block">Чи використовує екзосоми?</label>
+                                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesExosomes" value="Так" data-question="Використовує екзосоми"><label class="form-check-label">Так</label></div>
+                                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesExosomes" value="Ні" data-question="Використовує екзосоми"><label class="form-check-label">Ні</label></div>
+                                    <textarea class="form-control mt-2 d-none" rows="2" placeholder="Які бренди, скільки пацієнтів..." data-question="Екзосоми коментар"></textarea>
+                                </div>
+                                
+                                <div class="p-2 border rounded mb-3">
+                                    <label class="form-label d-block">Чи використовує PLLA, PCL, CaHA?</label>
+                                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesPLLA" value="Так" data-question="Використовує PLLA"><label class="form-check-label">Так</label></div>
+                                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesPLLA" value="Ні" data-question="Використовує PLLA"><label class="form-check-label">Ні</label></div>
+                                    <textarea class="form-control mt-2 d-none" rows="2" placeholder="Які бренди, скільки пацієнтів..." data-question="PLLA коментар"></textarea>
+                                </div>
+
+                                <div class="p-2 border rounded mb-3">
+                                    <label class="form-label d-block">Чи працює зі шкірою голови?</label>
+                                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesHair" value="Так" data-question="Працює з волоссям"><label class="form-check-label">Так</label></div>
+                                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesHair" value="Ні" data-question="Працює з волоссям"><label class="form-check-label">Ні</label></div>
+                                    <textarea class="form-control mt-2 d-none" rows="2" placeholder="Які бренди, скільки пацієнтів..." data-question="Волосся коментар"></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Яких продуктів Вам не вистачає та чому?</label>
+                                    <textarea class="form-control" rows="2" data-question="Яких продуктів не вистачає"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                                3. Профіль пацієнтів
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+                            <div class="accordion-body">
+                                <label class="form-label d-block">Основна вікова категорія пацієнтів:</label>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="до 25" data-question="Вік пацієнтів"><label class="form-check-label">до 25</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="25-35" data-question="Вік пацієнтів"><label class="form-check-label">25-35</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="35-45" data-question="Вік пацієнтів"><label class="form-check-label">35-45</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="45-55" data-question="Вік пацієнтів"><label class="form-check-label">45-55</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="55+" data-question="Вік пацієнтів"><label class="form-check-label">55+</label></div>
+                                <hr>
+                                <label class="form-label d-block">Основні запити пацієнтів:</label>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="зморшки верхньої третини" data-question="Запити пацієнтів"><label class="form-check-label">зморшки верхньої третини</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="відновлення обʼєму" data-question="Запити пацієнтів"><label class="form-check-label">відновлення обʼєму</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="сухість / зневоднення шкіри" data-question="Запити пацієнтів"><label class="form-check-label">сухість / зневоднення шкіри</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="постакне / рубці" data-question="Запити пацієнтів"><label class="form-check-label">постакне / рубці</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="пігментація / купероз" data-question="Запити пацієнтів"><label class="form-check-label">пігментація / купероз</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="alopecia" data-question="Запити пацієнтів"><label class="form-check-label">alopecia</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="anti-age профілактика" data-question="Запити пацієнтів"><label class="form-check-label">anti-age профілактика</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="реабілітація після стресу / хвороб" data-question="Запити пацієнтів"><label class="form-check-label">реабілітація після стресу / хвороб</label></div>
+                                <div class="input-group mt-2"><span class="input-group-text">інше:</span><input type="text" class="form-control" data-question="Запити пацієнтів інше"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="saveOutcomeBtn">Сохранить итоги</button>
+            </div>
+        </div>
+    </div>
+</div>
     <div class="modal fade" id="rescheduleModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Перенос встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Укажите новую дату и время.</p><div class="mb-3"><label for="newMeetingDate" class="form-label">Новая дата</label><input type="date" class="form-control" id="newMeetingDate" required></div><div><label for="newMeetingTime" class="form-label">Новое время</label><input type="time" class="form-control" id="newMeetingTime" required></div><div id="rescheduleError" class="text-danger mt-2 d-none"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveRescheduleBtn">Перенести</button></div></div></div></div>
     <div class="modal fade" id="cancelConfirmModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Подтверждение</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Вы уверены, что хотите отменить изменения?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Остаться</button><button type="button" class="btn btn-danger" id="confirmCancelBtn">Отменить изменения</button></div></div></div></div>
     <div class="modal fade" id="clientSearchModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Поиск контрагента</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Введите номер телефона или ФИО для поиска клиента в базе 1С.</p><div class="input-group mb-3"><input type="text" class="form-control" id="clientSearchInput" placeholder="Телефон или ФИО..."><button class="btn btn-primary" type="button" id="clientSearchBtn">Найти</button></div><div id="clientSearchResult" class="mt-3"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
@@ -367,6 +504,28 @@ body {
         const bottomNav = document.querySelector('.app-bottom-nav');
         const loginContainer = document.getElementById('login-container');
         const bodyEl = document.querySelector('body');
+        // ВСТАВЬТЕ ЭТОТ КОД ВНУТРЬ DOMContentLoaded
+
+// Логика для условных полей в анкете
+const outcomeModalEl = document.getElementById('outcomeModal');
+outcomeModalEl.addEventListener('change', (e) => {
+    // Показываем/скрываем поле "Кількість спеціалістів"
+    if (e.target.id === 'workTypeOwner') {
+        document.getElementById('specialistCountContainer').classList.remove('d-none');
+    } else if (e.target.name === 'workType' && e.target.id !== 'workTypeOwner') {
+        document.getElementById('specialistCountContainer').classList.add('d-none');
+    }
+
+    // Показываем/скрываем поля для комментариев (для екзосом, PLLA, волосся)
+    if (e.target.name === 'usesExosomes' || e.target.name === 'usesPLLA' || e.target.name === 'usesHair') {
+        const commentField = e.target.closest('.p-2.border.rounded').querySelector('textarea');
+        if (e.target.value === 'Так') {
+            commentField.classList.remove('d-none');
+        } else {
+            commentField.classList.add('d-none');
+        }
+    }
+});
 
         // --- Затем определяем функции, которые с ними работают ---
         function showMainApp(show) {
@@ -1267,51 +1426,88 @@ function handleCompleteClick(event) {
             toggleButtonSpinner(saveBtn, false);
         }
     }
-    async function handleOutcomeClick(event) {
-        activeMeetingId = event.target.dataset.id;
-        const meeting = allMeetings.find(m => m.ID === activeMeetingId);
-        if (!meeting) return;
-        const potentialContainer = document.getElementById('potentialCategories');
-        potentialContainer.innerHTML = '';
-        let potentialData = {};
-        try { potentialData = JSON.parse(meeting.PotentialData) || {}; } catch (e) {};
-        potentialCategories.forEach((cat, index) => {
-            const categoryName = cat.CategoryName;
-            const value = potentialData[categoryName] || '';
-            potentialContainer.innerHTML += `<div class="input-group mb-2"><span class="input-group-text">${categoryName}</span><input type="text" id="potential-${index}" class="form-control" data-category="${categoryName}" value="${value}"></div>`;
+    // ЗАМЕНИТЕ СТАРЫЕ ФУНКЦИИ НА ЭТИ ДВЕ
+
+function handleOutcomeClick(event) {
+    activeMeetingId = event.target.closest('[data-id]').dataset.id;
+    const meeting = allMeetings.find(m => m.ID === activeMeetingId);
+    if (!meeting) return;
+
+    // Сбрасываем все поля формы перед заполнением
+    document.querySelector('#outcomeModal form, #outcomeModal textarea').reset();
+    
+    // Заполняем общий комментарий
+    document.getElementById('meetingComment').value = meeting.Comment || '';
+
+    // Заполняем анкету, если данные уже были сохранены
+    if (meeting.surveyData) {
+        const surveyData = JSON.parse(meeting.surveyData);
+        const formElements = document.querySelectorAll('#surveyAccordion [data-question]');
+        formElements.forEach(el => {
+            const question = el.dataset.question;
+            const value = surveyData[question];
+            if (value === undefined) return;
+
+            if (el.type === 'checkbox' || el.type === 'radio') {
+                if (Array.isArray(value) ? value.includes(el.value) : value === el.value) {
+                    el.checked = true;
+                }
+            } else {
+                el.value = value;
+            }
+            // Триггерим событие change, чтобы показать условные поля
+            el.dispatchEvent(new Event('change', { bubbles: true })); 
         });
-        document.getElementById('meetingComment').value = meeting.Comment || '';
-        const surveyContainer = document.getElementById('surveyQuestions');
-        surveyContainer.innerHTML = '';
-        let surveyAnswers = {};
-        try { surveyAnswers = JSON.parse(meeting.SurveyAnswers) || {}; } catch (e) {};
-        questions.forEach((q, index) => {
-            const questionText = q.QuestionText;
-            const answer = surveyAnswers[questionText] || '';
-            surveyContainer.innerHTML += `<div class="mb-2"><label for="question-${index}" class="form-label small">${questionText}</label><input type="text" id="question-${index}" class="form-control form-control-sm" data-question="${questionText}" value="${answer}"></div>`;
-        });
-        outcomeModal.show();
     }
-    async function handleSaveOutcome() {
-        const btn = document.getElementById('saveOutcomeBtn');
-        toggleButtonSpinner(btn, true);
-        const oldData = allMeetings.find(m => m.ID === activeMeetingId);
-        const potentialData = {};
-        document.querySelectorAll('#potentialCategories input').forEach(input => { potentialData[input.dataset.category] = input.value; });
-        const surveyAnswers = {};
-        document.querySelectorAll('#surveyQuestions input').forEach(input => { surveyAnswers[input.dataset.question] = input.value; });
-        const newData = { ...oldData, Comment: document.getElementById('meetingComment').value, SurveyAnswers: JSON.stringify(surveyAnswers), PotentialData: JSON.stringify(potentialData) };
-        try {
-            await callApi('updateMeeting', { newData, oldData });
-            showToast("Итоги встречи сохранены");
-            outcomeModal.hide();
-            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-        } catch (e) {
-            onFailure(e);
-        } finally {
-            toggleButtonSpinner(btn, false);
+    outcomeModal.show();
+}
+
+function handleSaveOutcome() {
+    const btn = document.getElementById('saveOutcomeBtn');
+    toggleButtonSpinner(btn, true);
+    
+    const meetingIndex = allMeetings.findIndex(m => m.ID === activeMeetingId);
+    if (meetingIndex === -1) {
+        toggleButtonSpinner(btn, false);
+        return;
+    }
+
+    // Сохраняем общий комментарий
+    allMeetings[meetingIndex].Comment = document.getElementById('meetingComment').value;
+
+    // Собираем данные анкеты
+    const surveyData = {};
+    const formElements = document.querySelectorAll('#surveyAccordion [data-question]');
+    formElements.forEach(el => {
+        const question = el.dataset.question;
+        if (el.type === 'checkbox') {
+            if (!surveyData[question]) surveyData[question] = [];
+            if (el.checked) {
+                surveyData[question].push(el.value);
+            }
+        } else if (el.type === 'radio') {
+            if (el.checked) {
+                surveyData[question] = el.value;
+            }
+        } else { // text, number, textarea
+            if (el.value) {
+                surveyData[question] = el.value;
+            }
         }
-    }
+    });
+
+    // "Виртуально" сохраняем данные анкеты в локальный массив
+    allMeetings[meetingIndex].surveyData = JSON.stringify(surveyData);
+    
+    showToast("Итоги встречи (виртуально) сохранены");
+    outcomeModal.hide();
+    toggleButtonSpinner(btn, false);
+    
+    // На сервер пока ничего не отправляем, но в будущем это будет здесь:
+    // const oldData = allMeetings[meetingIndex];
+    // const newData = { ...oldData }; // Обновляем нужные поля
+    // callApi('updateMeeting', { newData, oldData })...
+}
     async function handleGetLocationClick() {
         const btn = document.getElementById('get-meeting-location-btn');
         toggleButtonSpinner(btn, true);
