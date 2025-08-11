@@ -747,12 +747,17 @@ document.getElementById('confirmCompleteBtn').addEventListener('click', () => {
         });
         document.getElementById('client-name').addEventListener('input', handleClientInput);
 
-        const clientListFilter = document.getElementById('client-list-filter');
-        clientListFilter.addEventListener('input', () => {
-            const searchTerm = clientListFilter.value.toLowerCase();
-            const filteredClients = allClients.filter(c => c.ClientName.toLowerCase().includes(searchTerm));
-            renderClientList(filteredClients);
-        });
+        // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+const clientListFilter = document.getElementById('client-list-filter');
+clientListFilter.addEventListener('input', () => {
+    clearTimeout(searchTimeout); // Сбрасываем предыдущий таймер
+    searchTimeout = setTimeout(() => { // Устанавливаем новый таймер
+        const searchTerm = clientListFilter.value.toLowerCase();
+        const filteredClients = allClients.filter(c => c.ClientName.toLowerCase().includes(searchTerm));
+        renderClientList(filteredClients);
+    }, 300); // Задержка в 300 миллисекунд
+});
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
 
         const logoutBtnSideMenu = document.getElementById('logout-btn-side-menu');
         if (logoutBtnSideMenu) {
