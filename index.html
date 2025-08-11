@@ -1396,15 +1396,6 @@ async function handleGetLocationClick() {
 
 function onActionComplete() { showForm(false); }
 function handleCancelClick() { cancelConfirmModal.show(); }
-function showForm(show) {
-        const viewMeetings = document.getElementById('view-meetings');
-        const formSection = document.getElementById('form-section');
-        if (viewMeetings && formSection) {
-            viewMeetings.classList.toggle(HIDDEN_CLASS, show);
-            formSection.classList.toggle(HIDDEN_CLASS, !show);
-        }
-    // --- ВСТАВЬТЕ ЭТОТ БЛОК В КОНЕЦ СКРИПТА ---
-
 // Функция для загрузки списка клиентов с сервера
 async function loadClientsPage() {
     const container = document.getElementById('client-list-container');
@@ -1514,8 +1505,14 @@ function handleDatePresetClick(preset) {
         datePicker.setDateRange(startDate, endDate);
         document.getElementById('date-preset-btn').textContent = document.querySelector(`.dropdown-item[data-range="${preset}"]`).textContent;
     }
-}
-    });
+    function showForm(show) {
+        const viewMeetings = document.getElementById('view-meetings');
+        const formSection = document.getElementById('form-section');
+        if (viewMeetings && formSection) {
+            viewMeetings.classList.toggle(HIDDEN_CLASS, show);
+            formSection.classList.toggle(HIDDEN_CLASS, !show);
+        }
+
 </script>
 </body>
 
