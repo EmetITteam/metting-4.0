@@ -614,25 +614,24 @@ outcomeModalEl.addEventListener('change', (e) => {
         /// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 const clientListFilterInput = document.getElementById('client-list-filter');
 clientListMask = IMask(clientListFilterInput, {
-    mask: IMask.MaskedDynamic, // Включаем динамический режим
-    blocks: {
-        phone: {
+    mask: [
+        {
             mask: '+{38} (000) 000-00-00',
-            lazy: true, // ВАЖНО: не показывать маску сразу
-            placeholderChar: '_'
+            lazy: true // Не показывать маску сразу
         },
-        text: {
-            mask: /.*/ // Маска для обычного текста (имен)
+        {
+            mask: /.*/ // Маска для любого текста (для ФИО)
         }
-    },
-    // Эта функция решает, какую маску применить в зависимости от ввода
+    ],
+    // Эта функция решает, какую маску применить
     dispatch: function (appended, dynamicMasked) {
-        // Если вводится любая цифра - применяем маску телефона
-        if (/\d/.test(dynamicMasked.value)) {
-            return dynamicMasked.compiledMasks.phone;
+        const value = dynamicMasked.value + appended;
+        // Если в строке появляется хотя бы одна цифра, переключаемся на маску телефона
+        if (/\d/.test(value)) {
+            return dynamicMasked.compiledMasks[0]; // Выбираем маску телефона
         }
-        // Иначе - позволяем вводить любой текст (для ФИО)
-        return dynamicMasked.compiledMasks.text;
+        // Иначе, используем маску для обычного текста
+        return dynamicMasked.compiledMasks[1]; // Выбираем текстовую маску
     }
 });
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
