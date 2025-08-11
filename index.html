@@ -1164,23 +1164,42 @@ body {
         showForm(true);
     }
     async function handleCompleteClick(event) {
-        const btn = event.target;
-        toggleButtonSpinner(btn, true);
-        const meetingId = btn.dataset.id;
-        const oldData = allMeetings.find(m => m.ID === meetingId);
-        if (!oldData) { toggleButtonSpinner(btn, false); return; }
-        if (!confirm(`Завершить встречу с клиентом "${oldData.Client}"?`)) { toggleButtonSpinner(btn, false); return; }
-        const newData = { ...oldData, Status: 'Завершено' };
-        try {
-            await callApi('updateMeeting', { newData, oldData });
-            showToast("Встреча завершена");
-            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-        } catch(e) {
-            onFailure(e);
-        } finally {
-            if (btn.disabled) { toggleButtonSpinner(btn, false); }
-        }
+    const btn = event.target.closest('.complete-btn');
+    if (!btn) return;
+    
+    const meetingId = btn.dataset.id;
+    const meetingIndex = allMeetings.findIndex(m => m.ID === meetingId);
+    if (meetingIndex === -1) return;
+
+    // Для лучшего UX в будущем можно заменить confirm на красивое модальное окно Bootstrap
+    if (!confirm(`Завершить встречу с клиентом "${allMeetings[meetingIndex].Client}"?`)) {
+        return;
     }
+
+    toggleButtonSpinner(btn, true);
+
+    const oldData = allMeetings[meetingIndex];
+    const newData = { ...oldData, Status: 'Завершено' };
+
+    try {
+        // 1. Отправляем запрос на обновление и ждем только его
+        await callApi('updateMeeting', { newData, oldData });
+        showToast("Встреча завершена");
+
+        // 2. Обновляем статус встречи в нашем локальном массиве данных
+        allMeetings[meetingIndex].Status = 'Завершено';
+
+        // 3. Мгновенно перерисовываем список из уже имеющихся локальных данных
+        // Это очень быстро и не требует нового запроса к серверу!
+        filterAndGroupMeetings();
+
+    } catch (e) {
+        onFailure(e);
+        // В случае ошибки, возвращаем кнопку в исходное состояние
+        toggleButtonSpinner(btn, false);
+    }
+    // Кнопка-спиннер исчезнет сама после перерисовки, так как у завершенной встречи ее не будет
+}
     function handleRescheduleClick(event) {
         const meetingId = event.target.dataset.id;
         const meetingData = allMeetings.find(m => m.ID === meetingId);
