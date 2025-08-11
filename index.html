@@ -253,22 +253,56 @@ body {
             </section>
         </div>
         <div id="page-clients" class="app-page">
-    <div class="row g-3 mb-3">
+    <div class="row g-3 mb-3 align-items-end">
         <div class="col-md-7">
-            <input type="text" id="client-list-filter" class="form-control" placeholder="Поиск по вашим клиентам (ФИО или телефон)...">
+            <label for="client-list-filter" class="form-label">Поиск по вашим клиентам</label>
+            <input type="text" id="client-list-filter" class="form-control" placeholder="Введите ФИО или телефон...">
         </div>
         <div class="col-md-5">
-            <button class="btn btn-outline-primary w-100" id="global-search-trigger-btn">
-                <i class="bi bi-search"></i> Поиск по всей базе
+            <button class="btn btn-primary w-100" id="show-add-client-form-btn">
+                <i class="bi bi-plus-lg me-2"></i>Добавить клиента
             </button>
         </div>
     </div>
-    <div id="client-category-filters" class="d-flex flex-wrap gap-2 mb-3">
-        </div>
-    <div id="client-list-container">
-        </div>
+    <div id="client-category-filters" class="d-flex flex-wrap gap-2 mb-3"></div>
+    <div id="client-list-container"></div>
 </div>
     </main>
+    <div id="page-add-client" class="app-page">
+    <h2 class="h4 mb-3">Новый клиент</h2>
+    <form id="add-client-form" class="p-3 bg-light border rounded-3">
+        <div class="row g-3">
+            <div class="col-12">
+                <label for="new-client-name" class="form-label">ФИО</label>
+                <input type="text" id="new-client-name" class="form-control" required>
+            </div>
+            <div class="col-12">
+                <label for="new-client-phone" class="form-label">Контактный телефон</label>
+                <input type="tel" id="new-client-phone" class="form-control" required>
+            </div>
+            <div class="col-12">
+                <label for="new-client-address" class="form-label">Адрес клиента</label>
+                <textarea id="new-client-address" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="col-12">
+                <label for="new-client-education" class="form-label">Образование</label>
+                <input type="text" id="new-client-education" class="form-control">
+            </div>
+            <div class="col-12">
+                <label for="new-client-files" class="form-label">Документы</label>
+                <input class="form-control" type="file" id="new-client-files" multiple>
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" role="switch" id="new-client-docs-exist">
+                    <label class="form-check-label" for="new-client-docs-exist">Документы предоставлены</label>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" id="save-new-client-btn" class="btn btn-primary">Сохранить</button>
+            <button type="button" id="cancel-new-client-btn" class="btn btn-outline-secondary">Отмена</button>
+        </div>
+    </form>
+</div>
     
     <nav class="app-bottom-nav">
         <button class="nav-button active" data-page="dashboard"><i class="bi bi-speedometer2"></i><span>Рабочий стол</span></button>
@@ -571,6 +605,7 @@ body {
     let isSearchMode = false;
     let meetingToCompleteId = null;
     let completeConfirmModal;
+       let newClientPhoneMask;
        
        
 
@@ -614,6 +649,24 @@ if (globalSearchTriggerBtn) {
         clientSearchModal.show();
     });
 }
+        // ВСТАВЬТЕ ЭТОТ БЛОК ВНУТРЬ DOMContentLoaded
+
+// --- Логика для новой формы создания клиента ---
+const newClientPhoneInput = document.getElementById('new-client-phone');
+newClientPhoneMask = IMask(newClientPhoneInput, { mask: '+{38} (000) 000-00-00' });
+
+document.getElementById('show-add-client-form-btn').addEventListener('click', () => {
+    document.getElementById('add-client-form').reset();
+    document.querySelector('.nav-button[data-page="clients"]').click(); // Активируем кнопку "Клиенты"
+    switchPage('add-client'); // Показываем страницу с формой
+    headerTitle.textContent = "Новый клиент"; // Меняем заголовок
+});
+
+document.getElementById('cancel-new-client-btn').addEventListener('click', () => {
+    document.querySelector('.nav-button[data-page="clients"]').click(); // Возвращаемся на страницу "Клиенты"
+});
+
+document.getElementById('add-client-form').addEventListener('submit', handleSaveNewClient);
       
 
 // Обработчик для кликов по фильтрам категорий
@@ -1082,6 +1135,43 @@ async function handleClientSearch() {
     });
 }
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+       // ДОБАВЬТЕ ЭТУ НОВУЮ ФУНКЦИЮ
+async function handleSaveNewClient(e) {
+    e.preventDefault();
+    const saveBtn = document.getElementById('save-new-client-btn');
+    toggleButtonSpinner(saveBtn, true);
+
+    const newClientData = {
+        name: document.getElementById('new-client-name').value,
+        phone: newClientPhoneMask.unmaskedValue,
+        address: document.getElementById('new-client-address').value,
+        education: document.getElementById('new-client-education').value,
+        docsExist: document.getElementById('new-client-docs-exist').checked,
+        files: []
+    };
+
+    const fileInput = document.getElementById('new-client-files');
+    if (fileInput.files.length > 0) {
+        for (const file of fileInput.files) {
+            newClientData.files.push({
+                name: file.name,
+                size: file.size,
+                type: file.type
+            });
+        }
+    }
+
+    // ВЫВОДИМ ДАННЫЕ В КОНСОЛЬ ВМЕСТО ОТПРАВКИ НА СЕРВЕР
+    console.log("--- Виртуальное сохранение нового клиента ---");
+    console.log(newClientData);
+    
+    // Имитируем задержку, как будто идет сохранение
+    setTimeout(() => {
+        showToast(`Клиент "${newClientData.name}" (виртуально) сохранен.`);
+        toggleButtonSpinner(saveBtn, false);
+        document.querySelector('.nav-button[data-page="clients"]').click(); // Возвращаемся на список клиентов
+    }, 1000);
+}
     function renderClientList(clientsToRender) {
         const container = document.getElementById('client-list-container');
         if (!container) return;
