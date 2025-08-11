@@ -315,6 +315,23 @@ body {
     <div class="modal fade" id="cancelConfirmModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Подтверждение</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Вы уверены, что хотите отменить изменения?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Остаться</button><button type="button" class="btn btn-danger" id="confirmCancelBtn">Отменить изменения</button></div></div></div></div>
     <div class="modal fade" id="clientSearchModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Поиск контрагента</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Введите номер телефона или ФИО для поиска клиента в базе 1С.</p><div class="input-group mb-3"><input type="text" class="form-control" id="clientSearchInput" placeholder="Телефон или ФИО..."><button class="btn btn-primary" type="button" id="clientSearchBtn">Найти</button></div><div id="clientSearchResult" class="mt-3"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
     <div class="modal fade" id="clientHistorySearchModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Выберите клиента для просмотра истории</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="clientHistorySearchResult"></div></div></div></div>
+    <div class="modal fade" id="completeConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">Подтверждение</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите завершить встречу с <strong id="clientNameToComplete"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-success" id="confirmCompleteBtn">Завершить</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
@@ -331,6 +348,8 @@ body {
     let adminCharts = {};
     let searchTimeout = null;
     let isSearchMode = false;
+    let meetingToCompleteId = null;
+    let completeConfirmModal;
 
     // Глобальные экземпляры, которые будут инициализированы позже
     let meetingsList, rescheduleModal, cancelConfirmModal, outcomeModal, reportModal, clientSearchModal, clientHistorySearchModal, appToast;
@@ -388,6 +407,7 @@ body {
         reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
         clientSearchModal = new bootstrap.Modal(document.getElementById('clientSearchModal'));
         clientHistorySearchModal = new bootstrap.Modal(document.getElementById('clientHistorySearchModal'));
+        completeConfirmModal = new bootstrap.Modal(document.getElementById('completeConfirmModal'));
         appToast = new bootstrap.Toast(document.getElementById('appToast'));
         
         // --- Инициализация плагинов ---
@@ -464,6 +484,41 @@ body {
                 });
             }
         }
+        // ДОБАВЬТЕ ЭТОТ ОБРАБОТЧИК ВНУТРЬ DOMContentLoaded
+document.getElementById('confirmCompleteBtn').addEventListener('click', () => {
+    if (!meetingToCompleteId) return;
+
+    const meetingIndex = allMeetings.findIndex(m => m.ID === meetingToCompleteId);
+    if (meetingIndex === -1) return;
+
+    completeConfirmModal.hide();
+
+    const meeting = allMeetings[meetingIndex];
+    const cardWrapper = document.querySelector(`.edit-btn[data-id="${meeting.ID}"]`)?.closest('.col-12');
+    
+    // 1. Оптимистичное обновление UI
+    if (cardWrapper) {
+        cardWrapper.style.opacity = '0.6';
+    }
+    
+    const oldData = meeting;
+    const newData = { ...oldData, Status: 'Завершено' };
+
+    // 2. Фоновый запрос на сервер
+    callApi('updateMeeting', { newData, oldData })
+        .then(() => {
+            showToast("Встреча завершена");
+            // В случае успеха - просто обновляем все данные для консистентности
+            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+        })
+        .catch(err => {
+            onFailure(err);
+            // В случае ошибки - тоже обновляем данные, чтобы вернуть карточку в исходное состояние
+            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+        });
+
+    meetingToCompleteId = null;
+});
         
         document.getElementById('get-meeting-location-btn').addEventListener('click', handleGetLocationClick);
         document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
@@ -1163,42 +1218,17 @@ body {
         }
         showForm(true);
     }
-    async function handleCompleteClick(event) {
+   // ЗАМЕНИТЕ СТАРУЮ ФУНКЦИЮ НА ЭТУ
+function handleCompleteClick(event) {
     const btn = event.target.closest('.complete-btn');
     if (!btn) return;
     
-    const meetingId = btn.dataset.id;
-    const meetingIndex = allMeetings.findIndex(m => m.ID === meetingId);
-    if (meetingIndex === -1) return;
+    meetingToCompleteId = btn.dataset.id;
+    const meeting = allMeetings.find(m => m.ID === meetingToCompleteId);
+    if (!meeting) return;
 
-    // Для лучшего UX в будущем можно заменить confirm на красивое модальное окно Bootstrap
-    if (!confirm(`Завершить встречу с клиентом "${allMeetings[meetingIndex].Client}"?`)) {
-        return;
-    }
-
-    toggleButtonSpinner(btn, true);
-
-    const oldData = allMeetings[meetingIndex];
-    const newData = { ...oldData, Status: 'Завершено' };
-
-    try {
-        // 1. Отправляем запрос на обновление и ждем только его
-        await callApi('updateMeeting', { newData, oldData });
-        showToast("Встреча завершена");
-
-        // 2. Обновляем статус встречи в нашем локальном массиве данных
-        allMeetings[meetingIndex].Status = 'Завершено';
-
-        // 3. Мгновенно перерисовываем список из уже имеющихся локальных данных
-        // Это очень быстро и не требует нового запроса к серверу!
-        filterAndGroupMeetings();
-
-    } catch (e) {
-        onFailure(e);
-        // В случае ошибки, возвращаем кнопку в исходное состояние
-        toggleButtonSpinner(btn, false);
-    }
-    // Кнопка-спиннер исчезнет сама после перерисовки, так как у завершенной встречи ее не будет
+    document.getElementById('clientNameToComplete').textContent = meeting.Client;
+    completeConfirmModal.show();
 }
     function handleRescheduleClick(event) {
         const meetingId = event.target.dataset.id;
