@@ -169,14 +169,16 @@ body {
         <div>
             <p id="offcanvas-user-info" class="text-muted"></p>
             <ul class="list-group list-group-flush">
-                <li class="list-group-item px-0">
-                    <a href="#" class="text-decoration-none text-dark d-block">Отчеты</a>
-                </li>
-                <li class="list-group-item px-0">
-                    <a href="#" class="text-decoration-none text-dark d-block">Настройки</a>
-                </li>
-        
-            </ul>
+    <li class="list-group-item px-0">
+        <a href="#" class="text-decoration-none text-dark d-block">Отчеты</a>
+    </li>
+    <li class="list-group-item px-0">
+        <a href="#" class="text-decoration-none text-dark d-block">Настройки</a>
+    </li>
+    <li class="list-group-item px-0">
+        <a href="#" id="offcanvas-client-search-btn" class="text-decoration-none text-dark d-block">Поиск по всей базе</a>
+    </li>
+</ul>
         </div>
         <div class="mt-auto">
             <hr>
@@ -509,7 +511,27 @@ body {
 </div>
     <div class="modal fade" id="rescheduleModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Перенос встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Укажите новую дату и время.</p><div class="mb-3"><label for="newMeetingDate" class="form-label">Новая дата</label><input type="date" class="form-control" id="newMeetingDate" required></div><div><label for="newMeetingTime" class="form-label">Новое время</label><input type="time" class="form-control" id="newMeetingTime" required></div><div id="rescheduleError" class="text-danger mt-2 d-none"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveRescheduleBtn">Перенести</button></div></div></div></div>
     <div class="modal fade" id="cancelConfirmModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Подтверждение</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Вы уверены, что хотите отменить изменения?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Остаться</button><button type="button" class="btn btn-danger" id="confirmCancelBtn">Отменить изменения</button></div></div></div></div>
-
+    <div class="modal fade" id="clientSearchModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">Поиск контрагента по всей базе</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Введите номер телефона или ФИО для поиска клиента в базе 1С.</p>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="clientSearchInput" placeholder="Телефон или ФИО...">
+                    <button class="btn btn-primary" type="button" id="clientSearchBtn">Найти</button>
+                </div>
+                <div id="clientSearchResult" class="mt-3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
     <div class="modal fade" id="clientHistorySearchModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Выберите клиента для просмотра истории</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="clientHistorySearchResult"></div></div></div></div>
     <div class="modal fade" id="completeConfirmModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -547,10 +569,11 @@ body {
     let meetingToCompleteId = null;
     let completeConfirmModal;
        
+       
 
     // Глобальные экземпляры, которые будут инициализированы позже
     let meetingsList, rescheduleModal, cancelConfirmModal, outcomeModal, reportModal, clientSearchModal, clientHistorySearchModal, appToast;
-    let datePicker, adminDatePicker, phoneMask, clientListMask;
+    let datePicker, adminDatePicker, phoneMask, searchMask, clientListMask;
        
     // --- ОСНОВНОЙ БЛОК ИНИЦИАЛИЗАЦИИ ПОСЛЕ ЗАГРУЗКИ СТРАНИЦЫ ---
     document.addEventListener('DOMContentLoaded', () => {
@@ -564,6 +587,31 @@ body {
         const bottomNav = document.querySelector('.app-bottom-nav');
         const loginContainer = document.getElementById('login-container');
         const bodyEl = document.querySelector('body');
+        // ВСТАВЬТЕ ЭТОТ БЛОК ВНУТРЬ DOMContentLoaded
+clientSearchModal = new bootstrap.Modal(document.getElementById('clientSearchModal'));
+
+const clientSearchInputEl = document.getElementById('clientSearchInput');
+searchMask = IMask(clientSearchInputEl, {
+    mask: [ { mask: '+{38} (000) 000-00-00', startsWith: '38', lazy: false }, { mask: /.*/ } ]
+});
+
+document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
+document.getElementById('clientSearchInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleClientSearch();
+});
+
+const offcanvasClientSearchBtn = document.getElementById('offcanvas-client-search-btn');
+if (offcanvasClientSearchBtn) {
+    offcanvasClientSearchBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('clientSearchInput').value = '';
+        document.getElementById('clientSearchResult').innerHTML = '';
+        if (searchMask) searchMask.updateValue();
+        clientSearchModal.show();
+        const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sideMenu'));
+        offcanvas.hide();
+    });
+}
       
 
 // Обработчик для кликов по фильтрам категорий
@@ -791,8 +839,6 @@ document.getElementById('confirmCompleteBtn').addEventListener('click', () => {
         document.getElementById('client-name').addEventListener('input', handleClientInput);
 
         // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
-// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
-// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 const clientListFilter = document.getElementById('client-list-filter');
 clientListFilter.addEventListener('input', () => {
     clearTimeout(searchTimeout); // Сбрасываем предыдущий таймер
@@ -979,6 +1025,59 @@ function renderCategoryFilters() {
     });
 
     filtersContainer.innerHTML = filtersHtml;
+}
+       // ВСТАВЬТЕ ЭТУ ФУНКЦИЮ
+async function handleClientSearch() {
+    const searchInput = document.getElementById('clientSearchInput');
+    const resultContainer = document.getElementById('clientSearchResult');
+    const searchBtn = document.getElementById('clientSearchBtn');
+    const searchTerm = searchMask.unmaskedValue || searchInput.value;
+    if (!searchTerm) {
+        resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
+        return;
+    }
+    toggleButtonSpinner(searchBtn, true);
+    resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
+    resultContainer.replaceWith(resultContainer.cloneNode(true));
+    const newResultContainer = document.getElementById('clientSearchResult');
+    try {
+        const payload = { searchTerm: searchTerm, managerLogin: currentUser };
+        const result = await callApi('findClient', payload);
+        if (result && result.found && result.clients && result.clients.length > 0) {
+            const clientsHtml = result.clients.map(client => {
+                const isDisabled = !client.isMine;
+                const disabledClass = isDisabled ? 'disabled' : '';
+                const titleText = isDisabled ? `Закреплен за: ${client.managerName || 'другой менеджер'}` : 'Создать встречу';
+                return `<li class="list-group-item"><div class="row align-items-center"><div class="col"><strong>${client.clientName}</strong><small class="text-muted d-block">Категория: ${client.ClientCategory || 'Не указана'}</small><small class="text-muted d-block">Менеджер: ${client.managerName || 'Не назначен'}</small></div><div class="col-auto"><div class="btn-group"><button class="btn btn-sm btn-outline-secondary report-btn-icon" data-client-id="${client.ClientID}" data-client-name="${client.clientName}" title="Данные по клиенту" ${disabledClass}><i class="bi bi-file-text"></i></button><button class="btn btn-sm btn-success create-meeting-from-search-btn" data-client-name="${client.clientName}" data-client-address="${client.clientAddress || ''}" data-client-id="${client.ClientID}" data-client-category="${client.ClientCategory || ''}" data-client-phone="${client.Phone || ''}" title="${titleText}" ${disabledClass}>Создать</button></div></div></div></li>`;
+            }).join('');
+            newResultContainer.innerHTML = `<ul class="list-group">${clientsHtml}</ul>`;
+        } else {
+            newResultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
+        }
+    } catch (e) {
+        newResultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
+    } finally {
+        toggleButtonSpinner(searchBtn, false);
+    }
+    newResultContainer.addEventListener('click', (e) => {
+        const createBtn = e.target.closest('.create-meeting-from-search-btn');
+        if (createBtn && !createBtn.disabled) {
+            const target = createBtn;
+            const clientName = target.dataset.clientName;
+            const clientAddress = target.dataset.clientAddress;
+            const clientID = target.dataset.clientId;
+            const clientCategory = target.dataset.clientCategory;
+            const clientPhone = target.dataset.clientPhone;
+            clientSearchModal.hide();
+            showAddForm();
+            document.getElementById('client-name').value = clientName;
+            document.getElementById('location').value = clientAddress;
+            document.getElementById('client-id').value = clientID;
+            document.getElementById('client-category').value = clientCategory;
+            document.getElementById('phone').value = clientPhone;
+            if (phoneMask) phoneMask.updateValue();
+        }
+    });
 }
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     function renderClientList(clientsToRender) {
