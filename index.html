@@ -671,6 +671,8 @@ newClientPhoneMask = IMask(newClientPhoneInput, { mask: '+{38} (000) 000-00-00' 
 
 document.getElementById('show-add-client-form-btn').addEventListener('click', () => {
     document.getElementById('add-client-form').reset();
+     // --- ДОБАВЬТЕ ЭТУ СТРОКУ ---
+    if (newClientPhoneMask) newClientPhoneMask.updateValue(); // Синхронизируем маску
     document.querySelector('.nav-button[data-page="clients"]').click(); // Активируем кнопку "Клиенты"
     switchPage('add-client'); // Показываем страницу с формой
     headerTitle.textContent = "Новый клиент"; // Меняем заголовок
