@@ -255,20 +255,25 @@ body {
         </div>
         <div id="page-clients" class="app-page">
     <div class="row g-3 mb-3 align-items-end">
-    <div class="col-lg-6 col-md-12">
-        <label for="client-list-filter" class="form-label">Поиск по вашим клиентам</label>
-        <input type="text" id="client-list-filter" class="form-control" placeholder="Введите ФИО или телефон...">
+        <div class="col-lg-6 col-md-12">
+            <label for="client-list-filter" class="form-label">Поиск по вашим клиентам</label>
+            <input type="text" id="client-list-filter" class="form-control" placeholder="Введите ФИО или телефон...">
+        </div>
+        <div class="col-lg-3 col-6">
+            <button class="btn btn-primary w-100" id="show-add-client-form-btn">
+                <i class="bi bi-plus-lg"></i> Добавить
+            </button>
+        </div>
+        <div class="col-lg-3 col-6">
+            <button class="btn btn-outline-primary w-100" id="global-search-trigger-btn">
+                <i class="bi bi-search"></i> По всей базе
+            </button>
+        </div>
     </div>
-    <div class="col-lg-3 col-6">
-        <button class="btn btn-primary w-100" id="show-add-client-form-btn">
-            <i class="bi bi-plus-lg"></i> Добавить
-        </button>
-    </div>
-    <div class="col-lg-3 col-6">
-        <button class="btn btn-outline-primary w-100" id="global-search-trigger-btn">
-            <i class="bi bi-search"></i> По всей базе
-        </button>
-    </div>
+    <div id="client-category-filters" class="d-flex flex-wrap gap-2 mb-3">
+        </div>
+    <div id="client-list-container">
+        </div>
 </div>
     </main>
     <div id="page-add-client" class="app-page">
