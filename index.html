@@ -1428,36 +1428,53 @@ function handleCompleteClick(event) {
     }
     // ЗАМЕНИТЕ СТАРЫЕ ФУНКЦИИ НА ЭТИ ДВЕ
 
+// ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ НА ЭТУ
 function handleOutcomeClick(event) {
     activeMeetingId = event.target.closest('[data-id]').dataset.id;
     const meeting = allMeetings.find(m => m.ID === activeMeetingId);
     if (!meeting) return;
 
-    // Сбрасываем все поля формы перед заполнением
-    document.querySelector('#outcomeModal form, #outcomeModal textarea').reset();
-    
-    // Заполняем общий комментарий
-    document.getElementById('meetingComment').value = meeting.Comment || '';
+    // --- НАЧАЛО ИСПРАВЛЕНИЙ ---
+    // 1. Находим форму внутри модального окна и сбрасываем ее.
+    // Это очистит все input, radio и checkbox.
+    const surveyForm = document.querySelector('#surveyAccordion');
+    if(surveyForm) {
+        surveyForm.querySelectorAll('input, textarea').forEach(el => {
+            if(el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+            else el.value = '';
+        });
+        // Скрываем все условные поля
+        surveyForm.querySelectorAll('.d-none').forEach(el => el.classList.add('d-none'));
+    }
+
+    // 2. Отдельно очищаем и заполняем общий комментарий.
+    const meetingCommentEl = document.getElementById('meetingComment');
+    meetingCommentEl.value = meeting.Comment || '';
+    // --- КОНЕЦ ИСПРАВЛЕНИЙ ---
 
     // Заполняем анкету, если данные уже были сохранены
     if (meeting.surveyData) {
-        const surveyData = JSON.parse(meeting.surveyData);
-        const formElements = document.querySelectorAll('#surveyAccordion [data-question]');
-        formElements.forEach(el => {
-            const question = el.dataset.question;
-            const value = surveyData[question];
-            if (value === undefined) return;
+        try {
+            const surveyData = JSON.parse(meeting.surveyData);
+            const formElements = document.querySelectorAll('#surveyAccordion [data-question]');
+            formElements.forEach(el => {
+                const question = el.dataset.question;
+                const value = surveyData[question];
+                if (value === undefined) return;
 
-            if (el.type === 'checkbox' || el.type === 'radio') {
-                if (Array.isArray(value) ? value.includes(el.value) : value === el.value) {
-                    el.checked = true;
+                if (el.type === 'checkbox' || el.type === 'radio') {
+                    if (Array.isArray(value) ? value.includes(el.value) : value === el.value) {
+                        el.checked = true;
+                    }
+                } else {
+                    el.value = value;
                 }
-            } else {
-                el.value = value;
-            }
-            // Триггерим событие change, чтобы показать условные поля
-            el.dispatchEvent(new Event('change', { bubbles: true })); 
-        });
+                // Триггерим событие change, чтобы показать условные поля
+                el.dispatchEvent(new Event('change', { bubbles: true })); 
+            });
+        } catch(e) {
+            console.error("Ошибка парсинга данных анкеты:", e);
+        }
     }
     outcomeModal.show();
 }
