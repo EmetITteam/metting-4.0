@@ -2114,9 +2114,9 @@ function renderReport(data) {
 
         sortedMonths.forEach(month => {
             callsContent += `<h6 class="mt-3">${month}</h6>`;
-            const incomingCalls = callsByMonth[month].filter(c => c.comment && c.comment.toLowerCase().startsWith('входящий'));
-            const outgoingCalls = callsByMonth[month].filter(c => c.comment && c.comment.toLowerCase().startsWith('исходящий'));
-            const otherCalls = callsByMonth[month].filter(c => !c.comment || (!c.comment.toLowerCase().startsWith('входящий') && !c.comment.toLowerCase().startsWith('исходящий')));
+            const incomingCalls = callsByMonth[month].filter(c => c.comment && c.comment.toLowerCase().startsWith('Входящее'));
+            const outgoingCalls = callsByMonth[month].filter(c => c.comment && c.comment.toLowerCase().startsWith('Исходящее'));
+            const otherCalls = callsByMonth[month].filter(c => !c.comment || (!c.comment.toLowerCase().startsWith('Входящее') && !c.comment.toLowerCase().startsWith('Исходящее')));
             
             if (incomingCalls.length > 0) {
                 callsContent += '<p class="text-muted mb-1 small"><em>Входящие:</em></p><ul class="list-unstyled ps-3">';
