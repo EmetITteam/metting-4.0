@@ -2149,6 +2149,53 @@ function renderReport(data) {
     }
 }
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+       // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---НОвый блок для отчета за год
+function processYearlySalesData(yearlyReport) {
+    if (!yearlyReport || !yearlyReport.brands || yearlyReport.brands.length === 0) return null;
+
+    const salesByBrandMonth = {};
+    const allMonths = new Set();
+    
+    // Шаг 1: Собираем все данные и находим все уникальные месяцы
+    yearlyReport.brands.forEach(brand => {
+        salesByBrandMonth[brand.brandName] = {};
+        brand.salesByMonth.forEach(sale => {
+            allMonths.add(sale.month);
+            salesByBrandMonth[brand.brandName][sale.month] = sale.amount;
+        });
+    });
+
+    // Шаг 2: Сортируем месяцы в хронологическом порядке
+    const sortedMonths = Array.from(allMonths).sort((a, b) => {
+        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        const [aMonth, aYear] = a.split(' ');
+        const [bMonth, bYear] = b.split(' ');
+        return new Date(aYear, monthNames.indexOf(aMonth)) - new Date(bYear, monthNames.indexOf(bMonth));
+    });
+
+    // Шаг 3: Формируем "развернутые" данные для таблицы и графика
+    const brandsData = Object.keys(salesByBrandMonth).map(brandName => {
+        const monthlySales = sortedMonths.map(monthKey => salesByBrandMonth[brandName][monthKey] || 0);
+        return {
+            brandName,
+            monthlySales,
+            total: monthlySales.reduce((sum, val) => sum + val, 0)
+        };
+    });
+
+    // Шаг 4: Считаем итоги по месяцам
+    const monthlyTotals = sortedMonths.map((monthKey, index) => {
+        return brandsData.reduce((sum, brand) => sum + brand.monthlySales[index], 0);
+    });
+
+    return {
+        months: sortedMonths,
+        brandsData: brandsData,
+        monthlyTotals: monthlyTotals,
+        grandTotal: yearlyReport.grandTotal
+    };
+}
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     async function handleClientSearch() {
         const searchInput = document.getElementById('clientSearchInput');
         const resultContainer = document.getElementById('clientSearchResult');
