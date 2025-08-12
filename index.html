@@ -2016,11 +2016,12 @@ function renderReport(data) {
     const reportModalBody = document.getElementById('reportModalBody');
     let content = '';
 
-    if (reportChart) {
-        reportChart.destroy();
+    if (reportCharts.length > 0) {
+        reportCharts.forEach(chart => chart.destroy());
+        reportCharts = [];
     }
 
-    // Блок 1: Шапка отчета
+    // Блок 1: Шапка отчета (без изменений)
     if (data.clientInfo) {
         let phoneHtml = 'Не указан';
         if (data.clientInfo.phone) {
@@ -2127,17 +2128,24 @@ function renderReport(data) {
         
         yearlyData.brandsData.forEach((brand, index) => {
             const salesCount = brand.monthlySales.filter(amount => amount > 0).length;
-            const cardClass = salesCount > 1 ? '' : 'compact-card';
+            const cardClass = salesCount > 1 ? '' : 'no-graph';
+
+            // --- ИЗМЕНЕНИЯ ЗДЕСЬ ---
+            const cardBodyPadding = salesCount > 1 ? 'p-3' : ''; // Убираем отступы у компактных карточек
+            const canvasHeight = 150; // Увеличиваем высоту мини-графика
+            const hrMargin = 'my-2'; // Уменьшаем отступ у разделителя
+
             yearlySalesContent += `
-                <div class="card mb-3">
-                    <div class="card-body">
+                <div class="card mb-3 ${cardClass}">
+                    <div class="card-body ${cardBodyPadding}">
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="card-title mb-0">${brand.brandName}</h6>
                             <span class="fs-5 fw-bold text-primary">${new Intl.NumberFormat('ru-RU').format(brand.total)} usd</span>
                         </div>
-                        ${salesCount > 1 ? `<hr><canvas id="mini-chart-brand-${index}" height="100"></canvas>` : ''}
+                        ${salesCount > 1 ? `<hr class="${hrMargin}"><canvas id="mini-chart-brand-${index}" height="${canvasHeight}"></canvas>` : ''}
                     </div>
-                </div>`;
+                </div>
+            `;
         });
     } else {
         yearlySalesContent += '<p class="text-muted mt-2">Нет данных о продажах за год.</p>';
