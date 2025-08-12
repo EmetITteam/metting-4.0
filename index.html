@@ -1527,6 +1527,7 @@ function getCategoryColor(categoryName) {
         widgetsContainer.innerHTML = `<div class="col-4"><div class="widget-card"><div class="widget-value text-primary">${totalValue}</div><div class="widget-label">${totalLabel}</div></div></div><div class="col-4"><div class="widget-card"><div class="widget-value text-success">${completedToday}</div><div class="widget-label">Завершено</div></div></div><div class="col-4"><a href="#" id="widget-overdue-filter" class="widget-card"><div class="widget-value text-danger">${overdue}</div><div class="widget-label">Просрочено</div></a></div>`;
     }
    // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 function filterAndGroupMeetings() {
     const searchTerm = document.getElementById('searchInput1').value.toLowerCase();
     const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
@@ -1577,12 +1578,11 @@ function filterAndGroupMeetings() {
                     let stateButtonHtml = '';
                     if (isActive) {
                         if (isMeetingRunning) {
-                            // --- ИЗМЕНЕНИЕ ЗДЕСЬ: убран класс flex-grow-1 ---
+                            const initialElapsedTime = formatElapsedTime(Date.now() - activeTimers[m.ID].startTime);
                             stateButtonHtml = `<button class="btn btn-danger btn-sm js-state-toggle-btn" data-id="${m.ID}">
-                                <i class="bi bi-stop-circle me-2"></i>Завершить (<span class="timer" data-start-time="${activeTimers[m.ID].startTime}">00:00:00</span>)
+                                <i class="bi bi-stop-circle me-2"></i>Завершить (<span class="timer" data-start-time="${activeTimers[m.ID].startTime}">${initialElapsedTime}</span>)
                             </button>`;
                         } else {
-                            // --- ИЗМЕНЕНИЕ ЗДЕСЬ: убран класс flex-grow-1 ---
                             stateButtonHtml = `<button class="btn btn-success btn-sm js-state-toggle-btn" data-id="${m.ID}">
                                 <i class="bi bi-play-circle me-2"></i>Старт встречи
                             </button>`;
@@ -1593,7 +1593,7 @@ function filterAndGroupMeetings() {
                     if (isActive && !isMeetingRunning) {
                          dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}"><i class="bi bi-arrow-repeat me-2"></i>Перенести</a></li>`;
                     }
-                    const actionsMenu = `<div class="dropdown actions-dropdown">${dropdownItems ? `<button class="btn btn-sm btn-light border-0 py-0 px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end">${dropdownItems}</ul>` : ''}</div>`;
+                    const actionsMenu = `<div class="dropdown actions-dropdown ms-auto">${dropdownItems ? `<button class="btn btn-sm btn-light border-0 py-0 px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end">${dropdownItems}</ul>` : ''}</div>`;
                     
                     const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершена': 'green', 'Отмена': 'gray', 'Просрочено': 'red' };
                     const statusColor = statusColors[cleanStatus] || 'gray';
@@ -1617,7 +1617,7 @@ function filterAndGroupMeetings() {
                                 <p class="card-text mb-0"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
                             </div>
                             <div class="card-footer bg-white border-top-0 pt-0">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center gap-2 mb-2">
                                     ${stateButtonHtml}
                                     ${actionsMenu}
                                 </div>
@@ -1639,6 +1639,7 @@ function filterAndGroupMeetings() {
     document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
     document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
 }
+
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     function handleClientInput(e) {
         const searchTerm = e.target.value;
@@ -2321,6 +2322,14 @@ function processYearlySalesData(yearlyReport) {
         document.getElementById('get-meeting-location-btn').classList.remove('d-none');
         showForm(true);
     }
+       // ВСТАВЬТЕ ЭТУ НОВУЮ ФУНКЦИЮ
+function formatElapsedTime(ms) {
+    if (ms < 0) ms = 0;
+    const seconds = Math.floor((ms / 1000) % 60).toString().padStart(2, '0');
+    const minutes = Math.floor((ms / (1000 * 60)) % 60).toString().padStart(2, '0');
+    const hours = Math.floor(ms / (1000 * 60 * 60)).toString().padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
+}
     function onActionComplete() { showForm(false); }
     function handleCancelClick() { cancelConfirmModal.show(); }
     function showForm(show) {
@@ -2331,15 +2340,12 @@ function processYearlySalesData(yearlyReport) {
             formSection.classList.toggle(HIDDEN_CLASS, !show);
         }
         // ГЛОБАЛЬНЫЙ ТАЙМЕР ДЛЯ ОБНОВЛЕНИЯ СЧЕТЧИКОВ
+s// ЗАМЕНИТЕ ВАШ СУЩЕСТВУЮЩИЙ setInterval
 setInterval(() => {
     document.querySelectorAll('.timer').forEach(timerEl => {
         const startTime = parseInt(timerEl.dataset.startTime, 10);
         if (startTime) {
-            const elapsed = Date.now() - startTime;
-            const seconds = Math.floor((elapsed / 1000) % 60).toString().padStart(2, '0');
-            const minutes = Math.floor((elapsed / (1000 * 60)) % 60).toString().padStart(2, '0');
-            const hours = Math.floor(elapsed / (1000 * 60 * 60)).toString().padStart(2, '0');
-            timerEl.textContent = `${hours}:${minutes}:${seconds}`;
+            timerEl.textContent = formatElapsedTime(Date.now() - startTime);
         }
     });
 }, 1000);
