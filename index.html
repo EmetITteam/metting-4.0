@@ -627,7 +627,7 @@ body {
     let meetingToCompleteId = null;
     let completeConfirmModal;
        let newClientPhoneMask;
-       let reportChart = null;
+       let reportCharts = [];
        
        
 
@@ -2011,9 +2011,9 @@ function renderReport(data) {
     const reportModalBody = document.getElementById('reportModalBody');
     let content = '';
 
-    if (reportChart) {
-        reportChart.destroy();
-    }
+   // Уничтожаем старые графики
+    reportCharts.forEach(chart => chart.destroy());
+    reportCharts = [];
 
     // Блок 1: Шапка с основной информацией
     if (data.clientInfo) {
@@ -2060,28 +2060,36 @@ function renderReport(data) {
 
     // Вкладка "Продажи (Год)"
     let yearlySalesContent = '';
-    const yearlyData = processYearlySalesData(data.yearlySalesReport);
-    if (yearlyData) {
-        yearlySalesContent += `<h5 class="mb-3">Динамика продаж по брендам за год</h5>`;
-        yearlySalesContent += `<p><strong>Общая сумма: ${new Intl.NumberFormat('ru-RU').format(yearlyData.grandTotal)} usd</strong></p>`;
-        let table = '<div class="table-responsive"><table class="table table-bordered table-sm"><thead><tr><th>Бренд</th>';
-        yearlyData.months.forEach(month => table += `<th>${month}</th>`);
-        table += '</tr></thead><tbody>';
-        yearlyData.brandsData.forEach(brand => {
-            table += `<tr><td>${brand.brandName}</td>`;
-            brand.monthlySales.forEach(amount => table += `<td>${new Intl.NumberFormat('ru-RU').format(amount)}</td>`);
-            table += '</tr>';
+    if (data.yearlySalesReport && data.yearlySalesReport.brands && data.yearlySalesReport.brands.length > 0) {
+        const report = data.yearlySalesReport;
+        yearlySalesContent += `<h5 class="mb-3">Продажи по брендам (c ${report.periodStart} по ${report.periodEnd})</h5>`;
+        
+        // Создаем карточку для каждого бренда
+        report.brands.forEach((brand, index) => {
+            // Готовим данные для мини-графика
+            const chartLabels = brand.salesByMonth.map(s => s.month);
+            const chartData = brand.salesByMonth.map(s => s.amount);
+            
+            yearlySalesContent += `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="card-title mb-0">${brand.brandName}</h6>
+                            <span class="fs-5 fw-bold text-primary">${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} usd</span>
+                        </div>
+                        <hr>
+                        <canvas id="mini-chart-brand-${index}" height="100"></canvas>
+                    </div>
+                </div>
+            `;
         });
-        table += '<tr class="table-light fw-bold"><td>Итого</td>';
-        yearlyData.monthlyTotals.forEach(total => table += `<td>${new Intl.NumberFormat('ru-RU').format(total)}</td>`);
-        table += '</tr></tbody></table></div>';
-        yearlySalesContent += table;
-        yearlySalesContent += '<hr><h5 class="mt-4 mb-3">График динамики продаж</h5><canvas id="yearlySalesChart"></canvas>';
     } else {
         yearlySalesContent += '<p class="text-muted mt-2">Нет данных о продажах за год.</p>';
     }
     content += `<div class="tab-pane fade" id="yearly-sales-content" role="tabpanel">${yearlySalesContent}</div>`;
 
+    content += `</div>`; // Закрывающий div для tab-content
+    reportModalBody.innerHTML = content;
     // Вкладка "Встречи"
     let meetingsContent = '';
     if (data.lastMeetings && data.lastMeetings.length > 0) {
@@ -2164,30 +2172,31 @@ const otherCalls = callsByMonth[month].filter(c => !c.comment || (!c.comment.toL
     content += `</div>`;
     reportModalBody.innerHTML = content;
 
-    // Инициализация графика
-    if (yearlyData) {
-        const ctx = document.getElementById('yearlySalesChart')?.getContext('2d');
-        if (ctx) {
-            const brandColors = ['rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)', 'rgba(75, 192, 192, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(153, 102, 255, 0.6)'];
-            const datasets = yearlyData.brandsData.map((brand, index) => ({
-                label: brand.brandName,
-                data: brand.monthlySales,
-                backgroundColor: brandColors[index % brandColors.length],
-                borderWidth: 1,
-            }));
-            reportChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: yearlyData.months,
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-        }
+    if (data.yearlySalesReport && data.yearlySalesReport.brands) {
+        data.yearlySalesReport.brands.forEach((brand, index) => {
+            const ctx = document.getElementById(`mini-chart-brand-${index}`)?.getContext('2d');
+            if (ctx) {
+                const chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: brand.salesByMonth.map(s => s.month.substring(0, 3)), // Краткие названия месяцев
+                        datasets: [{
+                            label: 'Продажи, usd',
+                            data: brand.salesByMonth.map(s => s.amount),
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+                reportCharts.push(chart); // Сохраняем для последующего удаления
+            }
+        });
     }
 }
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
