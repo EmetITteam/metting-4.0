@@ -358,7 +358,7 @@ body {
         </div>
     </div>
     
-    <div class="modal fade" id="reportModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5" id="reportModalTitle">Отчет по клиенту</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="reportModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
+   <div class="modal fade" id="reportModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5" id="reportModalTitle">Отчет по клиенту</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="reportModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
    <div class="modal fade" id="outcomeModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
         <div class="modal-content">
@@ -627,6 +627,7 @@ body {
     let meetingToCompleteId = null;
     let completeConfirmModal;
        let newClientPhoneMask;
+       let reportChart = null;
        
        
 
@@ -1980,61 +1981,149 @@ async function handleReportClick(btnElement) {
         toggleButtonSpinner(btnElement, false);
     }
 }
-    function renderReport(data) {
-        const reportModalBody = document.getElementById('reportModalBody');
-        let content = '';
-        if (data.clientInfo) {
-            let phoneHtml = 'Не указан';
-            if (data.clientInfo.phone) {
-                const cleanPhone = data.clientInfo.phone.replace(/[^+\d]/g, '');
-                phoneHtml = `<a href="tel:${cleanPhone}" class="text-decoration-none">${data.clientInfo.phone}</a>`;
-            }
-            let documentsStatusHtml = `<span class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Нет</span>`;
-            if (data.clientInfo.documents === true) {
-                documentsStatusHtml = `<span class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Есть</span>`;
-            }
-            content += `<div class="d-flex justify-content-between align-items-center mb-2"><h3 class="mb-0">${data.clientInfo.name || 'Имя не указано'}</h3><button class="btn btn-primary btn-sm js-create-meeting-from-report" data-client-id="${data.clientInfo.id || ''}" data-client-name="${data.clientInfo.name || ''}" data-client-address="${data.clientInfo.address || ''}" data-client-category="${data.clientInfo.category || ''}" data-client-phone="${data.clientInfo.phone || ''}"><i class="bi bi-calendar-plus me-1"></i> Новая встреча</button></div><hr class="mt-0 mb-3"><div class="mb-3"><div class="row"><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-telephone-fill me-2"></i>Телефон:</strong> ${phoneHtml}</p></div><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-star-fill me-2"></i>Категория:</strong> ${data.clientInfo.category || 'Не указана'}</p></div></div><div class="row mt-2"><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-mortarboard-fill me-2"></i>Образование:</strong> ${data.clientInfo.education || 'Не указано'}</p></div><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-file-earmark-text-fill me-2"></i>Документы:</strong> ${documentsStatusHtml}</p></div></div></div>`;
+   // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+function renderReport(data) {
+    const reportModalBody = document.getElementById('reportModalBody');
+    let content = '';
+
+    // Блок 1: Шапка с основной информацией (без изменений)
+    if (data.clientInfo) {
+        let phoneHtml = 'Не указан';
+        if (data.clientInfo.phone) {
+            const cleanPhone = data.clientInfo.phone.replace(/[^+\d]/g, '');
+            phoneHtml = `<a href="tel:${cleanPhone}" class="text-decoration-none">${data.clientInfo.phone}</a>`;
         }
-        content += `<nav><div class="nav nav-tabs" id="report-tab" role="tablist"><button class="nav-link active" id="sales-tab" data-bs-toggle="tab" data-bs-target="#sales-content" type="button" role="tab">Продажи</button><button class="nav-link" id="meetings-tab" data-bs-toggle="tab" data-bs-target="#meetings-content" type="button" role="tab">Последние встречи</button><button class="nav-link" id="seminars-tab" data-bs-toggle="tab" data-bs-target="#seminars-content" type="button" role="tab">Посещенные семинары</button></div></nav>`;
-        content += `<div class="tab-content p-3 border border-top-0 rounded-bottom" id="report-tab-content">`;
-        let salesContent = '';
-        if (data.salesReport && data.salesReport.brands && data.salesReport.brands.length > 0) {
-            salesContent += `<h5 class="mb-3">Продажи по брендам (c ${data.salesReport.periodStart} по ${data.salesReport.periodEnd})</h5>`;
-            salesContent += '<div class="row g-3">';
-            data.salesReport.brands.forEach(brand => {
-                const salesRows = brand.salesByMonth.map(sale =>  `<li class="list-group-item d-flex justify-content-between"><span>${sale.month}</span> <span>${new Intl.NumberFormat('ru-RU').format(sale.amount)} usd</span></li>`).join('');
-                salesContent += `<div class="col-md-6"><div class="card h-100"><div class="card-header bg-light"><strong>${brand.brandName}</strong></div><ul class="list-group list-group-flush">${salesRows}<li class="list-group-item d-flex justify-content-between fw-bold"><span>Итого:</span> <span>${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} usd</span></li></ul></div></div>`;
-            });
-            salesContent += '</div>';
-        } else {
-            salesContent += '<p class="text-muted mt-2">Нет данных о продажах за указанный период.</p>';
+        let documentsStatusHtml = `<span class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Нет</span>`;
+        if (data.clientInfo.documents === true) {
+            documentsStatusHtml = `<span class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Есть</span>`;
         }
-        content += `<div class="tab-pane fade show active" id="sales-content" role="tabpanel">${salesContent}</div>`;
-        let meetingsContent = '';
-        if (data.lastMeetings && data.lastMeetings.length > 0) {
-            meetingsContent += '<ul class="list-unstyled mt-2">';
-            data.lastMeetings.forEach(meeting => {
-                meetingsContent += `<li class="mb-3"><p class="mb-0"><strong>${meeting.date}:</strong></p><p class="mb-0 text-muted fst-italic">"${meeting.comment || 'Без комментария'}"</p></li>`;
-            });
-            meetingsContent += '</ul>';
-        } else {
-            meetingsContent += '<p class="text-muted mt-2">Нет данных о последних встречах.</p>';
-        }
-        content += `<div class="tab-pane fade" id="meetings-content" role="tabpanel">${meetingsContent}</div>`;
-        let seminarsContent = '';
-        if (data.seminars && data.seminars.length > 0) {
-            seminarsContent += '<ul class="list-group list-group-flush mt-2">';
-            data.seminars.forEach(seminar => {
-                seminarsContent += `<li class="list-group-item ps-0">${seminar.date} - ${seminar.name}</li>`;
-            });
-            seminarsContent += '</ul>';
-        } else {
-            seminarsContent += '<p class="text-muted mt-2">Нет данных о посещении семинаров.</p>';
-        }
-        content += `<div class="tab-pane fade" id="seminars-content" role="tabpanel">${seminarsContent}</div>`;
-        content += `</div>`;
-        reportModalBody.innerHTML = content;
+        content += `<div class="d-flex justify-content-between align-items-center mb-2"><h3 class="mb-0">${data.clientInfo.name || 'Имя не указано'}</h3><button class="btn btn-primary btn-sm js-create-meeting-from-report" data-client-id="${data.clientInfo.id || ''}" data-client-name="${data.clientInfo.name || ''}" data-client-address="${data.clientInfo.address || ''}" data-client-category="${data.clientInfo.category || ''}" data-client-phone="${data.clientInfo.phone || ''}"><i class="bi bi-calendar-plus me-1"></i> Новая встреча</button></div><hr class="mt-0 mb-3"><div class="mb-3"><div class="row"><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-telephone-fill me-2"></i>Телефон:</strong> ${phoneHtml}</p></div><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-star-fill me-2"></i>Категория:</strong> ${data.clientInfo.category || 'Не указана'}</p></div></div><div class="row mt-2"><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-mortarboard-fill me-2"></i>Образование:</strong> ${data.clientInfo.education || 'Не указано'}</p></div><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-file-earmark-text-fill me-2"></i>Документы:</strong> ${documentsStatusHtml}</p></div></div></div>`;
     }
+
+    // Блок 2: Навигация по вкладкам (обновленная)
+    content += `
+        <nav>
+            <div class="nav nav-tabs" id="report-tab" role="tablist">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#sales-content" type="button">Продажи (3 мес)</button>
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#yearly-sales-content" type="button">Продажи (Год)</button>
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#meetings-content" type="button">Встречи</button>
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#calls-content" type="button">Звонки</button>
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#seminars-content" type="button">Семинары</button>
+            </div>
+        </nav>`;
+
+    // Блок 3: Содержимое всех вкладок
+    content += `<div class="tab-content p-3 border border-top-0 rounded-bottom" id="report-tab-content">`;
+    
+    // Вкладка "Продажи (3 мес)" (без изменений)
+    let salesContent = '';
+    if (data.salesReport && data.salesReport.brands && data.salesReport.brands.length > 0) {
+        salesContent += `<h5 class="mb-3">Продажи по брендам (c ${data.salesReport.periodStart} по ${data.salesReport.periodEnd})</h5><div class="row g-3">`;
+        data.salesReport.brands.forEach(brand => {
+            const salesRows = brand.salesByMonth.map(sale =>  `<li class="list-group-item d-flex justify-content-between"><span>${sale.month}</span> <span>${new Intl.NumberFormat('ru-RU').format(sale.amount)} usd</span></li>`).join('');
+            salesContent += `<div class="col-md-6"><div class="card h-100"><div class="card-header bg-light"><strong>${brand.brandName}</strong></div><ul class="list-group list-group-flush">${salesRows}<li class="list-group-item d-flex justify-content-between fw-bold"><span>Итого:</span> <span>${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} usd</span></li></ul></div></div>`;
+        });
+        salesContent += '</div>';
+    } else {
+        salesContent += '<p class="text-muted mt-2">Нет данных о продажах за последние 3 месяца.</p>';
+    }
+    content += `<div class="tab-pane fade show active" id="sales-content" role="tabpanel">${salesContent}</div>`;
+
+    // Вкладка "Продажи (Год)" (НОВАЯ)
+    let yearlySalesContent = '';
+    if (data.yearlySalesReport && data.yearlySalesReport.brandsData) {
+        const report = data.yearlySalesReport;
+        yearlySalesContent += `<h5 class="mb-3">Динамика продаж по брендам (c ${report.periodStart} по ${report.periodEnd})</h5>`;
+        yearlySalesContent += `<p><strong>Общая сумма за год: ${new Intl.NumberFormat('ru-RU').format(report.grandTotal)} usd</strong></p>`;
+        let table = '<div class="table-responsive"><table class="table table-bordered table-sm"><thead><tr><th>Бренд</th>';
+        report.months.forEach(month => table += `<th>${month}</th>`);
+        table += '</tr></thead><tbody>';
+        report.brandsData.forEach(brand => {
+            table += `<tr><td>${brand.brandName}</td>`;
+            brand.monthlySales.forEach(amount => table += `<td>${new Intl.NumberFormat('ru-RU').format(amount)}</td>`);
+            table += '</tr>';
+        });
+        table += '<tr class="table-light fw-bold"><td>Итого</td>';
+        report.monthlyTotals.forEach(total => table += `<td>${new Intl.NumberFormat('ru-RU').format(total)}</td>`);
+        table += '</tr></tbody></table></div>';
+        yearlySalesContent += table;
+        yearlySalesContent += '<hr><h5 class="mt-4 mb-3">График динамики продаж</h5><canvas id="yearlySalesChart"></canvas>';
+    } else {
+        yearlySalesContent += '<p class="text-muted mt-2">Нет данных о продажах за год.</p>';
+    }
+    content += `<div class="tab-pane fade" id="yearly-sales-content" role="tabpanel">${yearlySalesContent}</div>`;
+
+    // Вкладка "Встречи" (без изменений)
+    let meetingsContent = '';
+    if (data.lastMeetings && data.lastMeetings.length > 0) {
+        meetingsContent += '<ul class="list-unstyled mt-2">';
+        data.lastMeetings.forEach(meeting => { meetingsContent += `<li class="mb-3"><p class="mb-0"><strong>${meeting.date}:</strong></p><p class="mb-0 text-muted fst-italic">"${meeting.comment || 'Без комментария'}"</p></li>`; });
+        meetingsContent += '</ul>';
+    } else {
+        meetingsContent += '<p class="text-muted mt-2">Нет данных о последних встречах.</p>';
+    }
+    content += `<div class="tab-pane fade" id="meetings-content" role="tabpanel">${meetingsContent}</div>`;
+
+    // Вкладка "Звонки" (НОВАЯ)
+    let callsContent = '';
+    if (data.lastCalls && data.lastCalls.length > 0) {
+        callsContent += '<ul class="list-unstyled mt-2">';
+        data.lastCalls.forEach(call => { callsContent += `<li class="mb-3"><p class="mb-0"><strong>${call.date}:</strong></p><p class="mb-0 text-muted fst-italic">"${call.comment || 'Без комментария'}"</p></li>`; });
+        callsContent += '</ul>';
+    } else {
+        callsContent += '<p class="text-muted mt-2">Нет данных о звонках.</p>';
+    }
+    content += `<div class="tab-pane fade" id="calls-content" role="tabpanel">${callsContent}</div>`;
+    
+    // Вкладка "Семинары" (без изменений)
+    let seminarsContent = '';
+    if (data.seminars && data.seminars.length > 0) {
+        seminarsContent += '<ul class="list-group list-group-flush mt-2">';
+        data.seminars.forEach(seminar => { seminarsContent += `<li class="list-group-item ps-0">${seminar.date} - ${seminar.name}</li>`; });
+        seminarsContent += '</ul>';
+    } else {
+        seminarsContent += '<p class="text-muted mt-2">Нет данных о посещении семинаров.</p>';
+    }
+    content += `<div class="tab-pane fade" id="seminars-content" role="tabpanel">${seminarsContent}</div>`;
+
+    content += `</div>`;
+    reportModalBody.innerHTML = content;
+
+    // Инициализация графика (если есть данные)
+    if (reportChart) {
+        reportChart.destroy();
+    }
+    if (data.yearlySalesReport && data.yearlySalesReport.brandsData) {
+        const yearlyData = data.yearlySalesReport;
+        const ctx = document.getElementById('yearlySalesChart')?.getContext('2d');
+        if (ctx) {
+            const brandColors = ['rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)', 'rgba(75, 192, 192, 0.6)', 'rgba(255, 206, 86, 0.6)'];
+            const datasets = yearlyData.brandsData.map((brand, index) => ({
+                label: brand.brandName,
+                data: brand.monthlySales,
+                backgroundColor: brandColors[index % brandColors.length],
+                borderWidth: 1,
+            }));
+
+            reportChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: yearlyData.months,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true }
+                    },
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+    }
+}
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     async function handleClientSearch() {
         const searchInput = document.getElementById('clientSearchInput');
         const resultContainer = document.getElementById('clientSearchResult');
