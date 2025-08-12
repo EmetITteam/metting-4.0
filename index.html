@@ -2339,16 +2339,15 @@ function formatElapsedTime(ms) {
             viewMeetings.classList.toggle(HIDDEN_CLASS, show);
             formSection.classList.toggle(HIDDEN_CLASS, !show);
         }
+        // --- ВСТАВЬТЕ ЭТОТ БЛОК В САМЫЙ КОНЕЦ СКРИПТА ---
+
 // ГЛОБАЛЬНЫЙ ТАЙМЕР ДЛЯ ОБНОВЛЕНИЯ СЧЕТЧИКОВ
+
 setInterval(() => {
     document.querySelectorAll('.timer').forEach(timerEl => {
         const startTime = parseInt(timerEl.dataset.startTime, 10);
         if (startTime) {
-            const elapsed = Date.now() - startTime;
-            const seconds = Math.floor((elapsed / 1000) % 60).toString().padStart(2, '0');
-            const minutes = Math.floor((elapsed / (1000 * 60)) % 60).toString().padStart(2, '0');
-            const hours = Math.floor(elapsed / (1000 * 60 * 60)).toString().padStart(2, '0');
-            timerEl.textContent = `${hours}:${minutes}:${seconds}`;
+            timerEl.textContent = formatElapsedTime(Date.now() - startTime);
         }
     });
 }, 1000);
