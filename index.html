@@ -2011,11 +2011,11 @@ function renderReport(data) {
     const reportModalBody = document.getElementById('reportModalBody');
     let content = '';
 
-   // Уничтожаем старые графики
-    reportCharts.forEach(chart => chart.destroy());
-    reportCharts = [];
+    if (reportChart) {
+        reportChart.destroy();
+    }
 
-    // Блок 1: Шапка с основной информацией
+    // Блок 1: Шапка отчета
     if (data.clientInfo) {
         let phoneHtml = 'Не указан';
         if (data.clientInfo.phone) {
@@ -2030,21 +2030,12 @@ function renderReport(data) {
     }
 
     // Блок 2: Навигация по вкладкам
-    content += `
-        <nav>
-            <div class="nav nav-tabs" id="report-tab" role="tablist">
-                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#sales-content" type="button">Продажи (3 мес)</button>
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#yearly-sales-content" type="button">Продажи (Год)</button>
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#meetings-content" type="button">Встречи</button>
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#calls-content" type="button">Звонки</button>
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#seminars-content" type="button">Семинары</button>
-            </div>
-        </nav>`;
+    content += `<nav><div class="nav nav-tabs" id="report-tab" role="tablist"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#sales-content" type="button">Продажи (3 мес)</button><button class="nav-link" data-bs-toggle="tab" data-bs-target="#yearly-sales-content" type="button">Продажи (Год)</button><button class="nav-link" data-bs-toggle="tab" data-bs-target="#meetings-content" type="button">Встречи</button><button class="nav-link" data-bs-toggle="tab" data-bs-target="#calls-content" type="button">Звонки</button><button class="nav-link" data-bs-toggle="tab" data-bs-target="#seminars-content" type="button">Семинары</button></div></nav>`;
 
     // Блок 3: Содержимое всех вкладок
     content += `<div class="tab-content p-3 border border-top-0 rounded-bottom" id="report-tab-content">`;
     
-    // Вкладка "Продажи (3 мес)"
+    // Вкладки: Продажи (3 мес), Встречи, Звонки, Семинары (без изменений)
     let salesContent = '';
     if (data.salesReport && data.salesReport.brands && data.salesReport.brands.length > 0) {
         salesContent += `<h5 class="mb-3">Продажи по брендам (c ${data.salesReport.periodStart} по ${data.salesReport.periodEnd})</h5><div class="row g-3">`;
@@ -2058,38 +2049,6 @@ function renderReport(data) {
     }
     content += `<div class="tab-pane fade show active" id="sales-content" role="tabpanel">${salesContent}</div>`;
 
-    // Вкладка "Продажи (Год)"
-    let yearlySalesContent = '';
-    if (data.yearlySalesReport && data.yearlySalesReport.brands && data.yearlySalesReport.brands.length > 0) {
-        const report = data.yearlySalesReport;
-        yearlySalesContent += `<h5 class="mb-3">Продажи по брендам (c ${report.periodStart} по ${report.periodEnd})</h5>`;
-        
-        // Создаем карточку для каждого бренда
-        report.brands.forEach((brand, index) => {
-            // Готовим данные для мини-графика
-            const chartLabels = brand.salesByMonth.map(s => s.month);
-            const chartData = brand.salesByMonth.map(s => s.amount);
-            
-            yearlySalesContent += `
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="card-title mb-0">${brand.brandName}</h6>
-                            <span class="fs-5 fw-bold text-primary">${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} usd</span>
-                        </div>
-                        <hr>
-                        <canvas id="mini-chart-brand-${index}" height="100"></canvas>
-                    </div>
-                </div>
-            `;
-        });
-    } else {
-        yearlySalesContent += '<p class="text-muted mt-2">Нет данных о продажах за год.</p>';
-    }
-    content += `<div class="tab-pane fade" id="yearly-sales-content" role="tabpanel">${yearlySalesContent}</div>`;
-
-    content += `</div>`; // Закрывающий div для tab-content
-    reportModalBody.innerHTML = content;
     // Вкладка "Встречи"
     let meetingsContent = '';
     if (data.lastMeetings && data.lastMeetings.length > 0) {
@@ -2100,8 +2059,8 @@ function renderReport(data) {
         meetingsContent += '<p class="text-muted mt-2">Нет данных о последних встречах.</p>';
     }
     content += `<div class="tab-pane fade" id="meetings-content" role="tabpanel">${meetingsContent}</div>`;
-
-    // Вкладка "Звонки" (ИСПРАВЛЕННАЯ ЛОГИКА)
+    
+    // Вкладка "Звонки"
     let callsContent = '';
     if (data.lastCalls && data.lastCalls.length > 0) {
         const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
@@ -2112,43 +2071,26 @@ function renderReport(data) {
             if (!callsByMonth[monthKey]) { callsByMonth[monthKey] = []; }
             callsByMonth[monthKey].push(call);
         });
-
         callsContent += '<div class="mt-2">';
-        const sortedMonths = Object.keys(callsByMonth).sort((a, b) => {
-            const [aMonth, aYear] = a.split(' ');
-            const [bMonth, bYear] = b.split(' ');
-            return new Date(bYear, monthNames.indexOf(bMonth)) - new Date(aYear, monthNames.indexOf(aMonth));
-        });
-
+        const sortedMonths = Object.keys(callsByMonth).sort((a, b) => new Date(b.split(' ')[1], monthNames.indexOf(b.split(' ')[0])) - new Date(a.split(' ')[1], monthNames.indexOf(a.split(' ')[0])));
         sortedMonths.forEach(month => {
             callsContent += `<h6 class="mt-3">${month}</h6>`;
-            // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
-const incomingCalls = callsByMonth[month].filter(c => c.comment && c.comment.toLowerCase().startsWith('входящее'));
-const outgoingCalls = callsByMonth[month].filter(c => c.comment && c.comment.toLowerCase().startsWith('исходящее'));
-const otherCalls = callsByMonth[month].filter(c => !c.comment || (!c.comment.toLowerCase().startsWith('входящее') && !c.comment.toLowerCase().startsWith('исходящее')));
-// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
-            
+            const incomingCalls = callsByMonth[month].filter(c => c.comment && c.comment.toLowerCase().startsWith('входящее'));
+            const outgoingCalls = callsByMonth[month].filter(c => c.comment && c.comment.toLowerCase().startsWith('исходящее'));
+            const otherCalls = callsByMonth[month].filter(c => !c.comment || (!c.comment.toLowerCase().startsWith('входящее') && !c.comment.toLowerCase().startsWith('исходящее')));
             if (incomingCalls.length > 0) {
                 callsContent += '<p class="text-muted mb-1 small"><em>Входящие:</em></p><ul class="list-unstyled ps-3">';
-                incomingCalls.forEach(call => {
-                    const commentText = call.comment.replace(/входящий:?/i, '').trim();
-                    callsContent += `<li><i class="bi bi-telephone-inbound me-2 text-success"></i><strong>${call.date}:</strong> ${commentText || 'Без комментария'}</li>`;
-                });
+                incomingCalls.forEach(call => { const commentText = call.comment.replace(/входящее:?/i, '').trim(); callsContent += `<li><i class="bi bi-telephone-inbound me-2 text-success"></i><strong>${call.date}:</strong> ${commentText || 'Без комментария'}</li>`; });
                 callsContent += '</ul>';
             }
             if (outgoingCalls.length > 0) {
                 callsContent += '<p class="text-muted mb-1 small"><em>Исходящие:</em></p><ul class="list-unstyled ps-3">';
-                outgoingCalls.forEach(call => {
-                    const commentText = call.comment.replace(/исходящий:?/i, '').trim();
-                    callsContent += `<li><i class="bi bi-telephone-outbound me-2 text-primary"></i><strong>${call.date}:</strong> ${commentText || 'Без комментария'}</li>`;
-                });
+                outgoingCalls.forEach(call => { const commentText = call.comment.replace(/исходящее:?/i, '').trim(); callsContent += `<li><i class="bi bi-telephone-outbound me-2 text-primary"></i><strong>${call.date}:</strong> ${commentText || 'Без комментария'}</li>`; });
                 callsContent += '</ul>';
             }
             if (otherCalls.length > 0) {
                 callsContent += '<p class="text-muted mb-1 small"><em>Прочие:</em></p><ul class="list-unstyled ps-3">';
-                otherCalls.forEach(call => {
-                    callsContent += `<li><i class="bi bi-telephone me-2 text-secondary"></i><strong>${call.date}:</strong> ${call.comment || 'Без комментария'}</li>`;
-                });
+                otherCalls.forEach(call => { callsContent += `<li><i class="bi bi-telephone me-2 text-secondary"></i><strong>${call.date}:</strong> ${call.comment || 'Без комментария'}</li>`; });
                 callsContent += '</ul>';
             }
         });
@@ -2168,24 +2110,78 @@ const otherCalls = callsByMonth[month].filter(c => !c.comment || (!c.comment.toL
         seminarsContent += '<p class="text-muted mt-2">Нет данных о посещении семинаров.</p>';
     }
     content += `<div class="tab-pane fade" id="seminars-content" role="tabpanel">${seminarsContent}</div>`;
+
+    // Вкладка "Продажи (Год)" - ПОЛНОСТЬЮ НОВАЯ ЛОГИКА
+    let yearlySalesContent = '';
+    const yearlyData = processYearlySalesData(data.yearlySalesReport);
+    if (yearlyData) {
+        yearlySalesContent += `<h5 class="mb-3">Общая динамика продаж за год</h5>`;
+        yearlySalesContent += `<p><strong>Общая сумма: ${new Intl.NumberFormat('ru-RU').format(yearlyData.grandTotal)} usd</strong></p>`;
+        yearlySalesContent += '<canvas id="yearlySalesChart" height="200"></canvas>';
+        yearlySalesContent += '<hr><h5 class="mt-4 mb-3">Детализация по брендам</h5>';
+        
+        yearlyData.brandsData.forEach((brand, index) => {
+            const salesCount = brand.monthlySales.filter(amount => amount > 0).length;
+            yearlySalesContent += `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="card-title mb-0">${brand.brandName}</h6>
+                            <span class="fs-5 fw-bold text-primary">${new Intl.NumberFormat('ru-RU').format(brand.total)} usd</span>
+                        </div>
+                        ${salesCount > 1 ? `<hr><canvas id="mini-chart-brand-${index}" height="100"></canvas>` : ''}
+                    </div>
+                </div>`;
+        });
+    } else {
+        yearlySalesContent += '<p class="text-muted mt-2">Нет данных о продажах за год.</p>';
+    }
+    content += `<div class="tab-pane fade" id="yearly-sales-content" role="tabpanel">${yearlySalesContent}</div>`;
     
     content += `</div>`;
     reportModalBody.innerHTML = content;
 
-    if (data.yearlySalesReport && data.yearlySalesReport.brands) {
-        data.yearlySalesReport.brands.forEach((brand, index) => {
-            const ctx = document.getElementById(`mini-chart-brand-${index}`)?.getContext('2d');
-            if (ctx) {
-                const chart = new Chart(ctx, {
+    // Инициализация графиков
+    if (yearlyData) {
+        const brandColors = ['rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)', 'rgba(75, 192, 192, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(153, 102, 255, 0.6)'];
+        
+        // Главный график
+        const mainCtx = document.getElementById('yearlySalesChart')?.getContext('2d');
+        if(mainCtx) {
+             const mainChart = new Chart(mainCtx, {
+                type: 'line',
+                data: {
+                    labels: yearlyData.months,
+                    datasets: [{
+                        label: 'Все продажи, usd',
+                        data: yearlyData.monthlyTotals,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+            reportCharts.push(mainChart);
+        }
+
+        // Мини-графики
+        yearlyData.brandsData.forEach((brand, index) => {
+            const salesCount = brand.monthlySales.filter(amount => amount > 0).length;
+            if(salesCount < 2) return; // Не рисуем график для одного значения
+
+            const miniCtx = document.getElementById(`mini-chart-brand-${index}`)?.getContext('2d');
+            if (miniCtx) {
+                const miniChart = new Chart(miniCtx, {
                     type: 'bar',
                     data: {
-                        labels: brand.salesByMonth.map(s => s.month.substring(0, 3)), // Краткие названия месяцев
+                        labels: yearlyData.months,
                         datasets: [{
                             label: 'Продажи, usd',
-                            data: brand.salesByMonth.map(s => s.amount),
-                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1
+                            data: brand.monthlySales,
+                            backgroundColor: brandColors[index % brandColors.length]
                         }]
                     },
                     options: {
@@ -2194,20 +2190,20 @@ const otherCalls = callsByMonth[month].filter(c => !c.comment || (!c.comment.toL
                         scales: { y: { beginAtZero: true } }
                     }
                 });
-                reportCharts.push(chart); // Сохраняем для последующего удаления
+                reportCharts.push(miniChart);
             }
         });
     }
 }
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
        // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---Новый блок для отчета за год
+
 function processYearlySalesData(yearlyReport) {
     if (!yearlyReport || !yearlyReport.brands || yearlyReport.brands.length === 0) return null;
 
     const salesByBrandMonth = {};
     const allMonths = new Set();
     
-    // Шаг 1: Собираем все данные и находим все уникальные месяцы
     yearlyReport.brands.forEach(brand => {
         salesByBrandMonth[brand.brandName] = {};
         brand.salesByMonth.forEach(sale => {
@@ -2216,15 +2212,13 @@ function processYearlySalesData(yearlyReport) {
         });
     });
 
-    // Шаг 2: Сортируем месяцы в хронологическом порядке
+    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
     const sortedMonths = Array.from(allMonths).sort((a, b) => {
-        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
         const [aMonth, aYear] = a.split(' ');
         const [bMonth, bYear] = b.split(' ');
         return new Date(aYear, monthNames.indexOf(aMonth)) - new Date(bYear, monthNames.indexOf(bMonth));
     });
 
-    // Шаг 3: Формируем "развернутые" данные для таблицы и графика
     const brandsData = Object.keys(salesByBrandMonth).map(brandName => {
         const monthlySales = sortedMonths.map(monthKey => salesByBrandMonth[brandName][monthKey] || 0);
         return {
@@ -2234,7 +2228,6 @@ function processYearlySalesData(yearlyReport) {
         };
     });
 
-    // Шаг 4: Считаем итоги по месяцам
     const monthlyTotals = sortedMonths.map((monthKey, index) => {
         return brandsData.reduce((sum, brand) => sum + brand.monthlySales[index], 0);
     });
