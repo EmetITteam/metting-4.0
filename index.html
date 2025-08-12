@@ -1522,6 +1522,7 @@ function getCategoryColor(categoryName) {
         widgetsContainer.innerHTML = `<div class="col-4"><div class="widget-card"><div class="widget-value text-primary">${totalValue}</div><div class="widget-label">${totalLabel}</div></div></div><div class="col-4"><div class="widget-card"><div class="widget-value text-success">${completedToday}</div><div class="widget-label">Завершено</div></div></div><div class="col-4"><a href="#" id="widget-overdue-filter" class="widget-card"><div class="widget-value text-danger">${overdue}</div><div class="widget-label">Просрочено</div></a></div>`;
     }
     // ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ ЦЕЛИКОМ НА ЭТУ
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 function filterAndGroupMeetings() {
     const searchTerm = document.getElementById('searchInput1').value.toLowerCase();
     const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
@@ -1536,11 +1537,7 @@ function filterAndGroupMeetings() {
         if (!dateGroups[m.Date]) {
             dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Завершена': [], 'Отмена': [], 'Просрочено': [] };
         }
-        if (dateGroups[m.Date][status]) {
-            dateGroups[m.Date][status].push(m);
-        } else {
-            dateGroups[m.Date]['В работе'].push(m);
-        }
+        (dateGroups[m.Date][status] || dateGroups[m.Date]['В работе']).push(m);
     });
 
     meetingsList.innerHTML = '';
@@ -1570,24 +1567,30 @@ function filterAndGroupMeetings() {
                 groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
                     const cleanStatus = m.Status ? m.Status.trim() : '';
                     const isActive = cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено';
+                    const activeTimers = JSON.parse(localStorage.getItem('activeTimers')) || {};
+                    const isMeetingRunning = !!activeTimers[m.ID];
                     
-                    let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}"><i class="bi bi-card-checklist me-2"></i>Итоги встречи</a></li>`;
+                    let stateButtonHtml = '';
                     if (isActive) {
+                        if (isMeetingRunning) {
+                            stateButtonHtml = `
+                                <button class="btn btn-danger btn-sm js-state-toggle-btn flex-grow-1" data-id="${m.ID}">
+                                    <i class="bi bi-stop-circle me-2"></i>Завершить (<span class="timer" data-start-time="${activeTimers[m.ID].startTime}">00:00:00</span>)
+                                </button>`;
+                        } else {
+                            stateButtonHtml = `
+                                <button class="btn btn-success btn-sm js-state-toggle-btn flex-grow-1" data-id="${m.ID}">
+                                    <i class="bi bi-play-circle me-2"></i>Старт встречи
+                                </button>`;
+                        }
+                    }
+
+                    let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}"><i class="bi bi-card-checklist me-2"></i>Итоги встречи</a></li>`;
+                    if (isActive && !isMeetingRunning) { // Нельзя перенести уже начатую встречу
                          dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}"><i class="bi bi-arrow-repeat me-2"></i>Перенести</a></li>`;
                     }
                     const actionsMenu = `<div class="dropdown actions-dropdown">${dropdownItems ? `<button class="btn btn-sm btn-light border-0 py-0 px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end">${dropdownItems}</ul>` : ''}</div>`;
-
-                    let quickGeoBtn = '';
-                    let quickCompleteBtn = '';
-                    if (isActive) {
-                        quickGeoBtn = `<a href="#" class="btn btn-sm btn-outline-secondary geo-btn ms-2" data-id="${m.ID}" title="Определить геолокацию">📍</a>`;
-                        quickCompleteBtn = `<a href="#" class="btn btn-sm btn-outline-success complete-btn ms-2" data-id="${m.ID}" title="Завершить встречу"><i class="bi bi-check-lg"></i></a>`;
-                    }
                     
-                    let rescheduleInfo = '';
-                    if (m.Comment && m.Comment.startsWith('Перенесена со старой даты')) {
-                        rescheduleInfo = `<p class="card-text text-info small mt-2"><em><i class="bi bi-arrow-repeat me-1"></i>${m.Comment}</em></p>`;
-                    }
                     const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершена': 'green', 'Отмена': 'gray', 'Просрочено': 'red' };
                     const statusColor = statusColors[cleanStatus] || 'gray';
                     let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
@@ -1595,40 +1598,25 @@ function filterAndGroupMeetings() {
                         const categoryColor = getCategoryColor(m.ClientCategory);
                         clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
                     }
+                    
                     const cardWrapper = document.createElement('div');
                     cardWrapper.className = "col-12 col-md-6";
-                    
                     cardWrapper.innerHTML = `
                         <div class="card meeting-card shadow-sm border-0 d-flex flex-column h-100">
                             <div class="card-body flex-grow-1">
-                                <a href="#" class="btn btn-light edit-btn card-edit-btn-top-right" title="Редактировать" data-id="${m.ID}">
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
-                                <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between">
                                     <h5 class="card-title">${clientTitle}</h5>
-                                    <p class="card-text mb-1"><small class="text-muted">${m.Purpose || 'Цель не указана'}</small></p>
-                                    
-                                    <div class="d-flex align-items-center">
-                                        <p class="card-text mb-1"><small class="text-muted">Место: ${m.Location || 'Не указано'}</small></p>
-                                        ${quickGeoBtn}
-                                    </div>
-
-                                    ${rescheduleInfo}
+                                    <a href="#" class="btn btn-light edit-btn" style="height: fit-content;" title="Редактировать" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
                                 </div>
+                                <p class="card-text mb-1"><small class="text-muted">${m.Purpose || 'Цель не указана'}</small></p>
+                                <p class="card-text mb-1"><small class="text-muted">Место: ${m.Location || 'Не указано'}</small></p>
+                                <p class="card-text mb-0"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
                             </div>
                             <div class="card-footer bg-white border-top-0 pt-0">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="d-flex align-items-center">
-                                        <p class="card-text mb-0">
-                                            <strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}
-                                        </p>
-                                        ${quickCompleteBtn}
-                                    </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    ${stateButtonHtml}
                                     ${actionsMenu}
                                 </div>
-                                <button class="btn btn-sm btn-outline-secondary w-100 report-btn-icon" data-client-id="${m.ClientID}" data-client-name="${m.Client}">
-                                    <i class="bi bi-file-text me-2"></i>Данные по клиенту
-                                </button>
                             </div>
                         </div>`;
                     meetingsList.appendChild(cardWrapper);
@@ -1636,13 +1624,14 @@ function filterAndGroupMeetings() {
             }
         });
     });
+    
+    // Привязываем обработчики к новым и старым кнопкам
     document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
-    document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', handleCompleteClick));
+    document.querySelectorAll('.js-state-toggle-btn').forEach(btn => btn.addEventListener('click', handleMeetingStateToggle));
     document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
     document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
-    document.querySelectorAll('.geo-btn').forEach(btn => btn.addEventListener('click', handleGeoClick));
-    window.scrollTo(0, 0);
 }
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     function handleClientInput(e) {
         const searchTerm = e.target.value;
         const resultsContainer = document.getElementById('client-autocomplete-results');
@@ -1742,16 +1731,49 @@ function filterAndGroupMeetings() {
         showForm(true);
     }
    // ЗАМЕНИТЕ СТАРУЮ ФУНКЦИЮ НА ЭТУ
-function handleCompleteClick(event) {
-    const btn = event.target.closest('.complete-btn');
+// НОВАЯ ФУНКЦИЯ ВМЕСТО handleCompleteClick
+async function handleMeetingStateToggle(event) {
+    const btn = event.target.closest('.js-state-toggle-btn');
     if (!btn) return;
-    
-    meetingToCompleteId = btn.dataset.id;
-    const meeting = allMeetings.find(m => m.ID === meetingToCompleteId);
-    if (!meeting) return;
 
-    document.getElementById('clientNameToComplete').textContent = meeting.Client;
-    completeConfirmModal.show();
+    toggleButtonSpinner(btn, true);
+    const meetingId = btn.dataset.id;
+    const meeting = allMeetings.find(m => m.ID === meetingId);
+    if (!meeting) {
+        toggleButtonSpinner(btn, false);
+        return;
+    }
+
+    const activeTimers = JSON.parse(localStorage.getItem('activeTimers')) || {};
+    const isMeetingRunning = !!activeTimers[meetingId];
+
+    try {
+        if (isMeetingRunning) {
+            // --- Логика ЗАВЕРШЕНИЯ встречи ---
+            const oldData = meeting;
+            const newData = { ...oldData, Status: 'Завершено' };
+            await callApi('updateMeeting', { newData, oldData });
+            
+            delete activeTimers[meetingId];
+            localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
+            
+            showToast("Встреча завершена");
+            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+
+        } else {
+            // --- Логика СТАРТА встречи ---
+            await callApi('startMeeting', { meetingId: meetingId });
+            
+            activeTimers[meetingId] = { startTime: Date.now() };
+            localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
+
+            showToast("Встреча начата");
+            filterAndGroupMeetings(); // Просто перерисовываем карточки
+        }
+    } catch (e) {
+        onFailure(e);
+        toggleButtonSpinner(btn, false);
+    }
 }
     function handleRescheduleClick(event) {
         const meetingId = event.target.dataset.id;
@@ -2197,7 +2219,21 @@ function renderReport(data) {
             viewMeetings.classList.toggle(HIDDEN_CLASS, show);
             formSection.classList.toggle(HIDDEN_CLASS, !show);
         }
+        // ГЛОБАЛЬНЫЙ ТАЙМЕР ДЛЯ ОБНОВЛЕНИЯ СЧЕТЧИКОВ
+setInterval(() => {
+    document.querySelectorAll('.timer').forEach(timerEl => {
+        const startTime = parseInt(timerEl.dataset.startTime, 10);
+        if (startTime) {
+            const elapsed = Date.now() - startTime;
+            const seconds = Math.floor((elapsed / 1000) % 60).toString().padStart(2, '0');
+            const minutes = Math.floor((elapsed / (1000 * 60)) % 60).toString().padStart(2, '0');
+            const hours = Math.floor(elapsed / (1000 * 60 * 60)).toString().padStart(2, '0');
+            timerEl.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+    });
+}, 1000);
     }
+       
 </script>
 </body>
 
