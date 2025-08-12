@@ -2339,13 +2339,16 @@ function formatElapsedTime(ms) {
             viewMeetings.classList.toggle(HIDDEN_CLASS, show);
             formSection.classList.toggle(HIDDEN_CLASS, !show);
         }
-        // ГЛОБАЛЬНЫЙ ТАЙМЕР ДЛЯ ОБНОВЛЕНИЯ СЧЕТЧИКОВ
-s// ЗАМЕНИТЕ ВАШ СУЩЕСТВУЮЩИЙ setInterval
+// ГЛОБАЛЬНЫЙ ТАЙМЕР ДЛЯ ОБНОВЛЕНИЯ СЧЕТЧИКОВ
 setInterval(() => {
     document.querySelectorAll('.timer').forEach(timerEl => {
         const startTime = parseInt(timerEl.dataset.startTime, 10);
         if (startTime) {
-            timerEl.textContent = formatElapsedTime(Date.now() - startTime);
+            const elapsed = Date.now() - startTime;
+            const seconds = Math.floor((elapsed / 1000) % 60).toString().padStart(2, '0');
+            const minutes = Math.floor((elapsed / (1000 * 60)) % 60).toString().padStart(2, '0');
+            const hours = Math.floor(elapsed / (1000 * 60 * 60)).toString().padStart(2, '0');
+            timerEl.textContent = `${hours}:${minutes}:${seconds}`;
         }
     });
 }, 1000);
