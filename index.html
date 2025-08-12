@@ -1521,7 +1521,7 @@ function getCategoryColor(categoryName) {
         }).length;
         widgetsContainer.innerHTML = `<div class="col-4"><div class="widget-card"><div class="widget-value text-primary">${totalValue}</div><div class="widget-label">${totalLabel}</div></div></div><div class="col-4"><div class="widget-card"><div class="widget-value text-success">${completedToday}</div><div class="widget-label">Завершено</div></div></div><div class="col-4"><a href="#" id="widget-overdue-filter" class="widget-card"><div class="widget-value text-danger">${overdue}</div><div class="widget-label">Просрочено</div></a></div>`;
     }
-    // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+   // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 function filterAndGroupMeetings() {
     const searchTerm = document.getElementById('searchInput1').value.toLowerCase();
     const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
@@ -1572,11 +1572,13 @@ function filterAndGroupMeetings() {
                     let stateButtonHtml = '';
                     if (isActive) {
                         if (isMeetingRunning) {
-                            stateButtonHtml = `<button class="btn btn-danger btn-sm js-state-toggle-btn flex-grow-1" data-id="${m.ID}">
+                            // --- ИЗМЕНЕНИЕ ЗДЕСЬ: убран класс flex-grow-1 ---
+                            stateButtonHtml = `<button class="btn btn-danger btn-sm js-state-toggle-btn" data-id="${m.ID}">
                                 <i class="bi bi-stop-circle me-2"></i>Завершить (<span class="timer" data-start-time="${activeTimers[m.ID].startTime}">00:00:00</span>)
                             </button>`;
                         } else {
-                            stateButtonHtml = `<button class="btn btn-success btn-sm js-state-toggle-btn flex-grow-1" data-id="${m.ID}">
+                            // --- ИЗМЕНЕНИЕ ЗДЕСЬ: убран класс flex-grow-1 ---
+                            stateButtonHtml = `<button class="btn btn-success btn-sm js-state-toggle-btn" data-id="${m.ID}">
                                 <i class="bi bi-play-circle me-2"></i>Старт встречи
                             </button>`;
                         }
@@ -1610,7 +1612,7 @@ function filterAndGroupMeetings() {
                                 <p class="card-text mb-0"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
                             </div>
                             <div class="card-footer bg-white border-top-0 pt-0">
-                                <div class="d-flex align-items-center gap-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
                                     ${stateButtonHtml}
                                     ${actionsMenu}
                                 </div>
