@@ -164,6 +164,10 @@ body {
     font-weight: 600; /* Делаем текст чуть жирнее, чтобы он выделялся */
     padding: 0; /* Убираем лишние отступы */
 }
+        .compact-card .card-body {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
     </style>
 </head>
 
@@ -2123,6 +2127,7 @@ function renderReport(data) {
         
         yearlyData.brandsData.forEach((brand, index) => {
             const salesCount = brand.monthlySales.filter(amount => amount > 0).length;
+            const cardClass = salesCount > 1 ? '' : 'compact-card';
             yearlySalesContent += `
                 <div class="card mb-3">
                     <div class="card-body">
@@ -2199,6 +2204,7 @@ function renderReport(data) {
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
        // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---Новый блок для отчета за год
 
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 function processYearlySalesData(yearlyReport) {
     if (!yearlyReport || !yearlyReport.brands || yearlyReport.brands.length === 0) return null;
 
@@ -2220,7 +2226,7 @@ function processYearlySalesData(yearlyReport) {
         return new Date(aYear, monthNames.indexOf(aMonth)) - new Date(bYear, monthNames.indexOf(bMonth));
     });
 
-    const brandsData = Object.keys(salesByBrandMonth).map(brandName => {
+    let brandsData = Object.keys(salesByBrandMonth).map(brandName => {
         const monthlySales = sortedMonths.map(monthKey => salesByBrandMonth[brandName][monthKey] || 0);
         return {
             brandName,
@@ -2228,6 +2234,9 @@ function processYearlySalesData(yearlyReport) {
             total: monthlySales.reduce((sum, val) => sum + val, 0)
         };
     });
+
+    // --- ДОБАВЛЕНА СОРТИРОВКА БРЕНДОВ ---
+    brandsData.sort((a, b) => b.total - a.total);
 
     const monthlyTotals = sortedMonths.map((monthKey, index) => {
         return brandsData.reduce((sum, brand) => sum + brand.monthlySales[index], 0);
@@ -2241,6 +2250,7 @@ function processYearlySalesData(yearlyReport) {
     };
 }
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+
     async function handleClientSearch() {
         const searchInput = document.getElementById('clientSearchInput');
         const resultContainer = document.getElementById('clientSearchResult');
