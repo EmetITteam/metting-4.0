@@ -1680,6 +1680,7 @@ function filterAndGroupMeetings() {
         }, 500);
     }
     // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 function handleFormSubmit(e) {
     e.preventDefault();
     const saveBtn = document.getElementById('save-button');
@@ -1698,15 +1699,20 @@ function handleFormSubmit(e) {
         Status: document.getElementById('status').value,
         ManagerLogin: currentUser,
         Comment: isUpdating && currentEditingMeeting ? currentEditingMeeting.Comment : '',
-        
-        // --- ИСПРАВЛЕНИЕ ЗДЕСЬ: Возвращаем правильное имя поля ---
         PlannedAddress: document.getElementById('planned-meeting-address').value
     };
 
     if (isUpdating) {
         meetingData.ID = meetingId;
-        if (currentEditingMeeting && currentEditingMeeting.calendarEventId) {
+        if (currentEditingMeeting) {
+            // --- ДОБАВЛЕНО: Переносим все существующие поля Geo в newData ---
             meetingData.calendarEventId = currentEditingMeeting.calendarEventId;
+            meetingData.StartAddress = currentEditingMeeting.StartAddress;
+            meetingData.StartLatitude = currentEditingMeeting.StartLatitude;
+            meetingData.StartLongitude = currentEditingMeeting.StartLongitude;
+            meetingData.EndAddress = currentEditingMeeting.EndAddress;
+            meetingData.EndLatitude = currentEditingMeeting.EndLatitude;
+            meetingData.EndLongitude = currentEditingMeeting.EndLongitude;
         }
     }
     
@@ -1721,6 +1727,7 @@ function handleFormSubmit(e) {
         toggleButtonSpinner(saveBtn, false);
     });
 }
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     function handleEditClick(event) {
     event.preventDefault();
