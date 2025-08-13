@@ -259,6 +259,10 @@ body {
                         <div class="col-md-6"><label for="client-category" class="form-label">Категория клиента:</label><input type="text" id="client-category" class="form-control" readonly></div>
                         <div class="col-12"><label for="location" class="form-label">Адрес клиента:</label><input type="text" id="location" class="form-control" readonly></div>
                         <div class="col-12">
+    <label for="planned-meeting-address" class="form-label">Адрес встречи (планируемый)</label>
+    <input type="text" id="planned-meeting-address" class="form-control" placeholder="Например: кафе, наш офис, конференц-зал">
+</div>
+                        <div class="col-12">
     <label for="meeting-location" class="form-label">Фактическое место встречи (адрес по Geo):</label>
     <input type="text" id="meeting-location" class="form-control" readonly placeholder="Заполнится автоматически при старте встречи">
     <input type="hidden" id="meeting-lat"><input type="hidden" id="meeting-lon">
@@ -1694,6 +1698,7 @@ function filterAndGroupMeetings() {
             Status: document.getElementById('status').value,
             ManagerLogin: currentUser,
             Comment: isUpdating ? currentEditingMeeting.Comment : ''
+            PlannedAddress: document.getElementById('planned-meeting-address').value
         };
         if (isUpdating) {
             meetingData.ID = meetingId;
@@ -1713,27 +1718,29 @@ function filterAndGroupMeetings() {
         });
     }
     function handleEditClick(event) {
-        event.preventDefault();
-        const meetingId = event.currentTarget.dataset.id;
-        currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
-        if (!currentEditingMeeting) return;
-        document.getElementById('form-title').textContent = "Редактирование встречи";
-        document.getElementById('meeting-id').value = currentEditingMeeting.ID;
-        document.getElementById('client-id').value = currentEditingMeeting.ClientID;
-        document.getElementById('client-category').value = currentEditingMeeting.ClientCategory || '';
-        document.getElementById('client-autocomplete-results').innerHTML = '';
-        const dateParts = currentEditingMeeting.Date.split('.');
-        document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-        document.getElementById('meeting-time').value = currentEditingMeeting.Time;
-        document.getElementById('client-name').value = currentEditingMeeting.Client;
-        document.getElementById('purpose').value = currentEditingMeeting.Purpose;
-        document.getElementById('phone').value = currentEditingMeeting.Phone;
-        if (phoneMask) phoneMask.updateValue();
-        document.getElementById('location').value = currentEditingMeeting.ClientAddress || '';
-        document.getElementById('meeting-location').value = currentEditingMeeting.Location || '';
-        document.getElementById('meeting-lat').value = currentEditingMeeting.LocationLat || '';
-        document.getElementById('meeting-lon').value = currentEditingMeeting.LocationLon || '';
-        document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
+    event.preventDefault();
+    const meetingId = event.currentTarget.dataset.id;
+    currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
+    if (!currentEditingMeeting) return;
+    
+    document.getElementById('form-title').textContent = "Редактирование встречи";
+    document.getElementById('meeting-id').value = currentEditingMeeting.ID;
+    document.getElementById('client-id').value = currentEditingMeeting.ClientID;
+    document.getElementById('client-category').value = currentEditingMeeting.ClientCategory || '';
+    document.getElementById('client-autocomplete-results').innerHTML = '';
+    const dateParts = currentEditingMeeting.Date.split('.');
+    document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+    document.getElementById('meeting-time').value = currentEditingMeeting.Time;
+    document.getElementById('client-name').value = currentEditingMeeting.Client;
+    document.getElementById('purpose').value = currentEditingMeeting.Purpose;
+    document.getElementById('phone').value = currentEditingMeeting.Phone;
+    if (phoneMask) phoneMask.updateValue();
+    document.getElementById('location').value = currentEditingMeeting.ClientAddress || '';
+    document.getElementById('planned-meeting-address').value = currentEditingMeeting.PlannedAddress || ''; // <-- ДОБАВЛЕНА ЭТА СТРОКА
+    document.getElementById('meeting-location').value = currentEditingMeeting.StartAddress || currentEditingMeeting.Location || ''; 
+    document.getElementById('meeting-lat').value = currentEditingMeeting.StartLatitude || currentEditingMeeting.LocationLat || '';
+    document.getElementById('meeting-lon').value = currentEditingMeeting.StartLongitude || currentEditingMeeting.LocationLon || '';
+    document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
         //Кнопка определения гео
         //const geoButton = document.getElementById('get-meeting-location-btn');
         //const status = currentEditingMeeting.Status ? currentEditingMeeting.Status.trim() : '';
@@ -1744,7 +1751,7 @@ function filterAndGroupMeetings() {
         
         showForm(true);
     }
-   // ЗАМЕНИТЕ СТАРУЮ ФУНКЦИЮ НА ЭТУ
+
 // НОВАЯ ФУНКЦИЯ ВМЕСТО handleCompleteClick
 // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 async function handleMeetingStateToggle(event) {
