@@ -1679,44 +1679,49 @@ function filterAndGroupMeetings() {
             }
         }, 500);
     }
-    function handleFormSubmit(e) {
-        e.preventDefault();
-        const saveBtn = document.getElementById('save-button');
-        toggleButtonSpinner(saveBtn, true);
-        const meetingId = document.getElementById('meeting-id').value;
-        const isUpdating = !!meetingId;
-        const meetingData = {
-            ClientID: document.getElementById('client-id').value,
-            Date: document.getElementById('meeting-date').value.split('-').reverse().join('.'),
-            Time: document.getElementById('meeting-time').value,
-            Client: document.getElementById('client-name').value,
-            Purpose: document.getElementById('purpose').value,
-            Phone: phoneMask.unmaskedValue,
-            Location: document.getElementById('meeting-location').value,
-            LocationLat: document.getElementById('meeting-lat').value,
-            LocationLon: document.getElementById('meeting-lon').value,
-            Status: document.getElementById('status').value,
-            ManagerLogin: currentUser,
-            Comment: isUpdating ? currentEditingMeeting.Comment : '',
-            PlannedAddress: document.getElementById('planned-meeting-address').value
-        };
-        if (isUpdating) {
-            meetingData.ID = meetingId;
-            if (currentEditingMeeting && currentEditingMeeting.calendarEventId) {
-                meetingData.calendarEventId = currentEditingMeeting.calendarEventId;
-            }
-        }
+    // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+function handleFormSubmit(e) {
+    e.preventDefault();
+    const saveBtn = document.getElementById('save-button');
+    toggleButtonSpinner(saveBtn, true);
+    
+    const meetingId = document.getElementById('meeting-id').value;
+    const isUpdating = !!meetingId;
+
+    const meetingData = {
+        ClientID: document.getElementById('client-id').value,
+        Date: document.getElementById('meeting-date').value.split('-').reverse().join('.'),
+        Time: document.getElementById('meeting-time').value,
+        Client: document.getElementById('client-name').value,
+        Purpose: document.getElementById('purpose').value,
+        Phone: phoneMask.unmaskedValue,
+        Status: document.getElementById('status').value,
+        ManagerLogin: currentUser,
+        Comment: isUpdating && currentEditingMeeting ? currentEditingMeeting.Comment : '',
         
-        const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
-        const payload = isUpdating ? { newData: meetingData, oldData: currentEditingMeeting } : meetingData;
-        callApi(action, payload).then(() => {
-            showToast(`Встреча с клиентом "${meetingData.Client}" на ${meetingData.Time} успешно сохранена.`);
-            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
-            onActionComplete();
-        }).catch(onFailure).finally(() => {
-            toggleButtonSpinner(saveBtn, false);
-        });
+        // --- ИСПРАВЛЕНИЕ ЗДЕСЬ: Возвращаем правильное имя поля ---
+        PlannedAddress: document.getElementById('planned-meeting-address').value
+    };
+
+    if (isUpdating) {
+        meetingData.ID = meetingId;
+        if (currentEditingMeeting && currentEditingMeeting.calendarEventId) {
+            meetingData.calendarEventId = currentEditingMeeting.calendarEventId;
+        }
     }
+    
+    const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
+    const payload = isUpdating ? { newData: meetingData, oldData: currentEditingMeeting } : meetingData;
+    
+    callApi(action, payload).then(() => {
+        showToast(`Встреча с клиентом "${meetingData.Client}" на ${meetingData.Time} успешно сохранена.`);
+        loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+        onActionComplete();
+    }).catch(onFailure).finally(() => {
+        toggleButtonSpinner(saveBtn, false);
+    });
+}
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     function handleEditClick(event) {
     event.preventDefault();
     const meetingId = event.currentTarget.dataset.id;
