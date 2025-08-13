@@ -1697,7 +1697,7 @@ function filterAndGroupMeetings() {
             LocationLon: document.getElementById('meeting-lon').value,
             Status: document.getElementById('status').value,
             ManagerLogin: currentUser,
-            Comment: isUpdating ? currentEditingMeeting.Comment : ''
+            Comment: isUpdating ? currentEditingMeeting.Comment : '',
             PlannedAddress: document.getElementById('planned-meeting-address').value
         };
         if (isUpdating) {
