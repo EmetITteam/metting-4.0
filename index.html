@@ -1534,7 +1534,7 @@ function getCategoryColor(categoryName) {
         }).length;
         widgetsContainer.innerHTML = `<div class="col-4"><div class="widget-card"><div class="widget-value text-primary">${totalValue}</div><div class="widget-label">${totalLabel}</div></div></div><div class="col-4"><div class="widget-card"><div class="widget-value text-success">${completedToday}</div><div class="widget-label">Завершено</div></div></div><div class="col-4"><a href="#" id="widget-overdue-filter" class="widget-card"><div class="widget-value text-danger">${overdue}</div><div class="widget-label">Просрочено</div></a></div>`;
     }
-   // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+
 // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 function filterAndGroupMeetings() {
     const searchTerm = document.getElementById('searchInput1').value.toLowerCase();
@@ -1621,7 +1621,7 @@ function filterAndGroupMeetings() {
                                     <a href="#" class="btn btn-light edit-btn" style="height: fit-content;" title="Редактировать" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
                                 </div>
                                 <p class="card-text mb-1"><small class="text-muted">${m.Purpose || 'Цель не указана'}</small></p>
-                                <p class="card-text mb-1"><small class="text-muted">Место: ${m.Location || 'Не указано'}</small></p>
+                                <p class="card-text mb-1"><small class="text-muted">Место: ${m.StartAddress || m.PlannedAddress || 'Не указано'}</small></p>
                                 <p class="card-text mb-0"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
                             </div>
                             <div class="card-footer bg-white border-top-0 pt-0">
