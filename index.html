@@ -415,34 +415,154 @@ body {
                         </div>
 
                         <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">2. Портфель і обсяги</button>
-                            </h2>
-                            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
-                                <div class="accordion-body">
-                                    <label class="form-label d-block fw-bold">Які процедури виконує:</label>
-                                    
-                                    <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="ботулінотерапія" data-question="Портфель.Процедури" data-controls="botulinum-details"><label class="form-check-label">ботулінотерапія</label></div>
-                                    <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="botulinum-details">
-                                        <label class="form-label d-block">Який ботулотоксин використовує у роботі:</label>
-                                        <div class="form-check"><input type="checkbox" class="form-check-input" value="Neuronox" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Neuronox</label></div>
-                                        <div class="form-check"><input type="checkbox" class="form-check-input" value="Dysport" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Dysport</label></div>
-                                        <div class="form-check"><input type="checkbox" class="form-check-input" value="Botox" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Botox</label></div>
-                                        <div class="form-check"><input type="checkbox" class="form-check-input" value="Xeomin" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Xeomin</label></div>
-                                        <div class="form-check"><input type="checkbox" class="form-check-input" value="Nabota" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Nabota</label></div>
-                                        <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Інше (не зареєстрований ботулотоксин)</label></div>
-                                        <label class="form-label d-block mt-2">Скільки флаконів використовує на місяць:</label>
-                                        <div class="form-check"><input type="radio" class="form-check-input" name="botulinum_qty" value="до 3-х" data-question="Портфель.ботулінотерапія.Кількість"><label class="form-check-label">до 3-х флаконів</label></div>
-                                        <div class="form-check"><input type="radio" class="form-check-input" name="botulinum_qty" value="від 3-х до 5" data-question="Портфель.ботулінотерапія.Кількість"><label class="form-check-label">від 3-х до 5 флаконів</label></div>
-                                        <div class="form-check"><input type="radio" class="form-check-input" name="botulinum_qty" value="більше 5" data-question="Портфель.ботулінотерапія.Кількість"><label class="form-check-label">більше 5 флаконів</label></div>
-                                    </div>
-                                    
-                                    </div>
-                            </div>
-                        </div>
+    <h2 class="accordion-header">
+         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">2. Портфель і обсяги</button>
+    </h2>
+    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+        <div class="accordion-body">
+            <label class="form-label d-block fw-bold">Які процедури виконує:</label>
+            
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="ботулінотерапія" data-question="Портфель.Процедури" data-controls="botulinum-details"><label class="form-check-label">ботулінотерапія</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="botulinum-details">
+                <label class="form-label d-block">Який ботулотоксин використовує у роботі:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Neuronox" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Neuronox</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Dysport" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Dysport</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Botox" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Botox</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Xeomin" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Xeomin</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Nabota" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Nabota</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Інше (не зареєстрований ботулотоксин)</label></div>
+                <label class="form-label d-block mt-2">Скільки флаконів використовує на місяць:</label>
+                <div class="form-check"><input type="radio" class="form-check-input" name="botulinum_qty" value="до 3-х" data-question="Портфель.ботулінотерапія.Кількість"><label class="form-check-label">до 3-х флаконів</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="botulinum_qty" value="від 3-х до 5" data-question="Портфель.ботулінотерапія.Кількість"><label class="form-check-label">від 3-х до 5 флаконів</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="botulinum_qty" value="більше 5" data-question="Портфель.ботулінотерапія.Кількість"><label class="form-check-label">більше 5 флаконів</label></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="біоревіталізація" data-question="Портфель.Процедури" data-controls="boosters-details"><label class="form-check-label">біоревіталізація</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="boosters-details">
+                <label class="form-label d-block">Які бустери використовує у роботі:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="IUSE Skin Booster" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">IUSE Skin Booster</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="RRS" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">RRS</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Jalupro" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">Jalupro</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Profhilo" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">Profhilo</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Revok50" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">Revok50</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Bolotero Revive" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">Bolotero Revive</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Hyalual" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">Hyalual</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Juvederm Volite" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">Juvederm Volite</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">Інше</label></div>
+                <label class="form-label d-block mt-2">Скільки шприців бустерів використовує на місяць:</label>
+                <div class="form-check"><input type="radio" class="form-check-input" name="boosters_qty" value="до 3-х" data-question="Портфель.біоревіталізація.Кількість"><label class="form-check-label">до 3-х</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="boosters_qty" value="від 3-х до 5" data-question="Портфель.біоревіталізація.Кількість"><label class="form-check-label">від 3-х до 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="boosters_qty" value="більше 5" data-question="Портфель.біоревіталізація.Кількість"><label class="form-check-label">більше 5</label></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="біорепарація PDRN" data-question="Портфель.Процедури" data-controls="pdrn-details"><label class="form-check-label">біорепарація PDRN</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="pdrn-details">
+                <label class="form-label d-block">Які препарати PDRN використовує у роботі:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Vitaran" data-question="Портфель.PDRN.Бренди"><label class="form-check-label">Vitaran</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Rejuran" data-question="Портфель.PDRN.Бренди"><label class="form-check-label">Rejuran</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Plenhyage" data-question="Портфель.PDRN.Бренди"><label class="form-check-label">Plenhyage</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="MASTELLI Plinest" data-question="Портфель.PDRN.Бренди"><label class="form-check-label">MASTELLI Plinest</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="TWAC" data-question="Портфель.PDRN.Бренди"><label class="form-check-label">TWAC</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.PDRN.Бренди"><label class="form-check-label">Інше</label></div>
+                <label class="form-label d-block mt-2">Скільки одиниць PDRN використовує на місяць:</label>
+                <div class="form-check"><input type="radio" class="form-check-input" name="pdrn_qty" value="до 3-х" data-question="Портфель.PDRN.Кількість"><label class="form-check-label">до 3-х</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="pdrn_qty" value="від 3-х до 5" data-question="Портфель.PDRN.Кількість"><label class="form-check-label">від 3-х до 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="pdrn_qty" value="більше 5" data-question="Портфель.PDRN.Кількість"><label class="form-check-label">більше 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="pdrn_qty" value="більше 10" data-question="Портфель.PDRN.Кількість"><label class="form-check-label">більше 10</label></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="контурна пластика філерами" data-question="Портфель.Процедури" data-controls="fillers-details"><label class="form-check-label">контурна пластика філерами</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="fillers-details">
+                <label class="form-label d-block">Які філери використовує у роботі:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Neuramis" data-question="Портфель.філери.Бренди"><label class="form-check-label">Neuramis</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Saypha" data-question="Портфель.філери.Бренди"><label class="form-check-label">Saypha</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Restylane" data-question="Портфель.філери.Бренди"><label class="form-check-label">Restylane</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Juvederm" data-question="Портфель.філери.Бренди"><label class="form-check-label">Juvederm</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Teoxane" data-question="Портфель.філери.Бренди"><label class="form-check-label">Teoxane</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Bolotero" data-question="Портфель.філери.Бренди"><label class="form-check-label">Bolotero</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Stylage" data-question="Портфель.філери.Бренди"><label class="form-check-label">Stylage</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Neauvia" data-question="Портфель.філери.Бренди"><label class="form-check-label">Neauvia</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.філери.Бренди"><label class="form-check-label">Інше</label></div>
+                <label class="form-label d-block mt-2">Скільки одиниць філерів використовує на місяць:</label>
+                <div class="form-check"><input type="radio" class="form-check-input" name="fillers_qty" value="до 3-х" data-question="Портфель.філери.Кількість"><label class="form-check-label">до 3-х</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="fillers_qty" value="від 3-х до 5" data-question="Портфель.філери.Кількість"><label class="form-check-label">від 3-х до 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="fillers_qty" value="більше 5" data-question="Портфель.філери.Кількість"><label class="form-check-label">більше 5</label></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="колагеностимуляція" data-question="Портфель.Процедури" data-controls="collagen-details"><label class="form-check-label">колагеностимуляція (PLLA, PCL, HaCa)</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="collagen-details">
+                <label class="form-label d-block">Які препарати для колагеностимуляції використовує у роботі:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Petaran" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Petaran</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Ellanse" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Ellanse</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="GANA" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">GANA</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Radiesse" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Radiesse</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="HarmonyCa" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">HarmonyCa</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Karisma" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Karisma</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Lenisna" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Lenisna</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Juvelook" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Juvelook</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="AesPlla" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">AesPlla</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Gouri" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Gouri</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Інше</label></div>
+                <label class="form-label d-block mt-2">Скільки упаковок використовує на місяць:</label>
+                <div class="form-check"><input type="radio" class="form-check-input" name="collagen_qty" value="до 3-х" data-question="Портфель.колагеностимуляція.Кількість"><label class="form-check-label">до 3-х</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="collagen_qty" value="від 3-х до 5" data-question="Портфель.колагеностимуляція.Кількість"><label class="form-check-label">від 3-х до 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="collagen_qty" value="більше 5" data-question="Портфель.колагеностимуляція.Кількість"><label class="form-check-label">більше 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="collagen_qty" value="більше 10" data-question="Портфель.колагеностимуляція.Кількість"><label class="form-check-label">більше 10</label></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="екзосоми" data-question="Портфель.Процедури" data-controls="exosomes-details"><label class="form-check-label">екзосоми</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="exosomes-details">
+                <label class="form-label d-block">Які екзосоми використовує у роботі:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="EXOXE" data-question="Портфель.екзосоми.Бренди"><label class="form-check-label">EXOXE</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="EXO-SKIN (ТОТИС)" data-question="Портфель.екзосоми.Бренди"><label class="form-check-label">EXO-SKIN (ТОТИС)</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="eXos Antiaging (ТОТИС)" data-question="Портфель.екзосоми.Бренди"><label class="form-check-label">eXos Antiaging (ТОТИС)</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="GoodEXOcells" data-question="Портфель.екзосоми.Бренди"><label class="form-check-label">GoodEXOcells</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="ASCE+ (ААА)" data-question="Портфель.екзосоми.Бренди"><label class="form-check-label">ASCE+ (ААА)</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="REVIVE NX" data-question="Портфель.екзосоми.Бренди"><label class="form-check-label">REVIVE NX</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.екзосоми.Бренди"><label class="form-check-label">Інше</label></div>
+                <label class="form-label d-block mt-2">Скільки флаконів екзосом використовує на місяць:</label>
+                <div class="form-check"><input type="radio" class="form-check-input" name="exosomes_qty" value="до 3-х" data-question="Портфель.екзосоми.Кількість"><label class="form-check-label">до 3-х</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="exosomes_qty" value="від 3-х до 5" data-question="Портфель.екзосоми.Кількість"><label class="form-check-label">від 3-х до 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="exosomes_qty" value="більше 5" data-question="Портфель.екзосоми.Кількість"><label class="form-check-label">більше 5</label></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="продаж домашнього догляду" data-question="Портфель.Процедури" data-controls="home-care-details"><label class="form-check-label">продаж домашнього догляду</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="home-care-details">
+                <label class="form-label d-block">Яку космецевтику продає у домашній догляд:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="ESSE" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">ESSE</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Medik8" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">Medik8</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="IsClinical" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">IsClinical</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="ZO OBAGI" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">ZO OBAGI</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Instytutum" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">Instytutum</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Resens" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">Resens</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Аптечний сегмент" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">Аптечний сегмент</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">Інше</label></div>
+            </div>
+            
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="робота зі шкірою голови" data-question="Портфель.Процедури" data-controls="hair-details"><label class="form-check-label">робота зі шкірою голови</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="hair-details">
+                <label class="form-label d-block">Які препарати для відновлення росту волосся використовує у роботі:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="DR.CYJ Hair Filler" data-question="Портфель.робота зі шкірою голови.Бренди"><label class="form-check-label">DR.CYJ Hair Filler</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="RRS Hair" data-question="Портфель.робота зі шкірою голови.Бренди"><label class="form-check-label">RRS Hair</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="IUSE Hair" data-question="Портфель.робота зі шкірою голови.Бренди"><label class="form-check-label">IUSE Hair</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Dermaheal Hair" data-question="Портфель.робота зі шкірою голови.Бренди"><label class="form-check-label">Dermaheal Hair</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="препарати на основі PDRN" data-question="Портфель.робота зі шкірою голови.Бренди"><label class="form-check-label">препарати на основі PDRN</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="препарати на основі екзосомів" data-question="Портфель.робота зі шкірою голови.Бренди"><label class="form-check-label">препарати на основі екзосомів</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.робота зі шкірою голови.Бренди"><label class="form-check-label">Інше</label></div>
+                <label class="form-label d-block mt-2">Скільки одиниць препарату використовує на місяць:</label>
+                <div class="form-check"><input type="radio" class="form-check-input" name="hair_qty" value="до 3-х" data-question="Портфель.робота зі шкірою голови.Кількість"><label class="form-check-label">до 3-х</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="hair_qty" value="від 3-х до 5" data-question="Портфель.робота зі шкірою голови.Кількість"><label class="form-check-label">від 3-х до 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="hair_qty" value="більше 5" data-question="Портфель.робота зі шкірою голови.Кількість"><label class="form-check-label">більше 5</label></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="доглядові косметичні процедури" data-question="Портфель.Процедури"><label class="form-check-label">доглядові косметичні процедури (пілінги, чистка, тощо)</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="апаратна косметологія" data-question="Портфель.Процедури"><label class="form-check-label">апаратна косметологія</label></div>
+        </div>
+    </div>
+</div>
 
                         <div class="accordion-item">
-                            <h2 class="accordion-header">
+                           <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">3. Навчання та розвиток</button>
                             </h2>
                             <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
@@ -456,7 +576,7 @@ body {
                         </div>
 
                         <div class="accordion-item">
-                            <h2 class="accordion-header">
+                           <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">4. Наступні кроки</button>
                             </h2>
                             <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
@@ -473,13 +593,13 @@ body {
                                     <div class="form-check"><input class="form-check-input survey-trigger-next-steps" type="checkbox" value="ESSE" data-question="Наступні кроки.Цікаві продукти"><label class="form-check-label">ESSE</label></div>
                                     <div class="form-check"><input class="form-check-input survey-trigger-next-steps" type="checkbox" value="БАДи" data-question="Наступні кроки.Цікаві продукти"><label class="form-check-label">БАДи</label></div>
 
-                                    <div class="mt-3 d-none" id="next-steps-details">
+                                    <div class="mt-3 d-none survey-details" id="next-steps-details">
                                         <div class="mb-3">
                                             <label class="form-label">Що Вам заважає почати працювати з цим продуктом вже зараз? (можливі для вирішення компанією)</label>
                                             <textarea class="form-control" rows="2" data-question="Наступні кроки.Що заважає (вирішувані)"></textarea>
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label">... (неможливі для вирішення компанією)</label>
+                                            <label class="form-label">Що Вам заважає почати працювати з цим продуктом вже зараз? (неможливі для вирішення компанією)</label>
                                             <textarea class="form-control" rows="2" data-question="Наступні кроки.Що заважає (невирішувані)"></textarea>
                                         </div>
                                     </div>
@@ -493,53 +613,13 @@ body {
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                 <button type="button" class="btn btn-primary" id="saveOutcomeBtn">Сохранить итоги</button>
-            </div>
-        </div>
-    </div>
-</div>
-    <div class="modal fade" id="rescheduleModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Перенос встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Укажите новую дату и время.</p><div class="mb-3"><label for="newMeetingDate" class="form-label">Новая дата</label><input type="date" class="form-control" id="newMeetingDate" required></div><div><label for="newMeetingTime" class="form-label">Новое время</label><input type="time" class="form-control" id="newMeetingTime" required></div><div id="rescheduleError" class="text-danger mt-2 d-none"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveRescheduleBtn">Перенести</button></div></div></div></div>
-    <div class="modal fade" id="cancelConfirmModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Подтверждение</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Вы уверены, что хотите отменить изменения?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Остаться</button><button type="button" class="btn btn-danger" id="confirmCancelBtn">Отменить изменения</button></div></div></div></div>
-    <div class="modal fade" id="clientSearchModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5">Поиск контрагента по всей базе</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Введите номер телефона или ФИО для поиска клиента в базе 1С.</p>
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="clientSearchInput" placeholder="Телефон или ФИО...">
-                    <button class="btn btn-primary" type="button" id="clientSearchBtn">Найти</button>
-                </div>
-                <div id="clientSearchResult" class="mt-3"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-            </div>
-        </div>
-    </div>
-</div>
-    <div class="modal fade" id="clientHistorySearchModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Выберите клиента для просмотра истории</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="clientHistorySearchResult"></div></div></div></div>
-    <div class="modal fade" id="completeConfirmModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5">Подтверждение</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Вы уверены, что хотите завершить встречу с <strong id="clientNameToComplete"></strong>?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-success" id="confirmCompleteBtn">Завершить</button>
             </div>
         </div>
     </div>
