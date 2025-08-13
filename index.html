@@ -371,7 +371,7 @@ body {
     </div>
     
    <div class="modal fade" id="reportModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5" id="reportModalTitle">Отчет по клиенту</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="reportModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
-   <div class="modal fade" id="outcomeModal" tabindex="-1">
+<div class="modal fade" id="outcomeModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
@@ -379,198 +379,122 @@ body {
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                
-                <h5 class="mb-3">Общий комментарий</h5>
-                <div class="mb-4">
-                    <textarea class="form-control" id="meetingComment" rows="3" placeholder="Ваши заметки по встрече..."></textarea>
-                </div>
+                <form id="outcome-survey-form">
+                    <div class="mb-4">
+                        <label for="meetingComment" class="form-label fw-bold">Общий комментарий к встрече</label>
+                        <textarea class="form-control" id="meetingComment" rows="3" placeholder="Ваши заметки по этой конкретной встрече..."></textarea>
+                    </div>
 
-                <h5 class="mb-3">Анкета потенциала клиента</h5>
-                <div class="accordion" id="surveyAccordion">
+                    <h5 class="mb-3">Анкета потенциала клиента</h5>
+                    <div class="accordion" id="surveyAccordion">
 
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
-                                1. Загальна інформація про практику
-                            </button>
-                        </h2>
-                        <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
-                            <div class="accordion-body">
-                                <div class="mb-3">
-                                    <label class="form-label">Стаж роботи в естетичній медицині (років):</label>
-                                    <input type="number" class="form-control" data-question="Стаж роботи">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Середня кількість пацієнтів на тиждень:</label>
-                                    <input type="number" class="form-control" data-question="Кількість пацієнтів">
-                                </div>
-                                <div>
-                                    <label class="form-label d-block">Працює:</label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="workType" value="Самостійно" data-question="Тип практики">
-                                        <label class="form-check-label">Самостійно</label>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">1. Загальна інформація про практику</button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+                                <div class="accordion-body">
+                                    <div class="mb-3"><label class="form-label d-block">Стаж роботи в естетичній медицині/косметології:</label>
+                                        <div class="form-check"><input class="form-check-input" type="radio" name="experience" value="до 3-х років" data-question="Общая информация.Стаж работы"><label class="form-check-label">до 3-х років</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="radio" name="experience" value="від 3–х до 5 років" data-question="Общая информация.Стаж работы"><label class="form-check-label">від 3–х до 5 років</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="radio" name="experience" value="більше 5 років" data-question="Общая информация.Стаж работы"><label class="form-check-label">більше 5 років</label></div>
                                     </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="workType" value="У клініці найманий фахівець" data-question="Тип практики">
-                                        <label class="form-check-label">У клініці найманий фахівець</label>
+                                    <div class="mb-3"><label class="form-label d-block">Середня кількість пацієнтів на місяць:</label>
+                                        <div class="form-check"><input class="form-check-input" type="radio" name="patients_count" value="до 10" data-question="Общая информация.Кількість пацієнтів"><label class="form-check-label">до 10</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="radio" name="patients_count" value="10-20" data-question="Общая информация.Кількість пацієнтів"><label class="form-check-label">10-20</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="radio" name="patients_count" value="20-30" data-question="Общая информация.Кількість пацієнтів"><label class="form-check-label">20-30</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="radio" name="patients_count" value="більше 30" data-question="Общая информация.Кількість пацієнтів"><label class="form-check-label">більше 30</label></div>
                                     </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="workType" value="Власник" id="workTypeOwner" data-question="Тип практики">
-                                        <label class="form-check-label">Власник та/або керівник клініки</label>
-                                    </div>
-                                    <div class="mt-2 d-none" id="specialistCountContainer">
-                                        <label class="form-label">Кількість спеціалістів:</label>
-                                        <input type="number" class="form-control" data-question="Кількість спеціалістів">
+                                    <div><label class="form-label d-block">Працює:</label>
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="Працює на себе" data-question="Общая информация.Тип практики"><label class="form-check-label">Працює на себе</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="У клініці найманий фахівець" data-question="Общая информация.Тип практики"><label class="form-check-label">У клініці найманий фахівець</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="Власник та/або керівник клініки" data-question="Общая информация.Тип практики"><label class="form-check-label">Власник та/або керівник клініки</label></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
-                                2. Портфель і обсяги
-                            </button>
-                        </h2>
-                        <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
-                            <div class="accordion-body">
-                                <div class="mb-3">
-                                    <label class="form-label">З якими брендами працює зараз:</label>
-                                    <textarea class="form-control" rows="3" data-question="Бренди в роботі" placeholder="ботулотоксини, філери, біоревіталізанти..."></textarea>
-                                </div>
-                                <div class="mb-3"><label class="form-label">Скільки шприців філерів на місяць (орієнтовно):</label><input type="number" class="form-control" data-question="Філери на місяць"></div>
-                                <div class="mb-3"><label class="form-label">Скільки шприців поліонуклеотидів на місяць (орієнтовно):</label><input type="number" class="form-control" data-question="Поліонуклеотиди на місяць"></div>
-                                
-                                <div class="p-2 border rounded mb-3">
-                                    <label class="form-label d-block">Чи використовує екзосоми?</label>
-                                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesExosomes" value="Так" data-question="Використовує екзосоми"><label class="form-check-label">Так</label></div>
-                                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesExosomes" value="Ні" data-question="Використовує екзосоми"><label class="form-check-label">Ні</label></div>
-                                    <textarea class="form-control mt-2 d-none" rows="2" placeholder="Які бренди, скільки пацієнтів на тиждень..." data-question="Екзосоми коментар"></textarea>
-                                </div>
-                                
-                                <div class="p-2 border rounded mb-3">
-                                    <label class="form-label d-block">Чи використовує PLLA, PCL, CaHA?</label>
-                                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesPLLA" value="Так" data-question="Використовує PLLA"><label class="form-check-label">Так</label></div>
-                                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesPLLA" value="Ні" data-question="Використовує PLLA"><label class="form-check-label">Ні</label></div>
-                                    <textarea class="form-control mt-2 d-none" rows="2" placeholder="Які бренди, скільки пацієнтів на тиждень..." data-question="PLLA коментар"></textarea>
-                                </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">2. Портфель і обсяги</button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+                                <div class="accordion-body">
+                                    <label class="form-label d-block fw-bold">Які процедури виконує:</label>
+                                    
+                                    <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="ботулінотерапія" data-question="Портфель.Процедури" data-controls="botulinum-details"><label class="form-check-label">ботулінотерапія</label></div>
+                                    <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="botulinum-details">
+                                        <label class="form-label d-block">Який ботулотоксин використовує у роботі:</label>
+                                        <div class="form-check"><input type="checkbox" class="form-check-input" value="Neuronox" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Neuronox</label></div>
+                                        <div class="form-check"><input type="checkbox" class="form-check-input" value="Dysport" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Dysport</label></div>
+                                        <div class="form-check"><input type="checkbox" class="form-check-input" value="Botox" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Botox</label></div>
+                                        <div class="form-check"><input type="checkbox" class="form-check-input" value="Xeomin" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Xeomin</label></div>
+                                        <div class="form-check"><input type="checkbox" class="form-check-input" value="Nabota" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Nabota</label></div>
+                                        <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Інше (не зареєстрований ботулотоксин)</label></div>
+                                        <label class="form-label d-block mt-2">Скільки флаконів використовує на місяць:</label>
+                                        <div class="form-check"><input type="radio" class="form-check-input" name="botulinum_qty" value="до 3-х" data-question="Портфель.ботулінотерапія.Кількість"><label class="form-check-label">до 3-х флаконів</label></div>
+                                        <div class="form-check"><input type="radio" class="form-check-input" name="botulinum_qty" value="від 3-х до 5" data-question="Портфель.ботулінотерапія.Кількість"><label class="form-check-label">від 3-х до 5 флаконів</label></div>
+                                        <div class="form-check"><input type="radio" class="form-check-input" name="botulinum_qty" value="більше 5" data-question="Портфель.ботулінотерапія.Кількість"><label class="form-check-label">більше 5 флаконів</label></div>
+                                    </div>
+                                    
+                                    </div>
+                            </div>
+                        </div>
 
-                                <div class="p-2 border rounded mb-3">
-                                    <label class="form-label d-block">Чи працює зі шкірою голови?</label>
-                                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesHair" value="Так" data-question="Працює з волоссям"><label class="form-check-label">Так</label></div>
-                                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="usesHair" value="Ні" data-question="Працює з волоссям"><label class="form-check-label">Ні</label></div>
-                                    <textarea class="form-control mt-2 d-none" rows="2" placeholder="Які бренди, скільки пацієнтів на тиждень..." data-question="Волосся коментар"></textarea>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">3. Навчання та розвиток</button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+                                <div class="accordion-body">
+                                    <label class="form-label d-block">Якій формі навчання надаєте перевагу:</label>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Онлайн-навчання" data-question="Навчання.Форма"><label class="form-check-label">Онлайн-навчання</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Офлайн семінари" data-question="Навчання.Форма"><label class="form-check-label">Офлайн семінари</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Конференції" data-question="Навчання.Форма"><label class="form-check-label">Конференції</label></div>
                                 </div>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label">Яких продуктів Вам не вистачає та чому?</label>
-                                    <textarea class="form-control" rows="2" data-question="Яких продуктів не вистачає"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">4. Наступні кроки</button>
+                            </h2>
+                            <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+                                <div class="accordion-body">
+                                    <label class="form-label d-block fw-bold">Які продукти з портфелю ЕМЕТ... цікавлять його найбільше?</label>
+                                    <div class="form-check"><input class="form-check-input survey-trigger-next-steps" type="checkbox" value="Ellanse" data-question="Наступні кроки.Цікаві продукти"><label class="form-check-label">Ellanse</label></div>
+                                    <div class="form-check"><input class="form-check-input survey-trigger-next-steps" type="checkbox" value="Petaran" data-question="Наступні кроки.Цікаві продукти"><label class="form-check-label">Petaran</label></div>
+                                    <div class="form-check"><input class="form-check-input survey-trigger-next-steps" type="checkbox" value="Neuronox" data-question="Наступні кроки.Цікаві продукти"><label class="form-check-label">Neuronox</label></div>
+                                    <div class="form-check"><input class="form-check-input survey-trigger-next-steps" type="checkbox" value="Neuramis" data-question="Наступні кроки.Цікаві продукти"><label class="form-check-label">Neuramis</label></div>
+                                    <div class="form-check"><input class="form-check-input survey-trigger-next-steps" type="checkbox" value="Vitaran" data-question="Наступні кроки.Цікаві продукти"><label class="form-check-label">Vitaran</label></div>
+                                    <div class="form-check"><input class="form-check-input survey-trigger-next-steps" type="checkbox" value="EXOXE" data-question="Наступні кроки.Цікаві продукти"><label class="form-check-label">EXOXE</label></div>
+                                    <div class="form-check"><input class="form-check-input survey-trigger-next-steps" type="checkbox" value="IUSE Skin Booster" data-question="Наступні кроки.Цікаві продукти"><label class="form-check-label">IUSE Skin Booster</label></div>
+                                    <div class="form-check"><input class="form-check-input survey-trigger-next-steps" type="checkbox" value="IUSE Hair" data-question="Наступні кроки.Цікаві продукти"><label class="form-check-label">IUSE Hair</label></div>
+                                    <div class="form-check"><input class="form-check-input survey-trigger-next-steps" type="checkbox" value="ESSE" data-question="Наступні кроки.Цікаві продукти"><label class="form-check-label">ESSE</label></div>
+                                    <div class="form-check"><input class="form-check-input survey-trigger-next-steps" type="checkbox" value="БАДи" data-question="Наступні кроки.Цікаві продукти"><label class="form-check-label">БАДи</label></div>
+
+                                    <div class="mt-3 d-none" id="next-steps-details">
+                                        <div class="mb-3">
+                                            <label class="form-label">Що Вам заважає почати працювати з цим продуктом вже зараз? (можливі для вирішення компанією)</label>
+                                            <textarea class="form-control" rows="2" data-question="Наступні кроки.Що заважає (вирішувані)"></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">... (неможливі для вирішення компанією)</label>
+                                            <textarea class="form-control" rows="2" data-question="Наступні кроки.Що заважає (невирішувані)"></textarea>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <label class="form-label d-block">Переважний спосіб отримання інформації:</label>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Телефонний дзвінок" data-question="Наступні кроки.Спосіб звʼязку"><label class="form-check-label">Телефонний дзвінок</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Viber" data-question="Наступні кроки.Спосіб звʼязку"><label class="form-check-label">Viber</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Telegram" data-question="Наступні кроки.Спосіб звʼязку"><label class="form-check-label">Telegram</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Email" data-question="Наступні кроки.Спосіб звʼязку"><label class="form-check-label">Email</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Візит менеджера" data-question="Наступні кроки.Спосіб звʼязку"><label class="form-check-label">Візит менеджера</label></div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
-                                3. Профіль пацієнтів
-                            </button>
-                        </h2>
-                        <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
-                            <div class="accordion-body">
-                                <label class="form-label d-block">Основна вікова категорія пацієнтів:</label>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="до 25" data-question="Вік пацієнтів"><label class="form-check-label">до 25</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="25-35" data-question="Вік пацієнтів"><label class="form-check-label">25–35</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="35-45" data-question="Вік пацієнтів"><label class="form-check-label">35–45</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="45-55" data-question="Вік пацієнтів"><label class="form-check-label">45–55</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="55+" data-question="Вік пацієнтів"><label class="form-check-label">55+</label></div>
-                                <hr>
-                                <label class="form-label d-block">Основні запити пацієнтів:</label>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="зморшки верхньої третини" data-question="Запити пацієнтів"><label class="form-check-label">зморшки верхньої третини</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="відновлення обʼєму" data-question="Запити пацієнтів"><label class="form-check-label">відновлення обʼєму</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="сухість / зневоднення шкіри" data-question="Запити пацієнтів"><label class="form-check-label">сухість / зневоднення шкіри</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="постакне / рубці" data-question="Запити пацієнтів"><label class="form-check-label">постакне / рубці</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="пігментація / купероз" data-question="Запити пацієнтів"><label class="form-check-label">пігментація / купероз</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="alopecia" data-question="Запити пацієнтів"><label class="form-check-label">alopecia</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="anti-age профілактика" data-question="Запити пацієнтів"><label class="form-check-label">anti-age профілактика</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="реабілітація після стресу / хвороб" data-question="Запити пацієнтів"><label class="form-check-label">реабілітація після стресу / хвороб</label></div>
-                                <div class="input-group mt-2"><span class="input-group-text">інше:</span><input type="text" class="form-control" data-question="Запити пацієнтів інше"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
-                                4. Ціновий сегмент і середній чек
-                            </button>
-                        </h2>
-                        <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
-                            <div class="accordion-body">
-                                <label class="form-label d-block">Ціновий сегмент процедур:</label>
-                                <div class="form-check"><input class="form-check-input" type="radio" name="priceSegment" value="Бюджетний" data-question="Ціновий сегмент"><label class="form-check-label">Бюджетний</label></div>
-                                <div class="form-check"><input class="form-check-input" type="radio" name="priceSegment" value="Середній" data-question="Ціновий сегмент"><label class="form-check-label">Середній</label></div>
-                                <div class="form-check"><input class="form-check-input" type="radio" name="priceSegment" value="Преміум" data-question="Ціновий сегмент"><label class="form-check-label">Преміум</label></div>
-                                <hr>
-                                <div class="mb-3"><label class="form-label">Середній чек на процедуру ботулінотерапії (грн):</label><input type="number" class="form-control" data-question="Чек ботулінотерапія"></div>
-                                <div class="mb-3"><label class="form-label">Середній чек на біоревіталізацію (грн):</label><input type="number" class="form-control" data-question="Чек біоревіталізація"></div>
-                                <div class="mb-3"><label class="form-label">Середній чек на філери (грн):</label><input type="number" class="form-control" data-question="Чек філери"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix">
-                                6. Навчання та розвиток
-                            </button>
-                        </h2>
-                        <div id="collapseSix" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
-                            <div class="accordion-body">
-                                <label class="form-label d-block">Чи відвідує навчальні заходи / конференції?</label>
-                                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="attendsEvents" value="Так" data-question="Відвідує навчання"><label class="form-check-label">Так</label></div>
-                                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="attendsEvents" value="Ні" data-question="Відвідує навчання"><label class="form-check-label">Ні</label></div>
-                                <div class="my-3">
-                                    <label class="form-label">Останні відвідані заходи (якщо є):</label>
-                                    <textarea class="form-control" rows="2" data-question="Останні заходи"></textarea>
-                                </div>
-                                <hr>
-                                <label class="form-label d-block">Чи зацікавлений(-а) у партнерстві, навчанні?</label>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Онлайн-навчання" data-question="Тип навчання"><label class="form-check-label">Онлайн-навчання</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Офлайн семінари, конференції" data-question="Тип навчання"><label class="form-check-label">Офлайн семінари, конференції</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Виїздні навчання" data-question="Тип навчання"><label class="form-check-label">Виїздні навчання</label></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven">
-                                7. Наступні кроки
-                            </button>
-                        </h2>
-                        <div id="collapseSeven" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
-                            <div class="accordion-body">
-                                <div class="mb-3">
-                                    <label class="form-label">Які продукти з портфелю ЕМЕТ з якими Ви не працюєте цікавлять найбільше зараз?</label>
-                                    <textarea class="form-control" rows="2" data-question="Цікаві продукти"></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Що Вам заважає почати працювати з цими продуктами вже сьогодні?</label>
-                                    <textarea class="form-control" rows="2" data-question="Що заважає"></textarea>
-                                </div>
-                                <hr>
-                                <label class="form-label d-block">Переважний спосіб отримання інформації:</label>
-                                <div class="form-check"><input class="form-check-input" type="radio" name="commMethod" value="Телефон" data-question="Спосіб звʼязку"><label class="form-check-label">Телефон</label></div>
-                                <div class="form-check"><input class="form-check-input" type="radio" name="commMethod" value="Viber / Telegram" data-question="Спосіб звʼязку"><label class="form-check-label">Viber / Telegram</label></div>
-                                <div class="form-check"><input class="form-check-input" type="radio" name="commMethod" value="Email" data-question="Спосіб звʼязку"><label class="form-check-label">Email</label></div>
-                                <div class="form-check"><input class="form-check-input" type="radio" name="commMethod" value="Особисто через менеджера" data-question="Спосіб звʼязку"><label class="form-check-label">Особисто через менеджера</label></div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
+                </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
@@ -672,7 +596,28 @@ document.getElementById('clientSearchBtn').addEventListener('click', handleClien
 document.getElementById('clientSearchInput').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') handleClientSearch();
 });
+// ВСТАВЬТЕ ЭТОТ КОД ВНУТРЬ DOMContentLoaded
 
+// Логика для условного отображения под-вопросов в анкете
+const surveyForm = document.getElementById('outcome-survey-form');
+if (surveyForm) {
+    surveyForm.addEventListener('change', (e) => {
+        // Для основных процедур
+        if (e.target.classList.contains('survey-trigger')) {
+            const subPanelId = e.target.dataset.controls;
+            const subPanel = document.getElementById(subPanelId);
+            if (subPanel) {
+                subPanel.classList.toggle('d-none', !e.target.checked);
+            }
+        }
+        // Для блока "Наступні кроки"
+        if (e.target.classList.contains('survey-trigger-next-steps')) {
+            const nextStepsDetails = document.getElementById('next-steps-details');
+            const anyChecked = surveyForm.querySelectorAll('.survey-trigger-next-steps:checked').length > 0;
+            nextStepsDetails.classList.toggle('d-none', !anyChecked);
+        }
+    });
+}
 // ВСТАВЬТЕ ЭТОТ НОВЫЙ БЛОК
 const globalSearchTriggerBtn = document.getElementById('global-search-trigger-btn');
 if (globalSearchTriggerBtn) {
@@ -1877,53 +1822,30 @@ async function handleMeetingStateToggle(event) {
     // ЗАМЕНИТЕ СТАРЫЕ ФУНКЦИИ НА ЭТИ ДВЕ
 
 // ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ НА ЭТУ
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+
+// Новая логика для модального окна "Итоги встречи"
 function handleOutcomeClick(event) {
     activeMeetingId = event.target.closest('[data-id]').dataset.id;
     const meeting = allMeetings.find(m => m.ID === activeMeetingId);
     if (!meeting) return;
 
-    // --- НАЧАЛО ИСПРАВЛЕНИЙ ---
-    // 1. Находим форму внутри модального окна и сбрасываем ее.
-    // Это очистит все input, radio и checkbox.
-    const surveyForm = document.querySelector('#surveyAccordion');
-    if(surveyForm) {
-        surveyForm.querySelectorAll('input, textarea').forEach(el => {
-            if(el.type === 'checkbox' || el.type === 'radio') el.checked = false;
-            else el.value = '';
-        });
-        // Скрываем все условные поля
-        surveyForm.querySelectorAll('.d-none').forEach(el => el.classList.add('d-none'));
-    }
+    // Сбрасываем форму перед открытием
+    const form = document.getElementById('outcome-survey-form');
+    form.reset();
+    form.querySelectorAll('.survey-details').forEach(el => el.classList.add('d-none'));
 
-    // 2. Отдельно очищаем и заполняем общий комментарий.
-    const meetingCommentEl = document.getElementById('meetingComment');
-    meetingCommentEl.value = meeting.Comment || '';
-    // --- КОНЕЦ ИСПРАВЛЕНИЙ ---
+    // Заполняем общий комментарий
+    document.getElementById('meetingComment').value = meeting.Comment || '';
 
-    // Заполняем анкету, если данные уже были сохранены
-    if (meeting.surveyData) {
+    // Заполняем анкету из данных КЛИЕНТА (AnketaDataJSON), а не встречи
+    if (meeting.AnketaDataJSON) {
         try {
-            const surveyData = JSON.parse(meeting.surveyData);
-            const formElements = document.querySelectorAll('#surveyAccordion [data-question]');
-            formElements.forEach(el => {
-                const question = el.dataset.question;
-                const value = surveyData[question];
-                if (value === undefined) return;
-
-                if (el.type === 'checkbox' || el.type === 'radio') {
-                    if (Array.isArray(value) ? value.includes(el.value) : value === el.value) {
-                        el.checked = true;
-                    }
-                } else {
-                    el.value = value;
-                }
-                // Триггерим событие change, чтобы показать условные поля
-                el.dispatchEvent(new Event('change', { bubbles: true })); 
-            });
-        } catch(e) {
-            console.error("Ошибка парсинга данных анкеты:", e);
-        }
+            const surveyData = JSON.parse(meeting.AnketaDataJSON);
+            populateSurveyForm(surveyData);
+        } catch(e) { console.error("Ошибка чтения данных анкеты:", e); }
     }
+    
     outcomeModal.show();
 }
 
@@ -1931,48 +1853,205 @@ function handleSaveOutcome() {
     const btn = document.getElementById('saveOutcomeBtn');
     toggleButtonSpinner(btn, true);
     
-    const meetingIndex = allMeetings.findIndex(m => m.ID === activeMeetingId);
-    if (meetingIndex === -1) {
+    const meeting = allMeetings.find(m => m.ID === activeMeetingId);
+    if (!meeting) {
         toggleButtonSpinner(btn, false);
         return;
     }
 
-    // Сохраняем общий комментарий
-    allMeetings[meetingIndex].Comment = document.getElementById('meetingComment').value;
-
-    // Собираем данные анкеты
+    // Собираем данные анкеты в структурированный JSON
     const surveyData = {};
-    const formElements = document.querySelectorAll('#surveyAccordion [data-question]');
-    formElements.forEach(el => {
-        const question = el.dataset.question;
-        if (el.type === 'checkbox') {
-            if (!surveyData[question]) surveyData[question] = [];
-            if (el.checked) {
-                surveyData[question].push(el.value);
+    const form = document.getElementById('outcome-survey-form');
+    
+    form.querySelectorAll('[data-question]').forEach(el => {
+        const path = el.dataset.question.split('.');
+        let currentLevel = surveyData;
+        
+        path.forEach((key, index) => {
+            if (index === path.length - 1) { // Если это последний ключ в пути
+                if (el.type === 'checkbox') {
+                    if (!currentLevel[key]) currentLevel[key] = [];
+                    if (el.checked) currentLevel[key].push(el.value);
+                } else if (el.type === 'radio') {
+                    if (el.checked) currentLevel[key] = el.value;
+                } else { // text, number, textarea
+                    if (el.value) currentLevel[key] = el.value;
+                }
+            } else { // Если это промежуточный ключ
+                if (!currentLevel[key]) currentLevel[key] = {};
+                currentLevel = currentLevel[key];
             }
-        } else if (el.type === 'radio') {
-            if (el.checked) {
-                surveyData[question] = el.value;
-            }
-        } else { // text, number, textarea
-            if (el.value) {
-                surveyData[question] = el.value;
-            }
-        }
+        });
     });
 
-    // "Виртуально" сохраняем данные анкеты в локальный массив
-    allMeetings[meetingIndex].surveyData = JSON.stringify(surveyData);
+    // ВЫВОДИМ В КОНСОЛЬ ДЛЯ ПРОВЕРКИ
+    console.log("Собранные данные анкеты:", surveyData);
+    showToast("Данные анкеты собраны (см. консоль)");
     
-    showToast("Итоги встречи (виртуально) сохранены");
-    outcomeModal.hide();
-    toggleButtonSpinner(btn, false);
+    // В будущем здесь будет вызов callApi('saveClientSurvey', ...)
+    // callApi('saveClientSurvey', { clientID: meeting.ClientID, surveyData: surveyData })
+    //     .then(() => {
+    //         showToast("Анкета успешно сохранена в 1С");
+    //         // Опционально можно обновить локальные данные
+    //         meeting.AnketaDataJSON = JSON.stringify(surveyData);
+    //     })
+    //     .catch(onFailure)
+    //     .finally(() => {
+    //         toggleButtonSpinner(btn, false);
+    //         outcomeModal.hide();
+    //     });
     
-    // На сервер пока ничего не отправляем, но в будущем это будет здесь:
-    // const oldData = allMeetings[meetingIndex];
-    // const newData = { ...oldData }; // Обновляем нужные поля
-    // callApi('updateMeeting', { newData, oldData })...
+    // Пока просто скрываем окно
+    setTimeout(() => {
+        toggleButtonSpinner(btn, false);
+        outcomeModal.hide();
+    }, 500);
 }
+
+// Новая функция для заполнения формы из сохраненных данных
+function populateSurveyForm(data) {
+    const form = document.getElementById('outcome-survey-form');
+    // Обходим все ключи верхнего уровня (например, "Общая информация", "Портфель")
+    Object.keys(data).forEach(mainKey => {
+        const mainValue = data[mainKey];
+        // Обходим все под-ключи (например, "Стаж работы", "Процедуры")
+        Object.keys(mainValue).forEach(subKey => {
+            const nestedValue = mainValue[subKey];
+            const questionPath = `${mainKey}.${subKey}`;
+            
+            // Обрабатываем вложенные объекты (как в "Портфеле")
+            if (typeof nestedValue === 'object' && !Array.isArray(nestedValue)) {
+                Object.keys(nestedValue).forEach(brandKey => {
+                    const brandValue = nestedValue[brandKey];
+                    const brandPath = `${questionPath}.${brandKey}`;
+                    form.querySelectorAll(`[data-question="${brandPath}"]`).forEach(el => setFieldValue(el, brandValue));
+                });
+            } else {
+                // Обрабатываем простые значения и массивы
+                form.querySelectorAll(`[data-question="${questionPath}"]`).forEach(el => setFieldValue(el, nestedValue));
+            }
+        });
+    });
+
+    // Вспомогательная функция для установки значений
+    function setFieldValue(el, value) {
+        if (el.type === 'checkbox' || el.type === 'radio') {
+            if (Array.isArray(value) ? value.includes(el.value) : value === el.value) {
+                el.checked = true;
+                // Триггерим событие, чтобы показать условные поля
+                if (el.classList.contains('survey-trigger') || el.classList.contains('survey-trigger-next-steps')) {
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        } else {
+            el.value = value;
+        }
+    }
+}
+
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+
+function handleSaveOutcome() {
+    const btn = document.getElementById('saveOutcomeBtn');
+    toggleButtonSpinner(btn, true);
+    
+    const meeting = allMeetings.find(m => m.ID === activeMeetingId);
+    if (!meeting) {
+        toggleButtonSpinner(btn, false);
+        return;
+    }
+
+    // Собираем данные анкеты в структурированный JSON
+    const surveyData = {};
+    const form = document.getElementById('outcome-survey-form');
+    
+    form.querySelectorAll('[data-question]').forEach(el => {
+        const path = el.dataset.question.split('.');
+        let currentLevel = surveyData;
+        
+        path.forEach((key, index) => {
+            if (index === path.length - 1) { // Если это последний ключ в пути
+                if (el.type === 'checkbox') {
+                    if (!currentLevel[key]) currentLevel[key] = [];
+                    if (el.checked) currentLevel[key].push(el.value);
+                } else if (el.type === 'radio') {
+                    if (el.checked) currentLevel[key] = el.value;
+                } else { // text, number, textarea
+                    if (el.value) currentLevel[key] = el.value;
+                }
+            } else { // Если это промежуточный ключ
+                if (!currentLevel[key]) currentLevel[key] = {};
+                currentLevel = currentLevel[key];
+            }
+        });
+    });
+
+    // ВЫВОДИМ В КОНСОЛЬ ДЛЯ ПРОВЕРКИ
+    console.log("Собранные данные анкеты:", surveyData);
+    showToast("Данные анкеты собраны (см. консоль)");
+    
+    // В будущем здесь будет вызов callApi('saveClientSurvey', ...)
+    // callApi('saveClientSurvey', { clientID: meeting.ClientID, surveyData: surveyData })
+    //     .then(() => {
+    //         showToast("Анкета успешно сохранена в 1С");
+    //         // Опционально можно обновить локальные данные
+    //         meeting.AnketaDataJSON = JSON.stringify(surveyData);
+    //     })
+    //     .catch(onFailure)
+    //     .finally(() => {
+    //         toggleButtonSpinner(btn, false);
+    //         outcomeModal.hide();
+    //     });
+    
+    // Пока просто скрываем окно
+    setTimeout(() => {
+        toggleButtonSpinner(btn, false);
+        outcomeModal.hide();
+    }, 500);
+}
+
+// Новая функция для заполнения формы из сохраненных данных
+function populateSurveyForm(data) {
+    const form = document.getElementById('outcome-survey-form');
+    // Обходим все ключи верхнего уровня (например, "Общая информация", "Портфель")
+    Object.keys(data).forEach(mainKey => {
+        const mainValue = data[mainKey];
+        // Обходим все под-ключи (например, "Стаж работы", "Процедуры")
+        Object.keys(mainValue).forEach(subKey => {
+            const nestedValue = mainValue[subKey];
+            const questionPath = `${mainKey}.${subKey}`;
+            
+            // Обрабатываем вложенные объекты (как в "Портфеле")
+            if (typeof nestedValue === 'object' && !Array.isArray(nestedValue)) {
+                Object.keys(nestedValue).forEach(brandKey => {
+                    const brandValue = nestedValue[brandKey];
+                    const brandPath = `${questionPath}.${brandKey}`;
+                    form.querySelectorAll(`[data-question="${brandPath}"]`).forEach(el => setFieldValue(el, brandValue));
+                });
+            } else {
+                // Обрабатываем простые значения и массивы
+                form.querySelectorAll(`[data-question="${questionPath}"]`).forEach(el => setFieldValue(el, nestedValue));
+            }
+        });
+    });
+
+    // Вспомогательная функция для установки значений
+    function setFieldValue(el, value) {
+        if (el.type === 'checkbox' || el.type === 'radio') {
+            if (Array.isArray(value) ? value.includes(el.value) : value === el.value) {
+                el.checked = true;
+                // Триггерим событие, чтобы показать условные поля
+                if (el.classList.contains('survey-trigger') || el.classList.contains('survey-trigger-next-steps')) {
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        } else {
+            el.value = value;
+        }
+    }
+}
+
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     async function handleGetLocationClick() {
         const btn = document.getElementById('get-meeting-location-btn');
         toggleButtonSpinner(btn, true);
