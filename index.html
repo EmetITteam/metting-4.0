@@ -258,7 +258,11 @@ body {
                         <div class="col-md-6"><label for="status" class="form-label">Статус:</label><select id="status" class="form-select"><option value="В работе">В работе</option><option value="Завершено">Завершено</option><option value="Отменено">Отмена</option></select></div>
                         <div class="col-md-6"><label for="client-category" class="form-label">Категория клиента:</label><input type="text" id="client-category" class="form-control" readonly></div>
                         <div class="col-12"><label for="location" class="form-label">Адрес клиента:</label><input type="text" id="location" class="form-control" readonly></div>
-                        <div class="col-12"><label for="meeting-location" class="form-label">Место встречи (Геолокация):</label><div class="input-group"><input type="text" id="meeting-location" class="form-control" readonly><button class="btn btn-outline-secondary" type="button" id="get-meeting-location-btn">📍 Определить</button></div><input type="hidden" id="meeting-lat"><input type="hidden" id="meeting-lon"></div>
+                        <div class="col-12">
+    <label for="meeting-location" class="form-label">Фактическое место встречи (адрес по Geo):</label>
+    <input type="text" id="meeting-location" class="form-control" readonly placeholder="Заполнится автоматически при старте встречи">
+    <input type="hidden" id="meeting-lat"><input type="hidden" id="meeting-lon">
+</div>
                     </div>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4"><button type="submit" id="save-button" class="btn btn-primary"><i class="bi bi-check-lg me-2"></i>Сохранить</button><button type="button" id="cancel-btn" class="btn btn-outline-secondary"><i class="bi bi-x-lg me-2"></i>Отмена</button></div>
                 </form>
@@ -1741,49 +1745,78 @@ function filterAndGroupMeetings() {
     }
    // ЗАМЕНИТЕ СТАРУЮ ФУНКЦИЮ НА ЭТУ
 // НОВАЯ ФУНКЦИЯ ВМЕСТО handleCompleteClick
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 async function handleMeetingStateToggle(event) {
     const btn = event.target.closest('.js-state-toggle-btn');
     if (!btn) return;
 
     toggleButtonSpinner(btn, true);
     const meetingId = btn.dataset.id;
-    const meeting = allMeetings.find(m => m.ID === meetingId);
-    if (!meeting) {
+    const meetingIndex = allMeetings.findIndex(m => m.ID === meetingId);
+    if (meetingIndex === -1) {
         toggleButtonSpinner(btn, false);
         return;
     }
-
+    const meeting = allMeetings[meetingIndex];
     const activeTimers = JSON.parse(localStorage.getItem('activeTimers')) || {};
     const isMeetingRunning = !!activeTimers[meetingId];
 
     try {
         if (isMeetingRunning) {
             // --- Логика ЗАВЕРШЕНИЯ встречи ---
+            showToast("Фиксируем геолокацию завершения...");
+            const locationData = await getAddressFromGeolocation(); // Получаем { address, lat, lon }
+
             const oldData = meeting;
-            const newData = { ...oldData, Status: 'Завершено' };
+            const newData = { ...oldData, Status: 'Завершено', endLocationData: locationData };
             await callApi('updateMeeting', { newData, oldData });
             
             delete activeTimers[meetingId];
             localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
             
-            showToast("Встреча завершена");
+            showToast("Встреча успешно завершена");
             loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
 
         } else {
             // --- Логика СТАРТА встречи ---
-            await callApi('startMeeting', { meetingId: meetingId });
+            showToast("Фиксируем геолокацию старта...");
+            const locationData = await getAddressFromGeolocation(); // Получаем { address, lat, lon }
+            
+            await callApi('startMeeting', { meetingId: meetingId, locationData: locationData });
             
             activeTimers[meetingId] = { startTime: Date.now() };
             localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
 
             showToast("Встреча начата");
-            filterAndGroupMeetings(); // Просто перерисовываем карточки
+            // Обновляем данные, чтобы подтянуть новую локацию и статус от 1С
+            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
         }
     } catch (e) {
-        onFailure(e);
-        toggleButtonSpinner(btn, false);
+        // Если пользователь отказал в геолокации или произошла ошибка
+        if (confirm(`Не удалось получить геолокацию. Ошибка: ${e.message}\n\nПродолжить без фиксации координат?`)) {
+            try {
+                if (isMeetingRunning) {
+                    await callApi('updateMeeting', { newData: { ...meeting, Status: 'Завершено' }, oldData: meeting });
+                    delete activeTimers[meetingId];
+                    localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
+                    showToast("Встреча завершена (без Geo)");
+                } else {
+                    await callApi('startMeeting', { meetingId: meetingId });
+                    activeTimers[meetingId] = { startTime: Date.now() };
+                    localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
+                    showToast("Встреча начата (без Geo)");
+                }
+                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+            } catch (apiError) {
+                onFailure(apiError);
+                toggleButtonSpinner(btn, false);
+            }
+        } else {
+            toggleButtonSpinner(btn, false);
+        }
     }
 }
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     function handleRescheduleClick(event) {
         const meetingId = event.target.dataset.id;
         const meetingData = allMeetings.find(m => m.ID === meetingId);
