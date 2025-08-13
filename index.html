@@ -1734,12 +1734,13 @@ function filterAndGroupMeetings() {
         document.getElementById('meeting-lat').value = currentEditingMeeting.LocationLat || '';
         document.getElementById('meeting-lon').value = currentEditingMeeting.LocationLon || '';
         document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
-        const geoButton = document.getElementById('get-meeting-location-btn');
-        const status = currentEditingMeeting.Status ? currentEditingMeeting.Status.trim() : '';
-        if (status === 'Завершена' || status === 'Завершено' || status === 'Отмена' || status === 'Отменено') {
-            geoButton.classList.add('d-none');
-        } else {
-            geoButton.classList.remove('d-none');
+        //Кнопка определения гео
+        //const geoButton = document.getElementById('get-meeting-location-btn');
+        //const status = currentEditingMeeting.Status ? currentEditingMeeting.Status.trim() : '';
+        //if (status === 'Завершена' || status === 'Завершено' || status === 'Отмена' || status === 'Отменено') {
+            //geoButton.classList.add('d-none');
+        //} else {
+            //geoButton.classList.remove('d-none');
         }
         showForm(true);
     }
