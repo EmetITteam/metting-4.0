@@ -11,7 +11,7 @@ export default async function handler(request, response) {
     const dataToSendToOneC = request.body;
 
     try {
-        console.log(`[ШАГ 1] Отправка в 1С для действия "${action}"...`);
+        console.log(`[ШАГ 1] Отправка в 1С для действия "${action}":`, JSON.stringify(dataToSendToOneC, null, 2));
         const responseFrom1C = await forwardRequestToOneC(dataToSendToOneC);
         console.log('[ШАГ 2] ПОЛУЧЕН ОТВЕТ ОТ 1С:', JSON.stringify(responseFrom1C, null, 2));
 
