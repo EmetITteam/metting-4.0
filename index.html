@@ -1239,42 +1239,68 @@ async function handleClientSearch() {
 }
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
        // ДОБАВЬТЕ ЭТУ НОВУЮ ФУНКЦИЮ
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 async function handleSaveNewClient(e) {
     e.preventDefault();
     const saveBtn = document.getElementById('save-new-client-btn');
     toggleButtonSpinner(saveBtn, true);
 
+    // 1. Собираем обычные данные из формы
     const newClientData = {
         name: document.getElementById('new-client-name').value,
         phone: newClientPhoneMask.unmaskedValue,
         address: document.getElementById('new-client-address').value,
         education: document.getElementById('new-client-education').value,
         docsExist: document.getElementById('new-client-docs-exist').checked,
+        managerLogin: currentUser,
         files: []
     };
 
+    // 2. Асинхронно читаем и кодируем файлы
     const fileInput = document.getElementById('new-client-files');
+    const filePromises = [];
+
     if (fileInput.files.length > 0) {
+        showToast("Начинаем подготовку файлов...");
         for (const file of fileInput.files) {
-            newClientData.files.push({
-                name: file.name,
-                size: file.size,
-                type: file.type
+            const promise = new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    // event.target.result содержит Base64-строку с префиксом, его нужно убрать
+                    const base64Content = event.target.result.split(',')[1];
+                    resolve({
+                        name: file.name,
+                        type: file.type,
+                        contentBase64: base64Content
+                    });
+                };
+                reader.onerror = (error) => reject(error);
+                reader.readAsDataURL(file);
             });
+            filePromises.push(promise);
         }
     }
 
-    // ВЫВОДИМ ДАННЫЕ В КОНСОЛЬ ВМЕСТО ОТПРАВКИ НА СЕРВЕР
-    console.log("--- Виртуальное сохранение нового клиента ---");
-    console.log(newClientData);
-    
-    // Имитируем задержку, как будто идет сохранение
-    setTimeout(() => {
-        showToast(`Клиент "${newClientData.name}" (виртуально) сохранен.`);
+    try {
+        // 3. Дожидаемся, пока все файлы будут закодированы
+        const encodedFiles = await Promise.all(filePromises);
+        newClientData.files = encodedFiles;
+
+        // 4. Отправляем все данные (включая файлы) в 1С
+        showToast("Отправка данных на сервер...");
+        const result = await callApi('registerNewClient', newClientData);
+        
+        showToast(`Клиент "${result.ClientName}" успешно создан!`);
+        document.querySelector('.nav-button[data-page="clients"]').click(); 
+        loadClientsPage(); // Обновляем список клиентов, чтобы увидеть нового
+
+    } catch (error) {
+        onFailure(error);
+    } finally {
         toggleButtonSpinner(saveBtn, false);
-        document.querySelector('.nav-button[data-page="clients"]').click(); // Возвращаемся на список клиентов
-    }, 1000);
+    }
 }
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     function renderClientList(clientsToRender) {
         const container = document.getElementById('client-list-container');
         if (!container) return;
