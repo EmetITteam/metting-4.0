@@ -1854,7 +1854,6 @@ async function handleMeetingStateToggle(event) {
             const locationData = await getAddressFromGeolocation();
 
             const oldData = meeting;
-            // --- ИСПРАВЛЕНИЕ ЗДЕСЬ: Явно добавляем endLocationData ---
             const newData = { ...oldData, Status: 'Завершено', endLocationData: locationData };
             await callApi('updateMeeting', { newData, oldData });
             
@@ -1878,16 +1877,20 @@ async function handleMeetingStateToggle(event) {
             loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
         }
     } catch (e) {
-        // Если пользователь отказал в геолокации или произошла ошибка
+        // --- БЛОК ОБРАБОТКИ ОШИБКИ ГЕОЛОКАЦИИ ---
         if (confirm(`Не удалось получить геолокацию. Ошибка: ${e.message}\n\nПродолжить без фиксации координат?`)) {
             try {
                 if (isMeetingRunning) {
-                    await callApi('updateMeeting', { newData: { ...meeting, Status: 'Завершено' }, oldData: meeting });
+                    // --- ИСПРАВЛЕНИЕ ЗДЕСЬ ---
+                    const newData = { ...meeting, Status: 'Завершено', endLocationData: null }; // Добавляем endLocationData: null
+                    await callApi('updateMeeting', { newData: newData, oldData: meeting });
+                    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
                     delete activeTimers[meetingId];
                     localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
                     showToast("Встреча завершена (без Geo)");
                 } else {
-                    await callApi('startMeeting', { meetingId: meetingId });
+                    await callApi('startMeeting', { meetingId: meetingId, locationData: null }); // Отправляем startMeeting с null
                     activeTimers[meetingId] = { startTime: Date.now() };
                     localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
                     showToast("Встреча начата (без Geo)");
