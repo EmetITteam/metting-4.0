@@ -1747,6 +1747,7 @@ function filterAndGroupMeetings() {
     }
     // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 function handleFormSubmit(e) {
     e.preventDefault();
     const saveBtn = document.getElementById('save-button');
@@ -1770,15 +1771,22 @@ function handleFormSubmit(e) {
 
     if (isUpdating) {
         meetingData.ID = meetingId;
-        // --- ИСПРАВЛЕНИЕ ЗДЕСЬ: Переносим все существующие поля Geo в newData ---
         if (currentEditingMeeting) {
             meetingData.calendarEventId = currentEditingMeeting.calendarEventId;
-            meetingData.StartAddress = currentEditingMeeting.StartAddress;
-            meetingData.StartLatitude = currentEditingMeeting.StartLatitude;
-            meetingData.StartLongitude = currentEditingMeeting.StartLongitude;
-            meetingData.EndAddress = currentEditingMeeting.EndAddress;
-            meetingData.EndLatitude = currentEditingMeeting.EndLatitude;
-            meetingData.EndLongitude = currentEditingMeeting.EndLongitude;
+            
+            // --- ИСПРАВЛЕНИЕ ЗДЕСЬ: Упаковываем данные в объекты ---
+            // Собираем данные о геолокации старта в объект, как этого ожидает 1С
+            meetingData.locationData = {
+                address: currentEditingMeeting.StartAddress || "",
+                lat: currentEditingMeeting.StartLatitude || "",
+                lon: currentEditingMeeting.StartLongitude || ""
+            };
+            // Собираем данные о геолокации завершения в объект
+            meetingData.endLocationData = {
+                address: currentEditingMeeting.EndAddress || "",
+                lat: currentEditingMeeting.EndLatitude || "",
+                lon: currentEditingMeeting.EndLongitude || ""
+            };
         }
     }
     
@@ -1793,7 +1801,6 @@ function handleFormSubmit(e) {
         toggleButtonSpinner(saveBtn, false);
     });
 }
-
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     function handleEditClick(event) {
     event.preventDefault();
