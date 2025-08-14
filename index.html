@@ -1770,8 +1770,8 @@ function handleFormSubmit(e) {
 
     if (isUpdating) {
         meetingData.ID = meetingId;
+        // --- ИСПРАВЛЕНИЕ ЗДЕСЬ: Переносим все существующие поля Geo в newData ---
         if (currentEditingMeeting) {
-            // --- ДОБАВЛЕНО: Переносим все существующие поля Geo в newData ---
             meetingData.calendarEventId = currentEditingMeeting.calendarEventId;
             meetingData.StartAddress = currentEditingMeeting.StartAddress;
             meetingData.StartLatitude = currentEditingMeeting.StartLatitude;
@@ -1793,7 +1793,7 @@ function handleFormSubmit(e) {
         toggleButtonSpinner(saveBtn, false);
     });
 }
-// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     function handleEditClick(event) {
     event.preventDefault();
@@ -1851,10 +1851,10 @@ async function handleMeetingStateToggle(event) {
         if (isMeetingRunning) {
             // --- Логика ЗАВЕРШЕНИЯ встречи ---
             showToast("Фиксируем геолокацию завершения...");
-            const locationData = await getAddressFromGeolocation(); // Получаем { address, lat, lon }
+            const locationData = await getAddressFromGeolocation();
 
             const oldData = meeting;
-            // ДОБАВЛЯЕМ endLocationData В ОБЪЕКТ newData
+            // --- ИСПРАВЛЕНИЕ ЗДЕСЬ: Явно добавляем endLocationData ---
             const newData = { ...oldData, Status: 'Завершено', endLocationData: locationData };
             await callApi('updateMeeting', { newData, oldData });
             
@@ -1867,7 +1867,7 @@ async function handleMeetingStateToggle(event) {
         } else {
             // --- Логика СТАРТА встречи ---
             showToast("Фиксируем геолокацию старта...");
-            const locationData = await getAddressFromGeolocation(); // Получаем { address, lat, lon }
+            const locationData = await getAddressFromGeolocation();
             
             await callApi('startMeeting', { meetingId: meetingId, locationData: locationData });
             
@@ -1875,7 +1875,6 @@ async function handleMeetingStateToggle(event) {
             localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
 
             showToast("Встреча начата");
-            // Обновляем данные, чтобы подтянуть новую локацию и статус от 1С
             loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
         }
     } catch (e) {
