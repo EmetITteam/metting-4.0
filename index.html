@@ -1838,12 +1838,12 @@ async function handleMeetingStateToggle(event) {
 
     toggleButtonSpinner(btn, true);
     const meetingId = btn.dataset.id;
-    const meetingIndex = allMeetings.findIndex(m => m.ID === meetingId);
-    if (meetingIndex === -1) {
+    const meeting = allMeetings.find(m => m.ID === meetingId);
+    if (!meeting) {
         toggleButtonSpinner(btn, false);
         return;
     }
-    const meeting = allMeetings[meetingIndex];
+
     const activeTimers = JSON.parse(localStorage.getItem('activeTimers')) || {};
     const isMeetingRunning = !!activeTimers[meetingId];
 
@@ -1854,6 +1854,7 @@ async function handleMeetingStateToggle(event) {
             const locationData = await getAddressFromGeolocation(); // Получаем { address, lat, lon }
 
             const oldData = meeting;
+            // ДОБАВЛЯЕМ endLocationData В ОБЪЕКТ newData
             const newData = { ...oldData, Status: 'Завершено', endLocationData: locationData };
             await callApi('updateMeeting', { newData, oldData });
             
@@ -1902,6 +1903,7 @@ async function handleMeetingStateToggle(event) {
         }
     }
 }
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     function handleRescheduleClick(event) {
         const meetingId = event.target.dataset.id;
