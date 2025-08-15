@@ -2066,6 +2066,7 @@ function handleOutcomeClick(event) {
 }
 
 // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 async function handleSaveOutcome() {
     const btn = document.getElementById('saveOutcomeBtn');
     toggleButtonSpinner(btn, true);
@@ -2077,7 +2078,7 @@ async function handleSaveOutcome() {
         return;
     }
 
-   // 1. Собираем данные анкеты
+    // 1. Собираем данные анкеты
     const surveyData = {};
     const form = document.getElementById('outcome-survey-form');
     form.querySelectorAll('[data-question]').forEach(el => {
@@ -2100,17 +2101,16 @@ async function handleSaveOutcome() {
         });
     });
 
-    // 2. Собираем общий комментарий к ВСТРЕЧЕ
+    // 2. Собираем общий комментарий
     const meetingComment = document.getElementById('meetingComment').value;
     
-   // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
-try {
-    // 3. Отправляем анкету на сервер (привязываем к КЛИЕНТУ)
+    try {
+        // 3. Отправляем анкету на сервер (привязываем к КЛИЕНТУ)
     await callApi('saveClientSurvey', { 
         clientID: meeting.ClientID, 
         surveyData: JSON.stringify(surveyData) // Превращаем объект в строку
     });
-// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ --
 
         // 4. Отправляем комментарий и ВСЕ ДАННЫЕ О ЛОКАЦИИ на сервер
         const oldData = meeting;
@@ -2136,11 +2136,12 @@ try {
             };
         }
         // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
         await callApi('updateMeeting', { newData, oldData });
         
         showToast("Итоги встречи и анкета успешно сохранены!");
         
-        // 5. Обновляем локальные данные, чтобы изменения были видны сразу
+        // Обновляем локальные данные
         const meetingIndex = allMeetings.findIndex(m => m.ID === activeMeetingId);
         if (meetingIndex > -1) {
             allMeetings[meetingIndex].Comment = meetingComment;
@@ -2155,7 +2156,6 @@ try {
     }
 }
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
-
 // Новая функция для заполнения формы из сохраненных данных
 function populateSurveyForm(data) {
     const form = document.getElementById('outcome-survey-form');
