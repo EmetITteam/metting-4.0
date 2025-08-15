@@ -2076,12 +2076,14 @@ async function handleSaveOutcome() {
     // 2. Собираем общий комментарий к ВСТРЕЧЕ
     const meetingComment = document.getElementById('meetingComment').value;
     
-    try {
-        // 3. Отправляем анкету на сервер (привязываем к КЛИЕНТУ)
-        await callApi('saveClientSurvey', { 
-            clientID: meeting.ClientID, 
-            surveyData: surveyData 
-        });
+   // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+try {
+    // 3. Отправляем анкету на сервер (привязываем к КЛИЕНТУ)
+    await callApi('saveClientSurvey', { 
+        clientID: meeting.ClientID, 
+        surveyData: JSON.stringify(surveyData) // Превращаем объект в строку
+    });
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
 
         // 4. Отправляем комментарий на сервер (привязываем к ВСТРЕЧЕ)
         // Используем существующий метод updateMeeting
