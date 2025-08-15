@@ -2038,64 +2038,76 @@ function handleOutcomeClick(event) {
     outcomeModal.show();
 }
 
-function handleSaveOutcome() {
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+async function handleSaveOutcome() {
     const btn = document.getElementById('saveOutcomeBtn');
     toggleButtonSpinner(btn, true);
     
     const meeting = allMeetings.find(m => m.ID === activeMeetingId);
     if (!meeting) {
+        onFailure({ message: "Не удалось найти текущую встречу." });
         toggleButtonSpinner(btn, false);
         return;
     }
 
-    // Собираем данные анкеты в структурированный JSON
+    // 1. Собираем данные анкеты в структурированный JSON
     const surveyData = {};
     const form = document.getElementById('outcome-survey-form');
-    
     form.querySelectorAll('[data-question]').forEach(el => {
         const path = el.dataset.question.split('.');
         let currentLevel = surveyData;
-        
         path.forEach((key, index) => {
-            if (index === path.length - 1) { // Если это последний ключ в пути
+            if (index === path.length - 1) {
                 if (el.type === 'checkbox') {
                     if (!currentLevel[key]) currentLevel[key] = [];
                     if (el.checked) currentLevel[key].push(el.value);
                 } else if (el.type === 'radio') {
                     if (el.checked) currentLevel[key] = el.value;
-                } else { // text, number, textarea
+                } else {
                     if (el.value) currentLevel[key] = el.value;
                 }
-            } else { // Если это промежуточный ключ
+            } else {
                 if (!currentLevel[key]) currentLevel[key] = {};
                 currentLevel = currentLevel[key];
             }
         });
     });
 
-    // ВЫВОДИМ В КОНСОЛЬ ДЛЯ ПРОВЕРКИ
-    console.log("Собранные данные анкеты:", surveyData);
-    showToast("Данные анкеты собраны (см. консоль)");
+    // 2. Собираем общий комментарий к ВСТРЕЧЕ
+    const meetingComment = document.getElementById('meetingComment').value;
     
-    // В будущем здесь будет вызов callApi('saveClientSurvey', ...)
-    // callApi('saveClientSurvey', { clientID: meeting.ClientID, surveyData: surveyData })
-    //     .then(() => {
-    //         showToast("Анкета успешно сохранена в 1С");
-    //         // Опционально можно обновить локальные данные
-    //         meeting.AnketaDataJSON = JSON.stringify(surveyData);
-    //     })
-    //     .catch(onFailure)
-    //     .finally(() => {
-    //         toggleButtonSpinner(btn, false);
-    //         outcomeModal.hide();
-    //     });
-    
-    // Пока просто скрываем окно
-    setTimeout(() => {
+    try {
+        // 3. Отправляем анкету на сервер (привязываем к КЛИЕНТУ)
+        await callApi('saveClientSurvey', { 
+            clientID: meeting.ClientID, 
+            surveyData: surveyData 
+        });
+
+        // 4. Отправляем комментарий на сервер (привязываем к ВСТРЕЧЕ)
+        // Используем существующий метод updateMeeting
+        const oldData = meeting;
+        const newData = { ...oldData, Comment: meetingComment };
+        // Убедимся, что отправляем только нужные поля, а не весь объект со старой анкетой
+        delete newData.AnketaDataJSON; 
+        await callApi('updateMeeting', { newData, oldData });
+        
+        showToast("Итоги встречи и анкета успешно сохранены!");
+        
+        // 5. Обновляем локальные данные, чтобы изменения были видны сразу
+        const meetingIndex = allMeetings.findIndex(m => m.ID === activeMeetingId);
+        if (meetingIndex > -1) {
+            allMeetings[meetingIndex].Comment = meetingComment;
+            allMeetings[meetingIndex].AnketaDataJSON = JSON.stringify(surveyData);
+        }
+        
+    } catch (error) {
+        onFailure(error);
+    } finally {
         toggleButtonSpinner(btn, false);
         outcomeModal.hide();
-    }, 500);
+    }
 }
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
 
 // Новая функция для заполнения формы из сохраненных данных
 function populateSurveyForm(data) {
