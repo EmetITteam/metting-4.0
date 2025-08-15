@@ -19,7 +19,2685 @@
         /* Блок с переменными */
 :root {
     --header-height: 60px;
+    --bottom-nav-height: 65px;<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="format-detection" content="telephone=no">
+    <title>Emet CRM Встречи</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/imask"></script>
+
+    <style>
+        /* --- НОВЫЕ СТИЛИ МАКЕТА --- */
+        /* Блок с переменными */
+:root {
+    --header-height: 60px;
     --bottom-nav-height: 65px;
+    /* Новая переменная для безопасной зоны снизу с запасом в 0px */
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px); 
+}
+
+        /* Стили для body */
+body {
+    background-color: #f8f9fa;
+    padding-top: var(--header-height);
+    /* Нижний отступ body теперь тоже учитывает безопасную зону */
+    padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+}
+
+        .app-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background-color: #ffffff;
+            border-bottom: 1px solid #dee2e6;
+            z-index: 1030;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+        }
+        
+        .app-header .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .app-header .header-action {
+            font-size: 1.75rem;
+            color: var(--bs-primary);
+        }
+
+        .app-page { display: none; }
+        .app-page.active { display: block; }
+        
+        /* Стили для нижней навигационной панели */
+.app-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    /* Высота панели теперь динамически увеличивается на размер безопасной зоны */
+    height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+    background-color: #ffffff;
+    border-top: 1px solid #dee2e6;
+    z-index: 1030;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    padding-top: 8px;
+    /* Внутренний отступ снизу равен высоте безопасной зоны, чтобы поднять иконки */
+    padding-bottom: var(--safe-area-bottom);
+}
+        
+        .nav-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: #6c757d;
+            text-decoration: none;
+            flex-grow: 1;
+            border: none;
+            background: none;
+        }
+        
+        .nav-button i {
+            font-size: 1.5rem;
+            margin-bottom: 0px;
+        }
+
+        .nav-button.active {
+            color: var(--bs-primary);
+        }
+        
+        
+        /* --- СТАРЫЕ СТИЛИ --- */
+        .meeting-card { height: 100%; position: relative; }
+        .toast-container { z-index: 1100; }
+        .card-body { padding-top: 50px; padding-bottom: 1.25rem; }
+        .card-edit-btn-top-right { position: absolute; top: 0.75rem; right: 0.75rem; }
+        .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+        .status-blue { background-color: #0d6efd; }
+        .status-green { background-color: #198754; }
+        .status-orange { background-color: #fd7e14; }
+        .status-gray { background-color: #6c757d; }
+        .status-red { background-color: #dc3545; }
+        .meeting-card .report-btn-icon { font-size: 0.8em; vertical-align: middle; margin-left: 5px; }
+        .skeleton-card { background-color: #e9ecef; border-radius: 0.375rem; height: 200px; animation: pulse 1.5s infinite ease-in-out; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        #client-autocomplete-results .list-group-item { cursor: pointer; }
+        #client-autocomplete-results .list-group-item:hover { background-color: #f0f0f0; }
+      
+        /* --- Стили для адаптации на ПК --- */
+@media (min-width: 992px) {
+    /* Ограничиваем ширину и центрируем основные рабочие страницы */
+    #page-dashboard, #page-clients, #page-add-client {
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+        /* --- Стили для виджетов на рабочем столе (обновлено) --- */
+.widget-card {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    padding: 0.5rem; /* Еще немного уменьшили внутренние отступы */
+    text-align: center;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 1px 3px rgba(0,0,0, .04);
+    text-decoration: none;
+    display: block;
+    color: inherit;
+    transition: box-shadow .2s ease-in-out;
+}
+.widget-card:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0, .08);
+}
+.widget-card .widget-value {
+    font-size: 1.6rem; /* Немного уменьшили размер цифры */
+    font-weight: 700;
+    line-height: 1.2;
+}
+.widget-card .widget-label {
+    font-size: 0.75rem; /* Еще немного уменьшили текст под цифрой */
+    color: #6c757d;
+}
+        /* Стили для кнопки-фильтра дат */
+#date-preset-btn {
+    min-width: 100px;
+}
+        /* --- Стили для выделения текста в заголовках поиска --- */
+.date-header mark {
+    background-color: transparent; /* Убираем желтый фон */
+    color: inherit; /* Наследуем цвет текста от родителя */
+    font-weight: 600; /* Делаем текст чуть жирнее, чтобы он выделялся */
+    padding: 0; /* Убираем лишние отступы */
+}
+        .compact-card .card-body {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+    </style>
+</head>
+
+<body class="d-none"> 
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="sideMenu" aria-labelledby="sideMenuLabel">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="sideMenuLabel">Меню</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column">
+        <div>
+            <p id="offcanvas-user-info" class="text-muted"></p>
+            <ul class="list-group list-group-flush">
+    <li class="list-group-item px-0">
+        <a href="#" class="text-decoration-none text-dark d-block">Отчеты</a>
+    </li>
+    <li class="list-group-item px-0">
+        <a href="#" class="text-decoration-none text-dark d-block">Настройки</a>
+    </li>
+    
+</ul>
+        </div>
+        <div class="mt-auto">
+            <hr>
+            <button class="btn btn-outline-secondary w-100" id="logout-btn-side-menu">Выйти</button>
+        </div>
+    </div>
+</div>
+
+    <header class="app-header">
+        <button class="btn border-0 p-0" id="hamburger-menu" type="button" data-bs-toggle="offcanvas" data-bs-target="#sideMenu" aria-controls="sideMenu">
+    <i class="bi bi-list fs-2"></i>
+</button>
+        <div id="header-title" class="header-title">Рабочий стол</div>
+        <a href="#" id="main-add-btn" class="header-action">
+            <i class="bi bi-plus-circle-fill"></i>
+        </a>
+    </header>
+
+    <main class="app-main container-fluid py-3">
+        <div id="page-dashboard" class="app-page active">
+            <main id="view-meetings">
+    <div class="bg-light border rounded-3 p-2">
+    <div class="row g-2 mb-2" id="dashboard-widgets">
+        </div>
+    <div class="row g-2 align-items-end">
+        <div class="col-lg-6 col-12">
+            <label for="searchInput1" class="form-label">Поиск и фильтр встреч</label>
+            <input type="text" id="searchInput1" class="form-control" placeholder="Введите имя и нажмите Enter...">
+        </div>
+        <div class="col-lg-4 col-7">
+            <label for="dateRangeFilter" class="form-label">Период</label>
+            <input type="text" id="dateRangeFilter" class="form-control">
+        </div>
+        <div class="col-lg-2 col-5">
+            <div class="btn-group w-100" id="date-presets-container">
+                <button type="button" class="btn btn-outline-secondary" id="date-preset-btn">Сегодня</button>
+                <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="visually-hidden">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" data-range="today">Сегодня</a></li>
+                    <li><a class="dropdown-item" href="#" data-range="tomorrow">Завтра</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" data-range="this-week">Текущая неделя</a></li>
+                    <li><a class="dropdown-item" href="#" data-range="last-week">Прошлая неделя</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" data-range="this-month">Текущий месяц</a></li>
+                    <li><a class="dropdown-item" href="#" data-range="last-month">Прошлый месяц</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="meetings-list" class="row g-3 mt-3"></div>
+</main>
+
+            <section id="form-section" class="d-none mt-4">
+                <h2 id="form-title" class="h3 mb-3 text-center">Новая встреча</h2>
+                <form id="meeting-form" class="p-4 bg-light border rounded-3">
+                    <input type="hidden" id="meeting-id"><input type="hidden" id="client-id">
+                    <div class="row g-3">
+                        <div class="col-12"><label for="meeting-date" class="form-label">Дата:</label><div class="input-group"><input type="date" id="meeting-date" class="form-control" required><button type="button" class="btn btn-outline-secondary" id="todayBtn">Сегодня</button><button type="button" class="btn btn-outline-secondary" id="tomorrowBtn">Завтра</button></div></div>
+                        <div class="col-12"><label for="meeting-time" class="form-label">Время:</label><input type="time" id="meeting-time" class="form-control" required></div>
+                        <div class="col-12"><label for="client-name" class="form-label">Клиент:</label><div class="position-relative"><input type="text" id="client-name" class="form-control" required autocomplete="off"><div id="client-autocomplete-results" class="list-group position-absolute w-100" style="z-index: 1050;"></div></div></div>
+                        <div class="col-12"><label for="purpose" class="form-label">Цель:</label><select id="purpose" class="form-select" required></select></div>
+                        <div class="col-12"><label for="phone" class="form-label">Телефон:</label><input type="tel" id="phone" class="form-control" required></div>
+                        <div class="col-md-6"><label for="status" class="form-label">Статус:</label><select id="status" class="form-select"><option value="В работе">В работе</option><option value="Завершено">Завершено</option><option value="Отменено">Отмена</option></select></div>
+                        <div class="col-md-6"><label for="client-category" class="form-label">Категория клиента:</label><input type="text" id="client-category" class="form-control" readonly></div>
+                        <div class="col-12"><label for="location" class="form-label">Адрес клиента:</label><input type="text" id="location" class="form-control" readonly></div>
+                        <div class="col-12">
+    <label for="planned-meeting-address" class="form-label">Адрес встречи (планируемый)</label>
+    <input type="text" id="planned-meeting-address" class="form-control" placeholder="Например: кафе, наш офис, конференц-зал">
+</div>
+                        <div class="col-12">
+    <label for="meeting-location" class="form-label">Фактическое место встречи (адрес по Geo):</label>
+    <input type="text" id="meeting-location" class="form-control" readonly placeholder="Заполнится автоматически при старте встречи">
+    <input type="hidden" id="meeting-lat"><input type="hidden" id="meeting-lon">
+</div>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4"><button type="submit" id="save-button" class="btn btn-primary"><i class="bi bi-check-lg me-2"></i>Сохранить</button><button type="button" id="cancel-btn" class="btn btn-outline-secondary"><i class="bi bi-x-lg me-2"></i>Отмена</button></div>
+                </form>
+            </section>
+        </div>
+        <div id="page-clients" class="app-page">
+    <div class="row g-3 mb-3 align-items-end">
+        <div class="col-lg-6 col-md-12">
+            <label for="client-list-filter" class="form-label">Поиск по вашим клиентам</label>
+            <input type="text" id="client-list-filter" class="form-control" placeholder="Введите ФИО или телефон...">
+        </div>
+        <div class="col-lg-3 col-6">
+            <button class="btn btn-primary w-100" id="show-add-client-form-btn">
+                <i class="bi bi-plus-lg"></i> Новый клиент
+            </button>
+        </div>
+        <div class="col-lg-3 col-6">
+            <button class="btn btn-outline-primary w-100" id="global-search-trigger-btn">
+                <i class="bi bi-search"></i> По всей базе 
+            </button>
+        </div>
+    </div>
+    <div id="client-category-filters" class="d-flex flex-wrap gap-2 mb-3">
+        </div>
+    <div id="client-list-container">
+        </div>
+</div>
+    </main>
+    <div id="page-add-client" class="app-page">
+    <h2 class="h4 mb-3">Новый клиент</h2>
+    <form id="add-client-form" class="p-3 bg-light border rounded-3">
+        <div class="row g-3">
+            <div class="col-12">
+                <label for="new-client-name" class="form-label">ФИО</label>
+                <input type="text" id="new-client-name" class="form-control" required>
+            </div>
+            <div class="col-12">
+                <label for="new-client-phone" class="form-label">Контактный телефон</label>
+                <input type="tel" id="new-client-phone" class="form-control" required>
+            </div>
+            <div class="col-12">
+                <label for="new-client-address" class="form-label">Адрес клиента</label>
+                <textarea id="new-client-address" class="form-control" rows="2"></textarea>
+            </div>
+           <div class="col-12">
+    <label for="new-client-education" class="form-label">Образование</label>
+    <select id="new-client-education" class="form-select">
+        <option selected disabled value="">Выберите образование...</option>
+        <option value="Высшее мед.">Высшее мед.</option>
+        <option value="Средне мед.">Средне мед.</option>
+        <option value="Клиника">Клиника</option>
+        <option value="Без.мед образования">Без.мед образования</option>
+    </select>
+</div>
+            <div class="col-12">
+    <label for="new-client-files" class="form-label">Прикрепить документы</label>
+    <input class="form-control" type="file" id="new-client-files" multiple>
+</div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" id="save-new-client-btn" class="btn btn-primary">Сохранить</button>
+            <button type="button" id="cancel-new-client-btn" class="btn btn-outline-secondary">Отмена</button>
+        </div>
+    </form>
+</div>
+    
+    <nav class="app-bottom-nav">
+        <button class="nav-button active" data-page="dashboard"><i class="bi bi-speedometer2"></i><span>Рабочий стол</span></button>
+        <button class="nav-button" data-page="clients"><i class="bi bi-people"></i><span>Клиенты</span></button>
+    </nav>
+    
+    <div id="login-container" class="container vh-100 d-flex align-items-center justify-content-center">
+        <div class="row justify-content-center w-100">
+            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4"><img src="https://links.emet.in.ua/wp-content/uploads/2025/07/logo_dark-scaled.png" alt="Логотип" style="max-height: 50px; width: auto;"></div>
+                        <h1 class="card-title text-center h3 mb-4">Вход в систему</h1>
+                        <form id="login-form">
+                            <div class="mb-3"><label for="username" class="form-label">Имя пользователя:</label><input type="text" id="username" class="form-control" required></div>
+                            <div class="mb-3"><label for="password" class="form-label">Пароль:</label><input type="password" id="password" class="form-control" required></div>
+                            <button type="submit" id="login-button" class="btn btn-primary w-100 py-2">Войти</button>
+                            <p id="login-error" class="text-danger text-center mt-3 d-none"></p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="admin-dashboard" class="d-none">
+        </div>
+    
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="appToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button></div>
+        </div>
+    </div>
+    
+   <div class="modal fade" id="reportModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5" id="reportModalTitle">Отчет по клиенту</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="reportModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
+<div class="modal fade" id="outcomeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">Итоги встречи</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="outcome-survey-form">
+                    <div class="mb-4">
+                        <label for="meetingComment" class="form-label fw-bold">Итоги встречи</label>
+                        <textarea class="form-control" id="meetingComment" rows="3" placeholder="Ваши заметки по этой конкретной встрече..."></textarea>
+                    </div>
+
+                    <h5 class="mb-3">Анкета потенціалу клієнта</h5>
+                    <div class="accordion" id="surveyAccordion">
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">1. Загальна інформація про практику</button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+                                <div class="accordion-body">
+                                    <div class="mb-3"><label class="form-label d-block">Стаж роботи в естетичній медицині/косметології:</label>
+                                        <div class="form-check"><input class="form-check-input" type="radio" name="experience" value="до 3-х років" data-question="Общая информация.Стаж работы"><label class="form-check-label">до 3-х років</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="radio" name="experience" value="від 3–х до 5 років" data-question="Общая информация.Стаж работы"><label class="form-check-label">від 3–х до 5 років</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="radio" name="experience" value="більше 5 років" data-question="Общая информация.Стаж работы"><label class="form-check-label">більше 5 років</label></div>
+                                    </div>
+                                    <div class="mb-3"><label class="form-label d-block">Середня кількість пацієнтів на місяць:</label>
+                                        <div class="form-check"><input class="form-check-input" type="radio" name="patients_count" value="до 10" data-question="Общая информация.Кількість пацієнтів"><label class="form-check-label">до 10</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="radio" name="patients_count" value="10-20" data-question="Общая информация.Кількість пацієнтів"><label class="form-check-label">10-20</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="radio" name="patients_count" value="20-30" data-question="Общая информация.Кількість пацієнтів"><label class="form-check-label">20-30</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="radio" name="patients_count" value="більше 30" data-question="Общая информация.Кількість пацієнтів"><label class="form-check-label">більше 30</label></div>
+                                    </div>
+                                    <div><label class="form-label d-block">Працює:</label>
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="Працює на себе" data-question="Общая информация.Тип практики"><label class="form-check-label">Працює на себе</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="У клініці найманий фахівець" data-question="Общая информация.Тип практики"><label class="form-check-label">У клініці найманий фахівець</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="Власник та/або керівник клініки" data-question="Общая информация.Тип практики"><label class="form-check-label">Власник та/або керівник клініки</label></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+    <h2 class="accordion-header">
+         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">2. Портфель і обсяги</button>
+    </h2>
+    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+        <div class="accordion-body">
+            <label class="form-label d-block fw-bold">Які процедури виконує:</label>
+            
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="ботулінотерапія" data-question="Портфель.Процедури" data-controls="botulinum-details"><label class="form-check-label">ботулінотерапія</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="botulinum-details">
+                <label class="form-label d-block">Який ботулотоксин використовує у роботі:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Neuronox" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Neuronox</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Dysport" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Dysport</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Botox" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Botox</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Xeomin" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Xeomin</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Nabota" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Nabota</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.ботулінотерапія.Бренди"><label class="form-check-label">Інше (не зареєстрований ботулотоксин)</label></div>
+                <label class="form-label d-block mt-2">Скільки флаконів використовує на місяць:</label>
+                <div class="form-check"><input type="radio" class="form-check-input" name="botulinum_qty" value="до 3-х" data-question="Портфель.ботулінотерапія.Кількість"><label class="form-check-label">до 3-х флаконів</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="botulinum_qty" value="від 3-х до 5" data-question="Портфель.ботулінотерапія.Кількість"><label class="form-check-label">від 3-х до 5 флаконів</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="botulinum_qty" value="більше 5" data-question="Портфель.ботулінотерапія.Кількість"><label class="form-check-label">більше 5 флаконів</label></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="біоревіталізація" data-question="Портфель.Процедури" data-controls="boosters-details"><label class="form-check-label">біоревіталізація</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="boosters-details">
+                <label class="form-label d-block">Які бустери використовує у роботі:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="IUSE Skin Booster" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">IUSE Skin Booster</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="RRS" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">RRS</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Jalupro" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">Jalupro</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Profhilo" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">Profhilo</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Revok50" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">Revok50</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Bolotero Revive" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">Bolotero Revive</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Hyalual" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">Hyalual</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Juvederm Volite" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">Juvederm Volite</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.біоревіталізація.Бренди"><label class="form-check-label">Інше</label></div>
+                <label class="form-label d-block mt-2">Скільки шприців бустерів використовує на місяць:</label>
+                <div class="form-check"><input type="radio" class="form-check-input" name="boosters_qty" value="до 3-х" data-question="Портфель.біоревіталізація.Кількість"><label class="form-check-label">до 3-х</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="boosters_qty" value="від 3-х до 5" data-question="Портфель.біоревіталізація.Кількість"><label class="form-check-label">від 3-х до 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="boosters_qty" value="більше 5" data-question="Портфель.біоревіталізація.Кількість"><label class="form-check-label">більше 5</label></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="біорепарація PDRN" data-question="Портфель.Процедури" data-controls="pdrn-details"><label class="form-check-label">біорепарація PDRN</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="pdrn-details">
+                <label class="form-label d-block">Які препарати PDRN використовує у роботі:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Vitaran" data-question="Портфель.PDRN.Бренди"><label class="form-check-label">Vitaran</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Rejuran" data-question="Портфель.PDRN.Бренди"><label class="form-check-label">Rejuran</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Plenhyage" data-question="Портфель.PDRN.Бренди"><label class="form-check-label">Plenhyage</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="MASTELLI Plinest" data-question="Портфель.PDRN.Бренди"><label class="form-check-label">MASTELLI Plinest</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="TWAC" data-question="Портфель.PDRN.Бренди"><label class="form-check-label">TWAC</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.PDRN.Бренди"><label class="form-check-label">Інше</label></div>
+                <label class="form-label d-block mt-2">Скільки одиниць PDRN використовує на місяць:</label>
+                <div class="form-check"><input type="radio" class="form-check-input" name="pdrn_qty" value="до 3-х" data-question="Портфель.PDRN.Кількість"><label class="form-check-label">до 3-х</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="pdrn_qty" value="від 3-х до 5" data-question="Портфель.PDRN.Кількість"><label class="form-check-label">від 3-х до 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="pdrn_qty" value="більше 5" data-question="Портфель.PDRN.Кількість"><label class="form-check-label">більше 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="pdrn_qty" value="більше 10" data-question="Портфель.PDRN.Кількість"><label class="form-check-label">більше 10</label></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="контурна пластика філерами" data-question="Портфель.Процедури" data-controls="fillers-details"><label class="form-check-label">контурна пластика філерами</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="fillers-details">
+                <label class="form-label d-block">Які філери використовує у роботі:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Neuramis" data-question="Портфель.філери.Бренди"><label class="form-check-label">Neuramis</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Saypha" data-question="Портфель.філери.Бренди"><label class="form-check-label">Saypha</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Restylane" data-question="Портфель.філери.Бренди"><label class="form-check-label">Restylane</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Juvederm" data-question="Портфель.філери.Бренди"><label class="form-check-label">Juvederm</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Teoxane" data-question="Портфель.філери.Бренди"><label class="form-check-label">Teoxane</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Bolotero" data-question="Портфель.філери.Бренди"><label class="form-check-label">Bolotero</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Stylage" data-question="Портфель.філери.Бренди"><label class="form-check-label">Stylage</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Neauvia" data-question="Портфель.філери.Бренди"><label class="form-check-label">Neauvia</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.філери.Бренди"><label class="form-check-label">Інше</label></div>
+                <label class="form-label d-block mt-2">Скільки одиниць філерів використовує на місяць:</label>
+                <div class="form-check"><input type="radio" class="form-check-input" name="fillers_qty" value="до 3-х" data-question="Портфель.філери.Кількість"><label class="form-check-label">до 3-х</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="fillers_qty" value="від 3-х до 5" data-question="Портфель.філери.Кількість"><label class="form-check-label">від 3-х до 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="fillers_qty" value="більше 5" data-question="Портфель.філери.Кількість"><label class="form-check-label">більше 5</label></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="колагеностимуляція" data-question="Портфель.Процедури" data-controls="collagen-details"><label class="form-check-label">колагеностимуляція (PLLA, PCL, HaCa)</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="collagen-details">
+                <label class="form-label d-block">Які препарати для колагеностимуляції використовує у роботі:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Petaran" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Petaran</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Ellanse" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Ellanse</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="GANA" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">GANA</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Radiesse" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Radiesse</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="HarmonyCa" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">HarmonyCa</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Karisma" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Karisma</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Lenisna" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Lenisna</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Juvelook" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Juvelook</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="AesPlla" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">AesPlla</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Gouri" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Gouri</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.колагеностимуляція.Бренди"><label class="form-check-label">Інше</label></div>
+                <label class="form-label d-block mt-2">Скільки упаковок використовує на місяць:</label>
+                <div class="form-check"><input type="radio" class="form-check-input" name="collagen_qty" value="до 3-х" data-question="Портфель.колагеностимуляція.Кількість"><label class="form-check-label">до 3-х</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="collagen_qty" value="від 3-х до 5" data-question="Портфель.колагеностимуляція.Кількість"><label class="form-check-label">від 3-х до 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="collagen_qty" value="більше 5" data-question="Портфель.колагеностимуляція.Кількість"><label class="form-check-label">більше 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="collagen_qty" value="більше 10" data-question="Портфель.колагеностимуляція.Кількість"><label class="form-check-label">більше 10</label></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="екзосоми" data-question="Портфель.Процедури" data-controls="exosomes-details"><label class="form-check-label">екзосоми</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="exosomes-details">
+                <label class="form-label d-block">Які екзосоми використовує у роботі:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="EXOXE" data-question="Портфель.екзосоми.Бренди"><label class="form-check-label">EXOXE</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="EXO-SKIN (ТОТИС)" data-question="Портфель.екзосоми.Бренди"><label class="form-check-label">EXO-SKIN (ТОТИС)</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="eXos Antiaging (ТОТИС)" data-question="Портфель.екзосоми.Бренди"><label class="form-check-label">eXos Antiaging (ТОТИС)</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="GoodEXOcells" data-question="Портфель.екзосоми.Бренди"><label class="form-check-label">GoodEXOcells</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="ASCE+ (ААА)" data-question="Портфель.екзосоми.Бренди"><label class="form-check-label">ASCE+ (ААА)</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="REVIVE NX" data-question="Портфель.екзосоми.Бренди"><label class="form-check-label">REVIVE NX</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.екзосоми.Бренди"><label class="form-check-label">Інше</label></div>
+                <label class="form-label d-block mt-2">Скільки флаконів екзосом використовує на місяць:</label>
+                <div class="form-check"><input type="radio" class="form-check-input" name="exosomes_qty" value="до 3-х" data-question="Портфель.екзосоми.Кількість"><label class="form-check-label">до 3-х</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="exosomes_qty" value="від 3-х до 5" data-question="Портфель.екзосоми.Кількість"><label class="form-check-label">від 3-х до 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="exosomes_qty" value="більше 5" data-question="Портфель.екзосоми.Кількість"><label class="form-check-label">більше 5</label></div>
+            </div>
+   
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="робота зі шкірою голови" data-question="Портфель.Процедури" data-controls="hair-details"><label class="form-check-label">робота зі шкірою голови</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="hair-details">
+                <label class="form-label d-block">Які препарати для відновлення росту волосся використовує у роботі:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="DR.CYJ Hair Filler" data-question="Портфель.робота зі шкірою голови.Бренди"><label class="form-check-label">DR.CYJ Hair Filler</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="RRS Hair" data-question="Портфель.робота зі шкірою голови.Бренди"><label class="form-check-label">RRS Hair</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="IUSE Hair" data-question="Портфель.робота зі шкірою голови.Бренди"><label class="form-check-label">IUSE Hair</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Dermaheal Hair" data-question="Портфель.робота зі шкірою голови.Бренди"><label class="form-check-label">Dermaheal Hair</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="препарати на основі PDRN" data-question="Портфель.робота зі шкірою голови.Бренди"><label class="form-check-label">препарати на основі PDRN</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="препарати на основі екзосомів" data-question="Портфель.робота зі шкірою голови.Бренди"><label class="form-check-label">препарати на основі екзосомів</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.робота зі шкірою голови.Бренди"><label class="form-check-label">Інше</label></div>
+                <label class="form-label d-block mt-2">Скільки одиниць препарату використовує на місяць:</label>
+                <div class="form-check"><input type="radio" class="form-check-input" name="hair_qty" value="до 3-х" data-question="Портфель.робота зі шкірою голови.Кількість"><label class="form-check-label">до 3-х</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="hair_qty" value="від 3-х до 5" data-question="Портфель.робота зі шкірою голови.Кількість"><label class="form-check-label">від 3-х до 5</label></div>
+                <div class="form-check"><input type="radio" class="form-check-input" name="hair_qty" value="більше 5" data-question="Портфель.робота зі шкірою голови.Кількість"><label class="form-check-label">більше 5</label></div>
+            </div>
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="продаж домашнього догляду" data-question="Портфель.Процедури" data-controls="home-care-details"><label class="form-check-label">продаж домашнього догляду</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="home-care-details">
+                <label class="form-label d-block">Яку космецевтику продає у домашній догляд:</label>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="ESSE" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">ESSE</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Medik8" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">Medik8</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="IsClinical" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">IsClinical</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="ZO OBAGI" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">ZO OBAGI</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Instytutum" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">Instytutum</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Resens" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">Resens</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Аптечний сегмент" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">Аптечний сегмент</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" value="Інше" data-question="Портфель.домашній догляд.Бренди"><label class="form-check-label">Інше</label></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="доглядові косметичні процедури" data-question="Портфель.Процедури"><label class="form-check-label">доглядові косметичні процедури (пілінги, чистка, тощо)</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="апаратна косметологія" data-question="Портфель.Процедури"><label class="form-check-label">апаратна косметологія</label></div>
+        </div>
+    </div>
+</div>
+
+                        <div class="accordion-item">
+                           <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">3. Навчання та розвиток</button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+                                <div class="accordion-body">
+                                    <label class="form-label d-block">Якій формі навчання надаєте перевагу:</label>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Онлайн-навчання" data-question="Навчання.Форма"><label class="form-check-label">Онлайн-навчання</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Офлайн семінари" data-question="Навчання.Форма"><label class="form-check-label">Офлайн семінари</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Конференції" data-question="Навчання.Форма"><label class="form-check-label">Конференції</label></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+    <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">4. Наступні кропи</button>
+    </h2>
+    <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#surveyAccordion">
+        <div class="accordion-body">
+            <label class="form-label d-block fw-bold">Які продукти з портфелю ЕМЕТ з якими фахівець не працює цікавлять його найбільше?</label>
+            
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="Ellanse" data-question="Наступні кроки.Цікаві продукти" data-controls="details-ellanse"><label class="form-check-label">Ellanse</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="details-ellanse">
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз?(можливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.Ellanse.вирішувані"></textarea></div>
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (неможливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.Ellanse.невирішувані"></textarea></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="Petaran" data-question="Наступні кроки.Цікаві продукти" data-controls="details-petaran"><label class="form-check-label">Petaran</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="details-petaran">
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (можливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.Petaran.вирішувані"></textarea></div>
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (неможливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.Petaran.невирішувані"></textarea></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="Neuronox" data-question="Наступні кроки.Цікаві продукти" data-controls="details-neuronox"><label class="form-check-label">Neuronox</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="details-neuronox">
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (можливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.Neuronox.вирішувані"></textarea></div>
+                <div class="mb-2"><label class="form-label small">Що заважає (неможливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.Neuronox.невирішувані"></textarea></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="Neuramis" data-question="Наступні кроки.Цікаві продукти" data-controls="details-neuramis"><label class="form-check-label">Neuramis</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="details-neuramis">
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (можливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.Neuramis.вирішувані"></textarea></div>
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (неможливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.Neuramis.невирішувані"></textarea></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="Vitaran" data-question="Наступні кроки.Цікаві продукти" data-controls="details-vitaran"><label class="form-check-label">Vitaran</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="details-vitaran">
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (можливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.Vitaran.вирішувані"></textarea></div>
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (неможливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.Vitaran.невирішувані"></textarea></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="EXOXE" data-question="Наступні кроки.Цікаві продукти" data-controls="details-exoxe"><label class="form-check-label">EXOXE</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="details-exoxe">
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (можливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.EXOXE.вирішувані"></textarea></div>
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (неможливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.EXOXE.невирішувані"></textarea></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="IUSE Skin Booster" data-question="Наступні кроки.Цікаві продукти" data-controls="details-iuse-skin"><label class="form-check-label">IUSE Skin Booster</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="details-iuse-skin">
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (можливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.IUSE Skin Booster.вирішувані"></textarea></div>
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (неможливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.IUSE Skin Booster.невирішувані"></textarea></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="IUSE Hair" data-question="Наступні кроки.Цікаві продукти" data-controls="details-iuse-hair"><label class="form-check-label">IUSE Hair</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="details-iuse-hair">
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (можливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.IUSE Hair.вирішувані"></textarea></div>
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (неможливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.IUSE Hair.невирішувані"></textarea></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="ESSE" data-question="Наступні кроки.Цікаві продукти" data-controls="details-esse"><label class="form-check-label">ESSE</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="details-esse">
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (можливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.ESSE.вирішувані"></textarea></div>
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (неможливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.ESSE.невирішувані"></textarea></div>
+            </div>
+
+            <div class="form-check"><input class="form-check-input survey-trigger" type="checkbox" value="БАДи" data-question="Наступні кроки.Цікаві продукти" data-controls="details-bady"><label class="form-check-label">БАДи</label></div>
+            <div class="ps-4 mt-2 mb-3 border-start d-none survey-details" id="details-bady">
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (можливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.БАДи.вирішувані"></textarea></div>
+                <div class="mb-2"><label class="form-label small">Що заважає фахівцю почати працювати з цим продуктом вже зараз? (неможливі для вирішення):</label><textarea class="form-control" rows="2" data-question="Наступні кроки.Деталі.БАДи.невирішувані"></textarea></div>
+            </div>
+                                    <hr>
+                                    <label class="form-label d-block">Переважний спосіб отримання інформації:</label>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Телефонний дзвінок" data-question="Наступні кроки.Спосіб звʼязку"><label class="form-check-label">Телефонний дзвінок</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Viber" data-question="Наступні кроки.Спосіб звʼязку"><label class="form-check-label">Viber</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Telegram" data-question="Наступні кроки.Спосіб звʼязку"><label class="form-check-label">Telegram</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Email" data-question="Наступні кроки.Спосіб звʼязку"><label class="form-check-label">Email</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Візит менеджера" data-question="Наступні кроки.Спосіб звʼязку"><label class="form-check-label">Візит менеджера</label></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="saveOutcomeBtn">Сохранить итоги</button>
+            </div>
+        </div>
+    </div>
+</div>
+    <div class="modal fade" id="rescheduleModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Перенос встречи</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Укажите новую дату и время.</p><div class="mb-3"><label for="newMeetingDate" class="form-label">Новая дата</label><input type="date" class="form-control" id="newMeetingDate" required></div><div><label for="newMeetingTime" class="form-label">Новое время</label><input type="time" class="form-control" id="newMeetingTime" required></div><div id="rescheduleError" class="text-danger mt-2 d-none"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="saveRescheduleBtn">Перенести</button></div></div></div></div>
+    <div class="modal fade" id="cancelConfirmModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Подтверждение</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Вы уверены, что хотите отменить изменения?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Остаться</button><button type="button" class="btn btn-danger" id="confirmCancelBtn">Отменить изменения</button></div></div></div></div>
+    <div class="modal fade" id="clientSearchModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">Поиск контрагента по всей базе</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Введите номер телефона или ФИО для поиска клиента в базе 1С.</p>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="clientSearchInput" placeholder="Телефон или ФИО...">
+                    <button class="btn btn-primary" type="button" id="clientSearchBtn">Найти</button>
+                </div>
+                <div id="clientSearchResult" class="mt-3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+    <div class="modal fade" id="clientHistorySearchModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">Выберите клиента для просмотра истории</h1><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="clientHistorySearchResult"></div></div></div></div>
+    <div class="modal fade" id="completeConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">Подтверждение</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите завершить встречу с <strong id="clientNameToComplete"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-success" id="confirmCompleteBtn">Завершить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
+   <script>
+    // --- ЕДИНЫЙ, ОБЪЕДИНЕННЫЙ И ИСПРАВЛЕННЫЙ JAVASCRIPT-КОД ---
+
+    // Глобальные переменные и константы
+    const API_URL = "/api/handler";
+    const HIDDEN_CLASS = 'd-none';
+
+    let currentUser = null, allMeetings = [], allClients = [], currentEditingMeeting = null;
+    let meetingToReschedule = null, activeMeetingId = null;
+    let questions = [], potentialCategories = [];
+    let adminCharts = {};
+    let searchTimeout = null;
+    let isSearchMode = false;
+    let meetingToCompleteId = null;
+    let completeConfirmModal;
+       let newClientPhoneMask;
+       let reportCharts = [];
+       let reportChart = null;
+       
+       
+
+    // Глобальные экземпляры, которые будут инициализированы позже
+    let meetingsList, rescheduleModal, cancelConfirmModal, outcomeModal, reportModal, clientSearchModal, clientHistorySearchModal, appToast;
+    let datePicker, adminDatePicker, phoneMask, searchMask, clientListMask;
+       
+    // --- ОСНОВНОЙ БЛОК ИНИЦИАЛИЗАЦИИ ПОСЛЕ ЗАГРУЗКИ СТРАНИЦЫ ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Сначала находим все нужные элементы DOM ---
+        meetingsList = document.getElementById('meetings-list');
+        const navButtons = document.querySelectorAll('.nav-button');
+        const pages = document.querySelectorAll('.app-page');
+        const headerTitle = document.getElementById('header-title');
+        const header = document.querySelector('.app-header');
+        const main = document.querySelector('.app-main');
+        const bottomNav = document.querySelector('.app-bottom-nav');
+        const loginContainer = document.getElementById('login-container');
+        const bodyEl = document.querySelector('body');
+        // ВСТАВЬТЕ ЭТОТ БЛОК ВНУТРЬ DOMContentLoaded
+clientSearchModal = new bootstrap.Modal(document.getElementById('clientSearchModal'));
+
+const clientSearchInputEl = document.getElementById('clientSearchInput');
+searchMask = IMask(clientSearchInputEl, {
+    mask: [ { mask: '+{38} (000) 000-00-00', startsWith: '38', lazy: false }, { mask: /.*/ } ]
+});
+
+document.getElementById('clientSearchBtn').addEventListener('click', handleClientSearch);
+document.getElementById('clientSearchInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleClientSearch();
+});
+// ВСТАВЬТЕ ЭТОТ КОД ВНУТРЬ DOMContentLoaded
+
+// Логика для условного отображения под-вопросов в анкете
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+const surveyForm = document.getElementById('outcome-survey-form');
+if (surveyForm) {
+    surveyForm.addEventListener('change', (e) => {
+        // ЕДИНАЯ ЛОГИКА ДЛЯ ВСЕХ УСЛОВНЫХ БЛОКОВ
+        if (e.target.classList.contains('survey-trigger')) {
+            const subPanelId = e.target.dataset.controls;
+            const subPanel = document.getElementById(subPanelId);
+            if (subPanel) {
+                subPanel.classList.toggle('d-none', !e.target.checked);
+            }
+        }
+    });
+}
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+// ВСТАВЬТЕ ЭТОТ НОВЫЙ БЛОК
+const globalSearchTriggerBtn = document.getElementById('global-search-trigger-btn');
+if (globalSearchTriggerBtn) {
+    globalSearchTriggerBtn.addEventListener('click', () => {
+        // Очищаем и показываем модальное окно для глобального поиска
+        document.getElementById('clientSearchInput').value = '';
+        document.getElementById('clientSearchResult').innerHTML = '';
+        if (searchMask) searchMask.updateValue();
+        clientSearchModal.show();
+    });
+}
+        // ВСТАВЬТЕ ЭТОТ БЛОК ВНУТРЬ DOMContentLoaded
+
+// --- Логика для новой формы создания клиента ---
+const newClientPhoneInput = document.getElementById('new-client-phone');
+newClientPhoneMask = IMask(newClientPhoneInput, { mask: '+{38} (000) 000-00-00' });
+
+document.getElementById('show-add-client-form-btn').addEventListener('click', () => {
+    document.getElementById('add-client-form').reset();
+     // --- ДОБАВЬТЕ ЭТУ СТРОКУ ---
+    if (newClientPhoneMask) newClientPhoneMask.updateValue(); // Синхронизируем маску
+    document.querySelector('.nav-button[data-page="clients"]').click(); // Активируем кнопку "Клиенты"
+    switchPage('add-client'); // Показываем страницу с формой
+    headerTitle.textContent = "Новый клиент"; // Меняем заголовок
+});
+
+document.getElementById('cancel-new-client-btn').addEventListener('click', () => {
+    document.querySelector('.nav-button[data-page="clients"]').click(); // Возвращаемся на страницу "Клиенты"
+});
+
+document.getElementById('add-client-form').addEventListener('submit', handleSaveNewClient);
+      
+
+// Обработчик для кликов по фильтрам категорий
+const filtersContainer = document.getElementById('client-category-filters');
+if (filtersContainer) {
+    filtersContainer.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            // Убираем класс 'active' со всех кнопок и добавляем на нажатую
+            filtersContainer.querySelectorAll('button').forEach(btn => btn.classList.remove('active', 'btn-primary'));
+            e.target.classList.add('active');
+
+            const selectedCategory = e.target.dataset.category;
+            
+            let filteredClients;
+            if (selectedCategory === 'all') {
+                filteredClients = allClients; // Показываем всех
+            } else if (selectedCategory === 'Без категории') {
+                filteredClients = allClients.filter(c => !c.ClientCategory);
+            } else {
+                filteredClients = allClients.filter(c => c.ClientCategory === selectedCategory);
+            }
+            
+            renderClientList(filteredClients); // Перерисовываем список
+        }
+    });
+}
+
+// Логика для условных полей в анкете
+const outcomeModalEl = document.getElementById('outcomeModal');
+outcomeModalEl.addEventListener('change', (e) => {
+    // Показываем/скрываем поле "Кількість спеціалістів"
+    if (e.target.id === 'workTypeOwner') {
+        document.getElementById('specialistCountContainer').classList.remove('d-none');
+    } else if (e.target.name === 'workType' && e.target.id !== 'workTypeOwner') {
+        document.getElementById('specialistCountContainer').classList.add('d-none');
+    }
+
+    // Показываем/скрываем поля для комментариев (для екзосом, PLLA, волосся)
+    if (e.target.name === 'usesExosomes' || e.target.name === 'usesPLLA' || e.target.name === 'usesHair') {
+        const commentField = e.target.closest('.p-2.border.rounded').querySelector('textarea');
+        if (e.target.value === 'Так') {
+            commentField.classList.remove('d-none');
+        } else {
+            commentField.classList.add('d-none');
+        }
+    }
+});
+        /// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+const clientListFilterInput = document.getElementById('client-list-filter');
+clientListMask = IMask(clientListFilterInput, {
+    mask: [
+        {
+            mask: '+{38} (000) 000-00-00',
+            lazy: true // Не показывать маску сразу
+        },
+        {
+            mask: /.*/ // Маска для любого текста (для ФИО)
+        }
+    ],
+    // Эта функция решает, какую маску применить
+    dispatch: function (appended, dynamicMasked) {
+        const value = dynamicMasked.value + appended;
+        // Если в строке появляется хотя бы одна цифра, переключаемся на маску телефона
+        if (/\d/.test(value)) {
+            return dynamicMasked.compiledMasks[0]; // Выбираем маску телефона
+        }
+        // Иначе, используем маску для обычного текста
+        return dynamicMasked.compiledMasks[1]; // Выбираем текстовую маску
+    }
+});
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+
+        // --- Затем определяем функции, которые с ними работают ---
+        function showMainApp(show) {
+            if (!header || !main || !bottomNav || !loginContainer || !bodyEl) {
+                console.error('Ошибка: Один из ключевых элементов макета не найден!');
+                return;
+            }
+            if (show) {
+                header.classList.remove('d-none');
+                main.classList.remove('d-none');
+                bottomNav.classList.remove('d-none');
+                loginContainer.classList.add('d-none');
+            } else {
+                header.classList.add('d-none');
+                main.classList.add('d-none');
+                bottomNav.classList.add('d-none');
+                loginContainer.classList.remove('d-none');
+            }
+            bodyEl.classList.remove('d-none');
+        }
+        window.showMainApp = showMainApp;
+
+        function switchPage(pageId) {
+            pages.forEach(page => page.classList.toggle('active', page.id === `page-${pageId}`));
+            navButtons.forEach(button => {
+                button.classList.toggle('active', button.dataset.page === pageId);
+                if (button.dataset.page === pageId) {
+                    const buttonText = button.querySelector('span').textContent;
+                    headerTitle.textContent = buttonText;
+                }
+            });
+        }
+
+        // --- Инициализация Bootstrap компонентов ---
+        rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
+        cancelConfirmModal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
+        outcomeModal = new bootstrap.Modal(document.getElementById('outcomeModal'));
+        reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+ 
+        clientHistorySearchModal = new bootstrap.Modal(document.getElementById('clientHistorySearchModal'));
+        completeConfirmModal = new bootstrap.Modal(document.getElementById('completeConfirmModal'));
+        appToast = new bootstrap.Toast(document.getElementById('appToast'));
+        
+        // --- Инициализация плагинов ---
+        datePicker = new Litepicker({
+            element: document.getElementById('dateRangeFilter'),
+            singleMode: false, format: 'DD.MM.YYYY', lang: 'ru-RU',
+            setup: (picker) => {
+                picker.on('selected', (date1, date2) => {
+                    if (date1 && date2) loadInitialData(formatDateToYYYYMMDD(date1.toJSDate()), formatDateToYYYYMMDD(date2.toJSDate()));
+                });
+            }
+        });
+        
+        const phoneInput = document.getElementById('phone');
+        phoneMask = IMask(phoneInput, { mask: '+{38} (000) 000-00-00' });
+        
+        
+        
+        // --- Привязка всех обработчиков событий ---
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const pageId = button.dataset.page;
+                switchPage(pageId);
+                if (pageId === 'clients' && allClients.length === 0) {
+                    loadClientsPage();
+                }
+            });
+        });
+
+        document.getElementById('main-add-btn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchPage('dashboard');
+            showAddForm();
+        });
+
+        document.getElementById('login-form').addEventListener('submit', handleLogin);
+        document.getElementById('meeting-form').addEventListener('submit', handleFormSubmit);
+        document.getElementById('cancel-btn').addEventListener('click', handleCancelClick);
+        document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+            cancelConfirmModal.hide();
+            showForm(false);
+        });
+
+        document.getElementById('todayBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTodayDateString());
+        document.getElementById('tomorrowBtn').addEventListener('click', () => document.getElementById('meeting-date').value = getTomorrowDateString());
+        
+        const searchInputEl = document.getElementById('searchInput1');
+        searchInputEl.addEventListener('input', filterAndGroupMeetings);
+        searchInputEl.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') performGlobalSearch();
+        });
+        
+        const datePresetsContainer = document.getElementById('date-presets-container');
+        if (datePresetsContainer) {
+            const mainPresetBtn = datePresetsContainer.querySelector('#date-preset-btn');
+            if (mainPresetBtn) {
+                mainPresetBtn.addEventListener('click', () => {
+                    isSearchMode = false;
+                    document.getElementById('searchInput1').value = '';
+                    handleDatePresetClick('today');
+                });
+            }
+            const datePresetDropdown = datePresetsContainer.querySelector('.dropdown-menu');
+            if (datePresetDropdown) {
+                datePresetDropdown.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('dropdown-item')) {
+                        e.preventDefault();
+                        const range = e.target.dataset.range;
+                        handleDatePresetClick(range);
+                    }
+                });
+            }
+        }
+        // ДОБАВЬТЕ ЭТОТ ОБРАБОТЧИК ВНУТРЬ DOMContentLoaded
+document.getElementById('confirmCompleteBtn').addEventListener('click', () => {
+    if (!meetingToCompleteId) return;
+
+    const meetingIndex = allMeetings.findIndex(m => m.ID === meetingToCompleteId);
+    if (meetingIndex === -1) return;
+
+    completeConfirmModal.hide();
+
+    const meeting = allMeetings[meetingIndex];
+    const cardWrapper = document.querySelector(`.edit-btn[data-id="${meeting.ID}"]`)?.closest('.col-12');
+    
+    // 1. Оптимистичное обновление UI
+    if (cardWrapper) {
+        cardWrapper.style.opacity = '0.6';
+    }
+    
+    const oldData = meeting;
+    const newData = { ...oldData, Status: 'Завершено' };
+
+    // 2. Фоновый запрос на сервер
+    callApi('updateMeeting', { newData, oldData })
+        .then(() => {
+            showToast("Встреча завершена");
+            // В случае успеха - просто обновляем все данные для консистентности
+            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+        })
+        .catch(err => {
+            onFailure(err);
+            // В случае ошибки - тоже обновляем данные, чтобы вернуть карточку в исходное состояние
+            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+        });
+
+    meetingToCompleteId = null;
+});
+        
+        
+        document.getElementById('saveRescheduleBtn').addEventListener('click', handleSaveReschedule);
+        document.getElementById('saveOutcomeBtn').addEventListener('click', handleSaveOutcome);
+        document.getElementById('client-name').addEventListener('input', handleClientInput);
+
+        // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+const clientListFilter = document.getElementById('client-list-filter');
+clientListFilter.addEventListener('input', () => {
+    clearTimeout(searchTimeout); // Сбрасываем предыдущий таймер
+    searchTimeout = setTimeout(() => { // Устанавливаем новый таймер
+        const searchTerm = clientListFilter.value.toLowerCase();
+        const searchTermDigits = searchTerm.replace(/\D/g, '');
+
+        const filteredClients = allClients.filter(c => {
+            const clientName = c.ClientName.toLowerCase();
+            const clientPhone = c.Phone ? c.Phone.replace(/\D/g, '') : '';
+
+            // Ищем или по тексту в имени, или по цифрам в телефоне
+            return clientName.includes(searchTerm) || (searchTermDigits && clientPhone.includes(searchTermDigits));
+        });
+        
+        renderClientList(filteredClients);
+    }, 300); // Задержка в 300 миллисекунд
+});
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+
+        const logoutBtnSideMenu = document.getElementById('logout-btn-side-menu');
+        if (logoutBtnSideMenu) {
+            logoutBtnSideMenu.addEventListener('click', handleLogout);
+        }
+        const widgetsContainer = document.getElementById('dashboard-widgets');
+        if (widgetsContainer) {
+            widgetsContainer.addEventListener('click', (e) => {
+                const overdueFilter = e.target.closest('#widget-overdue-filter');
+                if (overdueFilter) {
+                    e.preventDefault();
+                    const now = new Date();
+                    const overdueMeetings = allMeetings.filter(m => {
+                        const dateParts = m.Date.split('.');
+                        const timeParts = m.Time.split(':');
+                        const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]);
+                        return meetingDate < now && (m.Status === 'В работе' || m.Status === 'Запланировано');
+                    });
+                    
+                    const originalMeetings = allMeetings;
+                    allMeetings = overdueMeetings;
+                    filterAndGroupMeetings();
+                    allMeetings = originalMeetings;
+
+                    isSearchMode = true; 
+                    document.getElementById('date-preset-btn').textContent = 'Сбросить';
+                }
+            });
+        }
+
+        checkActiveSession();
+    });
+
+    // --- Единый глобальный обработчик кликов ---
+    // ЗАМЕНИТЕ ВЕСЬ ВАШ ГЛОБАЛЬНЫЙ ОБРАБОТЧИК CLick НА ЭТОТ
+document.addEventListener('click', function(e) {
+    const target = e.target;
+
+    // --- Обработчик для ВСЕХ кнопок "Отчет" ---
+    const reportBtn = target.closest('.report-btn-icon, .js-report-from-client-list');
+    if (reportBtn && !reportBtn.disabled) {
+         e.preventDefault();
+         if (reportBtn.closest('#clientSearchModal')) {
+             clientSearchModal.hide();
+         }
+         handleReportClick(reportBtn); // Передаем саму кнопку
+         return;
+    }
+
+    // --- Остальные обработчики ---
+    const selectClientBtn = target.closest('.js-select-client-for-history');
+    if (selectClientBtn && !selectClientBtn.classList.contains('disabled')) {
+         e.preventDefault();
+         const clientID = selectClientBtn.dataset.clientId;
+         const clientName = selectClientBtn.dataset.clientName;
+         clientHistorySearchModal.hide();
+         isSearchMode = true;
+         meetingsList.innerHTML = '<div class="col-12 text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2">Загружаем историю встреч...</p></div>';
+         document.getElementById('date-preset-btn').textContent = 'Сбросить';
+         callApi('getAllMeetingsForClient', { login: currentUser, clientID: clientID })
+             .then(result => {
+                 allMeetings = result.meetings || [];
+                 filterAndGroupMeetings();
+                 const searchResultTitle = document.createElement('h3');
+                 searchResultTitle.className = 'col-12 date-header';
+                 searchResultTitle.innerHTML = `История встреч по клиенту: <mark>${clientName}</mark>`;
+                 meetingsList.prepend(searchResultTitle);
+             })
+             .catch(err => {
+                 onFailure(err);
+                 meetingsList.innerHTML = `<div class="col-12 text-center p-5"><h4>Ошибка загрузки истории</h4><p class="text-muted">${err.message}</p></div>`;
+             });
+         return;
+    }
+
+    const createFromReportBtn = target.closest('.js-create-meeting-from-report');
+    if (createFromReportBtn) {
+         reportModal.hide();
+         const btnTarget = createFromReportBtn;
+         document.querySelector('.nav-button[data-page="dashboard"]').click();
+         showAddForm();
+         document.getElementById('client-name').value = btnTarget.dataset.clientName;
+         document.getElementById('location').value = btnTarget.dataset.clientAddress;
+         document.getElementById('client-id').value = btnTarget.dataset.clientId;
+         document.getElementById('client-category').value = btnTarget.dataset.clientCategory;
+         document.getElementById('phone').value = btnTarget.dataset.clientPhone;
+         if (phoneMask) phoneMask.updateValue();
+         return;
+    }
+
+    const autocompleteLink = target.closest('#client-autocomplete-results a');
+    if (autocompleteLink) {
+         e.preventDefault();
+         const linkTarget = autocompleteLink;
+         document.getElementById('client-name').value = linkTarget.dataset.clientName;
+         document.getElementById('client-id').value = linkTarget.dataset.clientId;
+         document.getElementById('client-category').value = linkTarget.dataset.clientCategory;
+         document.getElementById('location').value = linkTarget.dataset.clientAddress;
+         document.getElementById('phone').value = linkTarget.dataset.clientPhone;
+         if (phoneMask) phoneMask.updateValue();
+         document.getElementById('client-autocomplete-results').innerHTML = '';
+         return;
+    }
+
+    const createMeetingBtnFromList = target.closest('.js-create-meeting-from-client-list');
+    if (createMeetingBtnFromList) {
+        e.preventDefault();
+        document.querySelector('.nav-button[data-page="dashboard"]').click();
+        showAddForm();
+        document.getElementById('client-name').value = createMeetingBtnFromList.dataset.clientName;
+        document.getElementById('location').value = createMeetingBtnFromList.dataset.clientAddress;
+        document.getElementById('client-id').value = createMeetingBtnFromList.dataset.clientId;
+        document.getElementById('client-category').value = createMeetingBtnFromList.dataset.clientCategory;
+        document.getElementById('phone').value = createMeetingBtnFromList.dataset.clientPhone;
+        if (phoneMask) phoneMask.updateValue();
+        return;
+    }
+
+    const resultsContainer = document.getElementById('client-autocomplete-results');
+    if (resultsContainer && !target.closest('#client-name') && resultsContainer.innerHTML !== '') {
+         resultsContainer.innerHTML = '';
+    }
+});
+    
+    // --- ВСЕ ОСТАЛЬНЫЕ ФУНКЦИИ ---
+    
+    // ЗАМЕНИТЕ ЭТУ ФУНКЦИЮ
+async function loadClientsPage() {
+    const container = document.getElementById('client-list-container');
+    container.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary"></div></div>';
+
+    try {
+        const result = await callApi('getManagerClients', { login: currentUser });
+        allClients = result.clients || [];
+        
+        // --- ДОБАВЛЕНО ---
+        renderCategoryFilters(); // Создаем кнопки фильтров
+        
+        renderClientList(allClients); // Отрисовываем полный список
+    } catch (e) {
+        onFailure(e);
+        container.innerHTML = '<div class="alert alert-danger">Не удалось загрузить список клиентов.</div>';
+    }
+}
+     // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+function renderCategoryFilters() {
+    const filtersContainer = document.getElementById('client-category-filters');
+    if (!filtersContainer) return;
+
+    const categories = [...new Set(allClients.map(client => client.ClientCategory || "Без категории"))];
+    
+    // Кнопка "Все" всегда основная, синяя
+    let filtersHtml = '<button class="btn btn-sm btn-primary active" data-category="all">Все</button>';
+
+    categories.forEach(category => {
+        const categoryColor = getCategoryColor(category);
+        // Для новой палитры белый текст будет выглядеть лучше
+        const textColorClass = 'text-white'; 
+        
+        filtersHtml += `
+            <button class="btn btn-sm ${textColorClass}" style="background-color: ${categoryColor}; border-color: ${categoryColor};" data-category="${category}">
+                ${category}
+            </button>
+        `;
+    });
+
+    filtersContainer.innerHTML = filtersHtml;
+}
+       // ВСТАВЬТЕ ЭТУ ФУНКЦИЮ
+async function handleClientSearch() {
+    const searchInput = document.getElementById('clientSearchInput');
+    const resultContainer = document.getElementById('clientSearchResult');
+    const searchBtn = document.getElementById('clientSearchBtn');
+    const searchTerm = searchMask.unmaskedValue || searchInput.value;
+    if (!searchTerm) {
+        resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
+        return;
+    }
+    toggleButtonSpinner(searchBtn, true);
+    resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
+    resultContainer.replaceWith(resultContainer.cloneNode(true));
+    const newResultContainer = document.getElementById('clientSearchResult');
+    try {
+        const payload = { searchTerm: searchTerm, managerLogin: currentUser };
+        const result = await callApi('findClient', payload);
+        if (result && result.found && result.clients && result.clients.length > 0) {
+            const clientsHtml = result.clients.map(client => {
+                const isDisabled = !client.isMine;
+                const disabledClass = isDisabled ? 'disabled' : '';
+                const titleText = isDisabled ? `Закреплен за: ${client.managerName || 'другой менеджер'}` : 'Создать встречу';
+                return `<li class="list-group-item"><div class="row align-items-center"><div class="col"><strong>${client.clientName}</strong><small class="text-muted d-block">Категория: ${client.ClientCategory || 'Не указана'}</small><small class="text-muted d-block">Менеджер: ${client.managerName || 'Не назначен'}</small></div><div class="col-auto"><div class="btn-group"><button class="btn btn-sm btn-outline-secondary report-btn-icon" data-client-id="${client.ClientID}" data-client-name="${client.clientName}" title="Данные по клиенту" ${disabledClass}><i class="bi bi-file-text"></i></button><button class="btn btn-sm btn-success create-meeting-from-search-btn" data-client-name="${client.clientName}" data-client-address="${client.clientAddress || ''}" data-client-id="${client.ClientID}" data-client-category="${client.ClientCategory || ''}" data-client-phone="${client.Phone || ''}" title="${titleText}" ${disabledClass}>Создать</button></div></div></div></li>`;
+            }).join('');
+            newResultContainer.innerHTML = `<ul class="list-group">${clientsHtml}</ul>`;
+        } else {
+            newResultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
+        }
+    } catch (e) {
+        newResultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
+    } finally {
+        toggleButtonSpinner(searchBtn, false);
+    }
+    newResultContainer.addEventListener('click', (e) => {
+        const createBtn = e.target.closest('.create-meeting-from-search-btn');
+        if (createBtn && !createBtn.disabled) {
+            const target = createBtn;
+            const clientName = target.dataset.clientName;
+            const clientAddress = target.dataset.clientAddress;
+            const clientID = target.dataset.clientId;
+            const clientCategory = target.dataset.clientCategory;
+            const clientPhone = target.dataset.clientPhone;
+            clientSearchModal.hide();
+            showAddForm();
+            document.getElementById('client-name').value = clientName;
+            document.getElementById('location').value = clientAddress;
+            document.getElementById('client-id').value = clientID;
+            document.getElementById('client-category').value = clientCategory;
+            document.getElementById('phone').value = clientPhone;
+            if (phoneMask) phoneMask.updateValue();
+        }
+    });
+}
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+       // ДОБАВЬТЕ ЭТУ НОВУЮ ФУНКЦИЮ
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+async function handleSaveNewClient(e) {
+    e.preventDefault();
+    const saveBtn = document.getElementById('save-new-client-btn');
+    toggleButtonSpinner(saveBtn, true);
+
+    // 1. Собираем обычные данные из формы
+    const newClientData = {
+        name: document.getElementById('new-client-name').value,
+        phone: newClientPhoneMask.unmaskedValue,
+        address: document.getElementById('new-client-address').value,
+        education: document.getElementById('new-client-education').value,
+        managerLogin: currentUser,
+        files: []
+    };
+
+    // 2. Асинхронно читаем и кодируем файлы
+    const fileInput = document.getElementById('new-client-files');
+    const filePromises = [];
+
+    if (fileInput.files.length > 0) {
+        showToast("Начинаем подготовку файлов...");
+        for (const file of fileInput.files) {
+            const promise = new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    // event.target.result содержит Base64-строку с префиксом, его нужно убрать
+                    const base64Content = event.target.result.split(',')[1];
+                    resolve({
+                        name: file.name,
+                        type: file.type,
+                        contentBase64: base64Content
+                    });
+                };
+                reader.onerror = (error) => reject(error);
+                reader.readAsDataURL(file);
+            });
+            filePromises.push(promise);
+        }
+    }
+
+    try {
+        // 3. Дожидаемся, пока все файлы будут закодированы
+        const encodedFiles = await Promise.all(filePromises);
+        newClientData.files = encodedFiles;
+
+        // 4. Отправляем все данные (включая файлы) в 1С
+        showToast("Отправка данных на сервер...");
+        const result = await callApi('registerNewClient', newClientData);
+        
+        showToast(`Клиент "${result.ClientName}" успешно создан!`);
+        document.querySelector('.nav-button[data-page="clients"]').click(); 
+        loadClientsPage(); // Обновляем список клиентов, чтобы увидеть нового
+
+    } catch (error) {
+        onFailure(error);
+    } finally {
+        toggleButtonSpinner(saveBtn, false);
+    }
+}
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+    function renderClientList(clientsToRender) {
+        const container = document.getElementById('client-list-container');
+        if (!container) return;
+        if (clientsToRender.length === 0) {
+            container.innerHTML = '<p class="text-center text-muted mt-4">Клиенты не найдены.</p>';
+            return;
+        }
+        const clientHtml = clientsToRender.map(client => {
+            const categoryColor = getCategoryColor(client.ClientCategory);
+            const cleanPhone = client.Phone ? client.Phone.replace(/[^+\d]/g, '') : '';
+            return `
+                <div class="card shadow-sm mb-2">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="card-title mb-1">${client.ClientName}</h5>
+                                <span class="badge" style="background-color: ${categoryColor};">${client.ClientCategory || 'Без категории'}</span>
+                            </div>
+                            <div class="btn-group">
+                                <a href="#" class="btn btn-sm btn-outline-secondary js-report-from-client-list" title="Отчет по клиенту" data-client-id="${client.ClientID}" data-client-name="${client.ClientName}"><i class="bi bi-file-text"></i></a>
+                                <a href="#" class="btn btn-sm btn-primary js-create-meeting-from-client-list" title="Создать встречу" 
+                                   data-client-id="${client.ClientID}" data-client-name="${client.ClientName}"
+                                   data-client-category="${client.ClientCategory || ''}" data-client-address="${client.ClientAddress || ''}"
+                                   data-client-phone="${client.Phone || ''}">
+                                   <i class="bi bi-calendar-plus"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <hr>
+                        <p class="card-text mb-1"><small class="text-muted">Телефон: <a href="tel:${cleanPhone}">${client.Phone || 'Не указан'}</a></small></p>
+                        <p class="card-text"><small class="text-muted">Последняя встреча: ${client.LastMeetingDate || 'Нет данных'}</small></p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        container.innerHTML = clientHtml;
+    }
+    
+    function handleDatePresetClick(preset) {
+        if (preset === 'today') {
+            isSearchMode = false;
+            document.getElementById('searchInput1').value = '';
+        }
+        const today = new Date();
+        let startDate, endDate;
+        switch (preset) {
+            case 'today': startDate = endDate = today; break;
+            case 'tomorrow':
+                const tomorrow = new Date();
+                tomorrow.setDate(today.getDate() + 1);
+                startDate = endDate = tomorrow;
+                break;
+            case 'this-week':
+                const firstDayOfWeek = new Date(today);
+                const day = today.getDay();
+                const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+                firstDayOfWeek.setDate(diff);
+                startDate = firstDayOfWeek;
+                endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + 6);
+                break;
+            case 'last-week':
+                const lastWeekStart = new Date(today);
+                const dayLW = today.getDay();
+                const diffLW = today.getDate() - dayLW - 6;
+                lastWeekStart.setDate(diffLW);
+                startDate = lastWeekStart;
+                endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + 6);
+                break;
+            case 'this-month':
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                break;
+            case 'last-month':
+                startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                break;
+        }
+        if (startDate && endDate) {
+            datePicker.setDateRange(startDate, endDate);
+            document.getElementById('date-preset-btn').textContent = document.querySelector(`.dropdown-item[data-range="${preset}"]`).textContent;
+        }
+    }
+    
+    function checkActiveSession() {
+        const savedSession = localStorage.getItem('crm_session');
+        if (!savedSession) {
+            window.showMainApp(false);
+            return;
+        };
+        const session = JSON.parse(savedSession);
+        const oneDay = 24 * 60 * 60 * 1000;
+        const isSessionExpired = (new Date().getTime() - session.loginTime) > oneDay;
+        if (isSessionExpired) {
+            localStorage.removeItem('crm_session');
+            window.showMainApp(false);
+            return;
+        }
+        onLoginSuccess({ login: session.user, role: session.role });
+    }
+    
+    function onLoginSuccess(result) {
+        currentUser = result.login;
+        const userRole = result.role;
+        const session = { user: currentUser, role: userRole, loginTime: new Date().getTime() };
+        localStorage.setItem('crm_session', JSON.stringify(session));
+
+        document.getElementById('offcanvas-user-info').textContent = `Менеджер: ${currentUser}`;
+
+        window.showMainApp(true);
+        
+        const header = document.querySelector('.app-header');
+        const main = document.querySelector('.app-main');
+        const bottomNav = document.querySelector('.app-bottom-nav');
+        const adminDashboard = document.getElementById('admin-dashboard');
+
+        if (userRole === 'admin') {
+            header.classList.add('d-none');
+            main.classList.add('d-none');
+            bottomNav.classList.add('d-none');
+            adminDashboard.classList.remove('d-none');
+        } else {
+            header.classList.remove('d-none');
+            main.classList.remove('d-none');
+            bottomNav.classList.remove('d-none');
+            adminDashboard.classList.add('d-none');
+            datePicker.setDateRange(new Date(), new Date());
+        }
+    }
+    
+    function handleLogout() {
+        localStorage.removeItem('crm_session');
+        window.showMainApp(false);
+    }
+    
+    function getTodayDateString() { return formatDateToYYYYMMDD(new Date()); }
+    function getTomorrowDateString() { const t = new Date(); t.setDate(t.getDate() + 1); return formatDateToYYYYMMDD(t); }
+    function formatDateToYYYYMMDD(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+    function toggleButtonSpinner(btn, show) {
+        if (show) {
+            btn.disabled = true;
+            btn.dataset.originalText = btn.innerHTML;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>`;
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = btn.dataset.originalText || '';
+        }
+    }
+    function showToast(message) {
+        if (appToast) {
+            document.querySelector('#appToast .toast-body').textContent = message;
+            appToast.show();
+        }
+    }
+   // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+function getCategoryColor(categoryName) {
+    if (!categoryName || categoryName.toLowerCase().includes('без категории')) return '#A0AEC0'; // Нейтральный серый
+
+    const lowerCategory = categoryName.toLowerCase();
+
+    // Новая сбалансированная палитра
+    if (lowerCategory.includes('новый')) return '#4A90E2';       // Современный синий
+    if (lowerCategory.includes('активный')) return '#48BB78';   // Насыщенный зеленый
+    if (lowerCategory.includes('спящий')) return '#F2C94C';     // Теплый янтарный
+    if (lowerCategory.includes('без закупок')) return '#F2994A'; // Мягкий оранжевый
+    if (lowerCategory.includes('потерянный')) return '#EB5757';  // Спокойный красный
+    
+    return '#A0AEC0'; // Нейтральный серый по умолчанию
+}
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+    async function callApi(action, payload) {
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, payload })
+            });
+            if (!response.ok) {
+                const errorText = await response.text(); 
+                throw new Error(`Ошибка сервера: ${response.status}. Ответ: ${errorText}`);
+            }
+            const result = await response.json();
+            if (result.status === 'error') {
+                throw new Error(result.message);
+            }
+            return result.data;
+        } catch (e) {
+            console.error("API call failed:", e);
+            throw e.message ? e : new Error('Ошибка сети или ответа сервера.');
+        }
+    }
+    function onFailure(error, errorElement = null) {
+        console.error(error);
+        if (errorElement) {
+            errorElement.textContent = error.message;
+            errorElement.classList.remove(HIDDEN_CLASS);
+        } else {
+            showToast('Ошибка: ' + error.message);
+        }
+    }
+    function handleLogin(e) {
+        e.preventDefault();
+        const loginBtn = document.getElementById('login-button');
+        toggleButtonSpinner(loginBtn, true);
+        const loginError = document.getElementById('login-error');
+        loginError.classList.add(HIDDEN_CLASS);
+        const payload = { login: document.getElementById('username').value, password: document.getElementById('password').value };
+        callApi('login', payload).then(onLoginSuccess).catch(err => {
+            onFailure(err, loginError);
+            document.getElementById('password').value = '';
+        }).finally(() => {
+            toggleButtonSpinner(loginBtn, false);
+        });
+    }
+    function loadInitialData(startDateString, endDateString) {
+        isSearchMode = false;
+        document.getElementById('searchInput1').value = '';
+        document.getElementById('date-preset-btn').textContent = 'Сегодня';
+        let skeletonHTML = '';
+        for (let i = 0; i < 4; i++) {
+            skeletonHTML += '<div class="col-12 col-md-6"><div class="skeleton-card"></div></div>';
+        }
+        meetingsList.innerHTML = skeletonHTML;
+        const payload = { login: currentUser, startDateString, endDateString };
+        callApi('getInitialData', payload)
+            .then(onDataLoaded)
+            .catch(err => {
+                onFailure(err);
+                meetingsList.innerHTML = `<div class="col-12 text-center p-5 bg-light rounded-3"><h4>Не удалось загрузить встречи</h4><p class="text-muted">${err.message}</p><button class="btn btn-primary btn-sm" onclick="loadInitialData('${startDateString}', '${endDateString}')">Попробовать снова</button></div>`;
+            });
+    }
+    function onDataLoaded(data) {
+        allMeetings = data.meetings || [];
+        questions = data.questions || [];
+        potentialCategories = data.potentialCategories || [];
+        populatePurposes(data.purposes);
+        updateDashboardWidgets(); 
+        filterAndGroupMeetings();
+    }
+    async function performGlobalSearch() {
+        const searchInput = document.getElementById('searchInput1');
+        const searchTerm = searchInput.value;
+        if (searchTerm.length < 3) {
+            if (searchTerm.length === 0) {
+                document.getElementById('date-preset-btn').click();
+            } else {
+                showToast("Введите минимум 3 символа для поиска.");
+            }
+            return;
+        }
+        const resultsContainer = document.getElementById('clientHistorySearchResult');
+        resultsContainer.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>';
+        clientHistorySearchModal.show();
+        try {
+            const result = await callApi('findClient', { searchTerm: searchTerm, managerLogin: currentUser });
+            if (result && result.found && result.clients && result.clients.length > 0) {
+                const clientsHtml = result.clients.map(client => {
+                    const isForeignClient = !client.isMine;
+                    const disabledClass = isForeignClient ? 'disabled list-group-item-light' : '';
+                    const titleText = isForeignClient ? `Закреплен за: ${client.managerName || 'другой менеджер'}` : 'Посмотреть историю встреч';
+                    return `<a href="#" class="list-group-item list-group-item-action js-select-client-for-history ${disabledClass}" data-client-id="${client.ClientID}" data-client-name="${client.clientName}" title="${titleText}"><strong>${client.clientName}</strong><small class="text-muted d-block">Менеджер: ${client.managerName || 'Не назначен'}</small></a>`;
+                }).join('');
+                resultsContainer.innerHTML = `<div class="list-group">${clientsHtml}</div>`;
+            } else {
+                resultsContainer.innerHTML = `<div class="alert alert-warning">Клиенты не найдены.</div>`;
+            }
+        } catch (e) {
+            onFailure(e);
+            resultsContainer.innerHTML = `<div class="alert alert-danger">Ошибка поиска: ${e.message}</div>`;
+        }
+    }
+    function populatePurposes(purposes) {
+        const purposeSelect = document.getElementById('purpose');
+        purposeSelect.innerHTML = '<option value="">-- Выберите цель --</option>';
+        if (purposes && Array.isArray(purposes)) {
+            purposes.forEach(p => {
+                purposeSelect.innerHTML += `<option value="${p.Purpose}">${p.Purpose}</option>`;
+            });
+        }
+    }
+    function updateDashboardWidgets() {
+        const widgetsContainer = document.getElementById('dashboard-widgets');
+        if (!widgetsContainer) return;
+        const startDate = datePicker.getStartDate()?.toJSDate();
+        const endDate = datePicker.getEndDate()?.toJSDate();
+        if (!startDate || !endDate) return;
+        const today = new Date();
+        const isTodayView = startDate.toDateString() === today.toDateString() && endDate.toDateString() === today.toDateString();
+        let meetingsForPeriod;
+        let totalValue;
+        let totalLabel;
+        if (isTodayView) {
+            const todayString = getTodayDateString().split('-').reverse().join('.');
+            meetingsForPeriod = allMeetings.filter(m => m.Date === todayString);
+            totalValue = meetingsForPeriod.length;
+            totalLabel = "Сегодня";
+        } else {
+            meetingsForPeriod = allMeetings.filter(m => {
+                const dateParts = m.Date.split('.');
+                const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+                const startDateWithoutTime = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+                const endDateWithoutTime = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+                return meetingDate >= startDateWithoutTime && meetingDate <= endDateWithoutTime;
+            });
+            totalValue = meetingsForPeriod.length;
+            totalLabel = "Всего";
+        }
+        const todayStringForStats = getTodayDateString().split('-').reverse().join('.');
+        const meetingsToday = allMeetings.filter(m => m.Date === todayStringForStats);
+        const completedToday = meetingsToday.filter(m => m.Status === 'Завершена' || m.Status === 'Завершено').length;
+        const now = new Date();
+        const overdue = allMeetings.filter(m => {
+            const dateParts = m.Date.split('.');
+            const timeParts = m.Time.split(':');
+            const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]);
+            return meetingDate < now && (m.Status === 'В работе' || m.Status === 'Запланировано');
+        }).length;
+        widgetsContainer.innerHTML = `<div class="col-4"><div class="widget-card"><div class="widget-value text-primary">${totalValue}</div><div class="widget-label">${totalLabel}</div></div></div><div class="col-4"><div class="widget-card"><div class="widget-value text-success">${completedToday}</div><div class="widget-label">Завершено</div></div></div><div class="col-4"><a href="#" id="widget-overdue-filter" class="widget-card"><div class="widget-value text-danger">${overdue}</div><div class="widget-label">Просрочено</div></a></div>`;
+    }
+
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+function filterAndGroupMeetings() {
+    const searchTerm = document.getElementById('searchInput1').value.toLowerCase();
+    const filtered = allMeetings.filter(m => m.Client.toLowerCase().includes(searchTerm));
+    const dateGroups = {};
+    const validStatuses = ['В работе', 'Запланировано', 'Завершена', 'Завершено', 'Отмена', 'Отменено', 'Просрочено'];
+    filtered.forEach(m => {
+        let status = m.Status ? m.Status.trim() : '';
+        if (status === 'Завершено') status = 'Завершена';
+        if (status === 'Отменено') status = 'Отмена';
+        if (status === 'Перенос') status = 'В работе';
+        if (!validStatuses.includes(status)) status = 'В работе';
+        if (!dateGroups[m.Date]) {
+            dateGroups[m.Date] = { 'В работе': [], 'Запланировано': [], 'Завершена': [], 'Отмена': [], 'Просрочено': [] };
+        }
+        (dateGroups[m.Date][status] || dateGroups[m.Date]['В работе']).push(m);
+    });
+
+    meetingsList.innerHTML = '';
+    const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(b.split('.').reverse().join('-')) - new Date(a.split('.').reverse().join('-')));
+    if (sortedDates.length === 0) {
+        let emptyMessage = isSearchMode ? `<h4>Встреч по этому клиенту не найдено</h4><p class="text-muted">Попробуйте другой поисковый запрос.</p>` : `<h4>Встреч не найдено</h4><p class="text-muted">На этот день встреч нет. Давайте создадим первую!</p><button class="btn btn-primary mt-2" id="emptyStateCreateBtn">Создать встречу</button>`;
+        meetingsList.innerHTML = `<div class="col-12 text-center p-5"><i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>${emptyMessage}</div>`;
+        if (!isSearchMode) {
+            document.getElementById('emptyStateCreateBtn').addEventListener('click', showAddForm);
+        }
+        return;
+    }
+
+    sortedDates.forEach(date => {
+        const dateTitle = document.createElement('h3');
+        dateTitle.className = 'col-12 mt-4 border-bottom pb-2 date-header';
+        dateTitle.textContent = date;
+        meetingsList.appendChild(dateTitle);
+        const groups = dateGroups[date];
+        const groupOrder = ['Просрочено', 'В работе', 'Запланировано', 'Завершена', 'Отмена'];
+        groupOrder.forEach(status => {
+            if (groups[status] && groups[status].length > 0) {
+                const groupTitle = document.createElement('h4');
+                groupTitle.className = 'col-12 mt-3 text-muted';
+                groupTitle.textContent = status;
+                meetingsList.appendChild(groupTitle);
+                groups[status].sort((a, b) => a.Time.localeCompare(b.Time)).forEach(m => {
+                    const cleanStatus = m.Status ? m.Status.trim() : '';
+                    const isActive = cleanStatus !== 'Завершена' && cleanStatus !== 'Завершено' && cleanStatus !== 'Отмена' && cleanStatus !== 'Отменено' && cleanStatus !== 'Просрочено';
+                    const activeTimers = JSON.parse(localStorage.getItem('activeTimers')) || {};
+                    const isMeetingRunning = !!activeTimers[m.ID];
+                    
+                    let stateButtonHtml = '';
+                    if (isActive) {
+                        if (isMeetingRunning) {
+                            const initialElapsedTime = formatElapsedTime(Date.now() - activeTimers[m.ID].startTime);
+                            stateButtonHtml = `<button class="btn btn-danger btn-sm js-state-toggle-btn" data-id="${m.ID}">
+                                <i class="bi bi-stop-circle me-2"></i>Завершить (<span class="timer" data-start-time="${activeTimers[m.ID].startTime}">${initialElapsedTime}</span>)
+                            </button>`;
+                        } else {
+                            stateButtonHtml = `<button class="btn btn-success btn-sm js-state-toggle-btn" data-id="${m.ID}">
+                                <i class="bi bi-play-circle me-2"></i>Старт встречи
+                            </button>`;
+                        }
+                    }
+
+                    let dropdownItems = `<li><a class="dropdown-item outcome-btn" href="#" data-id="${m.ID}"><i class="bi bi-card-checklist me-2"></i>Итоги встречи</a></li>`;
+                    if (isActive && !isMeetingRunning) {
+                         dropdownItems += `<li><a class="dropdown-item reschedule-btn" href="#" data-id="${m.ID}"><i class="bi bi-arrow-repeat me-2"></i>Перенести</a></li>`;
+                    }
+                    const actionsMenu = `<div class="dropdown actions-dropdown ms-auto">${dropdownItems ? `<button class="btn btn-sm btn-light border-0 py-0 px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end">${dropdownItems}</ul>` : ''}</div>`;
+                    
+                    const statusColors = { 'В работе': 'orange', 'Запланировано': 'blue', 'Завершена': 'green', 'Отмена': 'gray', 'Просрочено': 'red' };
+                    const statusColor = statusColors[cleanStatus] || 'gray';
+                    let clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span></div>`;
+                    if (m.ClientCategory) {
+                        const categoryColor = getCategoryColor(m.ClientCategory);
+                        clientTitle = `<div class="d-flex align-items-center"><span>${m.Time} - ${m.Client}</span><span class="badge ms-2" style="background-color: ${categoryColor};">${m.ClientCategory}</span></div>`;
+                    }
+                    
+                    const cardWrapper = document.createElement('div');
+                    cardWrapper.className = "col-12 col-md-6";
+                    cardWrapper.innerHTML = `
+                        <div class="card meeting-card shadow-sm border-0 d-flex flex-column h-100">
+                            <div class="card-body flex-grow-1">
+                                <div class="d-flex justify-content-between">
+                                    <h5 class="card-title">${clientTitle}</h5>
+                                    <a href="#" class="btn btn-light edit-btn" style="height: fit-content;" title="Редактировать" data-id="${m.ID}"><i class="bi bi-pencil-square"></i></a>
+                                </div>
+                                <p class="card-text mb-1"><small class="text-muted">${m.Purpose || 'Цель не указана'}</small></p>
+                                <p class="card-text mb-1"><small class="text-muted">Место: ${m.StartAddress || m.PlannedAddress || 'Не указано'}</small></p>
+                                <p class="card-text mb-0"><strong><span class="status-dot status-${statusColor}"></span>Статус:</strong> ${m.Status || 'Не указан'}</p>
+                            </div>
+                            <div class="card-footer bg-white border-top-0 pt-0">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    ${stateButtonHtml}
+                                    ${actionsMenu}
+                                </div>
+                                <div class="pt-2 border-top">
+                                    <button class="btn btn-sm btn-outline-secondary w-100 report-btn-icon" data-client-id="${m.ClientID}" data-client-name="${m.Client}">
+                                        <i class="bi bi-file-text me-2"></i>Данные по клиенту
+                                    </button>
+                                </div>
+                            </div>
+                        </div>`;
+                    meetingsList.appendChild(cardWrapper);
+                });
+            }
+        });
+    });
+    
+    document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditClick));
+    document.querySelectorAll('.js-state-toggle-btn').forEach(btn => btn.addEventListener('click', handleMeetingStateToggle));
+    document.querySelectorAll('.reschedule-btn').forEach(btn => btn.addEventListener('click', handleRescheduleClick));
+    document.querySelectorAll('.outcome-btn').forEach(btn => btn.addEventListener('click', handleOutcomeClick));
+}
+
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+    function handleClientInput(e) {
+        const searchTerm = e.target.value;
+        const resultsContainer = document.getElementById('client-autocomplete-results');
+        clearTimeout(searchTimeout);
+        if (searchTerm.length < 3) {
+            resultsContainer.innerHTML = '';
+            return;
+        }
+        searchTimeout = setTimeout(async () => {
+            try {
+                const payload = { searchTerm: searchTerm, managerLogin: currentUser };
+                const result = await callApi('findClient', payload);
+                if (result && result.found && result.clients && result.clients.length > 0) {
+                    const clientsHtml = result.clients.map(client => {
+                        if (client.isMine) {
+                            return `<a href="#" class="list-group-item list-group-item-action" data-client-name="${client.clientName}" data-client-address="${client.clientAddress || ''}" data-client-id="${client.ClientID}" data-client-category="${client.ClientCategory || ''}" data-client-phone="${client.Phone || ''}"><strong>${client.clientName}</strong><small class="d-block text-muted">Категория: ${client.ClientCategory || 'Не указана'}</small></a>`;
+                        } else {
+                            return `<span class="list-group-item list-group-item-light text-muted pe-none"><strong>${client.clientName}</strong><small class="d-block">Закреплен за: ${client.managerName || 'другой менеджер'}</small></span>`;
+                        }
+                    }).join('');
+                    resultsContainer.innerHTML = clientsHtml;
+                } else {
+                    resultsContainer.innerHTML = '<span class="list-group-item disabled">Клиенты не найдены</span>';
+                }
+            } catch (e) {
+                console.error("Ошибка автодополнения:", e);
+                resultsContainer.innerHTML = '<span class="list-group-item list-group-item-danger">Ошибка поиска</span>';
+            }
+        }, 500);
+    }
+    // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+function handleFormSubmit(e) {
+    e.preventDefault();
+    const saveBtn = document.getElementById('save-button');
+    toggleButtonSpinner(saveBtn, true);
+    
+    const meetingId = document.getElementById('meeting-id').value;
+    const isUpdating = !!meetingId;
+
+    const meetingData = {
+        ClientID: document.getElementById('client-id').value,
+        Date: document.getElementById('meeting-date').value.split('-').reverse().join('.'),
+        Time: document.getElementById('meeting-time').value,
+        Client: document.getElementById('client-name').value,
+        Purpose: document.getElementById('purpose').value,
+        Phone: phoneMask.unmaskedValue,
+        Status: document.getElementById('status').value,
+        ManagerLogin: currentUser,
+        Comment: isUpdating && currentEditingMeeting ? currentEditingMeeting.Comment : '',
+        PlannedAddress: document.getElementById('planned-meeting-address').value
+    };
+
+    if (isUpdating) {
+        meetingData.ID = meetingId;
+        if (currentEditingMeeting) {
+            meetingData.calendarEventId = currentEditingMeeting.calendarEventId;
+            
+            // --- ИСПРАВЛЕНИЕ ЗДЕСЬ: Упаковываем данные в объекты ---
+            // Собираем данные о геолокации старта в объект, как этого ожидает 1С
+            meetingData.locationData = {
+                address: currentEditingMeeting.StartAddress || "",
+                lat: currentEditingMeeting.StartLatitude || "",
+                lon: currentEditingMeeting.StartLongitude || ""
+            };
+            // Собираем данные о геолокации завершения в объект
+            meetingData.endLocationData = {
+                address: currentEditingMeeting.EndAddress || "",
+                lat: currentEditingMeeting.EndLatitude || "",
+                lon: currentEditingMeeting.EndLongitude || ""
+            };
+        }
+    }
+    
+    const action = isUpdating ? 'updateMeeting' : 'saveNewMeeting';
+    const payload = isUpdating ? { newData: meetingData, oldData: currentEditingMeeting } : meetingData;
+    
+    callApi(action, payload).then(() => {
+        showToast(`Встреча с клиентом "${meetingData.Client}" на ${meetingData.Time} успешно сохранена.`);
+        loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+        onActionComplete();
+    }).catch(onFailure).finally(() => {
+        toggleButtonSpinner(saveBtn, false);
+    });
+}
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+    function handleEditClick(event) {
+    event.preventDefault();
+    const meetingId = event.currentTarget.dataset.id;
+    currentEditingMeeting = allMeetings.find(m => m.ID === meetingId);
+    if (!currentEditingMeeting) return;
+    
+    document.getElementById('form-title').textContent = "Редактирование встречи";
+    document.getElementById('meeting-id').value = currentEditingMeeting.ID;
+    document.getElementById('client-id').value = currentEditingMeeting.ClientID;
+    document.getElementById('client-category').value = currentEditingMeeting.ClientCategory || '';
+    document.getElementById('client-autocomplete-results').innerHTML = '';
+    const dateParts = currentEditingMeeting.Date.split('.');
+    document.getElementById('meeting-date').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+    document.getElementById('meeting-time').value = currentEditingMeeting.Time;
+    document.getElementById('client-name').value = currentEditingMeeting.Client;
+    document.getElementById('purpose').value = currentEditingMeeting.Purpose;
+    document.getElementById('phone').value = currentEditingMeeting.Phone;
+    if (phoneMask) phoneMask.updateValue();
+    document.getElementById('location').value = currentEditingMeeting.ClientAddress || '';
+    document.getElementById('planned-meeting-address').value = currentEditingMeeting.PlannedAddress || ''; // <-- ДОБАВЛЕНА ЭТА СТРОКА
+    document.getElementById('meeting-location').value = currentEditingMeeting.StartAddress || currentEditingMeeting.Location || ''; 
+    document.getElementById('meeting-lat').value = currentEditingMeeting.StartLatitude || currentEditingMeeting.LocationLat || '';
+    document.getElementById('meeting-lon').value = currentEditingMeeting.StartLongitude || currentEditingMeeting.LocationLon || '';
+    document.getElementById('status').value = currentEditingMeeting.Status || 'В работе';
+        //Кнопка определения гео
+        //const geoButton = document.getElementById('get-meeting-location-btn');
+        //const status = currentEditingMeeting.Status ? currentEditingMeeting.Status.trim() : '';
+        //if (status === 'Завершена' || status === 'Завершено' || status === 'Отмена' || status === 'Отменено') {
+            //geoButton.classList.add('d-none');
+        //} else {
+            //geoButton.classList.remove('d-none');
+        
+        showForm(true);
+    }
+
+// НОВАЯ ФУНКЦИЯ ВМЕСТО handleCompleteClick
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+async function handleMeetingStateToggle(event) {
+    const btn = event.target.closest('.js-state-toggle-btn');
+    if (!btn) return;
+
+    toggleButtonSpinner(btn, true);
+    const meetingId = btn.dataset.id;
+    const meeting = allMeetings.find(m => m.ID === meetingId);
+    if (!meeting) {
+        toggleButtonSpinner(btn, false);
+        return;
+    }
+
+    const activeTimers = JSON.parse(localStorage.getItem('activeTimers')) || {};
+    const isMeetingRunning = !!activeTimers[meetingId];
+
+    try {
+        if (isMeetingRunning) {
+            // --- Логика ЗАВЕРШЕНИЯ встречи ---
+            showToast("Фиксируем геолокацию завершения...");
+            const locationData = await getAddressFromGeolocation();
+
+            const oldData = meeting;
+            const newData = { ...oldData, Status: 'Завершено', endLocationData: locationData };
+            await callApi('updateMeeting', { newData, oldData });
+            
+            delete activeTimers[meetingId];
+            localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
+            
+            showToast("Встреча успешно завершена");
+            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+
+        } else {
+            // --- Логика СТАРТА встречи ---
+            showToast("Фиксируем геолокацию старта...");
+            const locationData = await getAddressFromGeolocation();
+            
+            await callApi('startMeeting', { meetingId: meetingId, locationData: locationData });
+            
+            activeTimers[meetingId] = { startTime: Date.now() };
+            localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
+
+            showToast("Встреча начата");
+            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+        }
+    } catch (e) {
+        // --- БЛОК ОБРАБОТКИ ОШИБКИ ГЕОЛОКАЦИИ ---
+        if (confirm(`Не удалось получить геолокацию. Ошибка: ${e.message}\n\nПродолжить без фиксации координат?`)) {
+            try {
+                if (isMeetingRunning) {
+                    // --- ИСПРАВЛЕНИЕ ЗДЕСЬ ---
+                    const newData = { ...meeting, Status: 'Завершено', endLocationData: null }; // Добавляем endLocationData: null
+                    await callApi('updateMeeting', { newData: newData, oldData: meeting });
+                    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
+                    delete activeTimers[meetingId];
+                    localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
+                    showToast("Встреча завершена (без Geo)");
+                } else {
+                    await callApi('startMeeting', { meetingId: meetingId, locationData: null }); // Отправляем startMeeting с null
+                    activeTimers[meetingId] = { startTime: Date.now() };
+                    localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
+                    showToast("Встреча начата (без Geo)");
+                }
+                loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+            } catch (apiError) {
+                onFailure(apiError);
+                toggleButtonSpinner(btn, false);
+            }
+        } else {
+            toggleButtonSpinner(btn, false);
+        }
+    }
+}
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+    function handleRescheduleClick(event) {
+        const meetingId = event.target.dataset.id;
+        const meetingData = allMeetings.find(m => m.ID === meetingId);
+        if (!meetingData) return;
+        currentEditingMeeting = meetingData;
+        rescheduleModal.show();
+    }
+    async function handleSaveReschedule() {
+        const newDate = document.getElementById('newMeetingDate').value;
+        const newTime = document.getElementById('newMeetingTime').value;
+        const errorDiv = document.getElementById('rescheduleError');
+        if (!newDate || !newTime) {
+            errorDiv.textContent = 'Пожалуйста, укажите дату и время.';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+        errorDiv.classList.add('d-none');
+        const saveBtn = document.getElementById('saveRescheduleBtn');
+        toggleButtonSpinner(saveBtn, true);
+        try {
+            const oldData = currentEditingMeeting;
+            const newData = { ...currentEditingMeeting };
+            newData.Comment = `Перенесена со старой даты ${oldData.Date}`;
+            newData.Date = newDate.split('-').reverse().join('.');
+            newData.Time = newTime;
+            newData.Status = 'В работе';
+            await callApi('updateMeeting', { newData, oldData });
+            showToast("Встреча успешно перенесена");
+            rescheduleModal.hide();
+            onActionComplete();
+            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+        } catch (error) {
+            onFailure(error);
+        } finally {
+            toggleButtonSpinner(saveBtn, false);
+        }
+    }
+    // ЗАМЕНИТЕ СТАРЫЕ ФУНКЦИИ НА ЭТИ ДВЕ
+
+// ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ НА ЭТУ
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+
+// Новая логика для модального окна "Итоги встречи"
+function handleOutcomeClick(event) {
+    activeMeetingId = event.target.closest('[data-id]').dataset.id;
+    const meeting = allMeetings.find(m => m.ID === activeMeetingId);
+    if (!meeting) return;
+
+    // Сбрасываем форму перед открытием
+    const form = document.getElementById('outcome-survey-form');
+    form.reset();
+    form.querySelectorAll('.survey-details').forEach(el => el.classList.add('d-none'));
+
+    // Заполняем общий комментарий
+    document.getElementById('meetingComment').value = meeting.Comment || '';
+
+    // Заполняем анкету из данных КЛИЕНТА (AnketaDataJSON), а не встречи
+    if (meeting.AnketaDataJSON) {
+        try {
+            const surveyData = JSON.parse(meeting.AnketaDataJSON);
+            populateSurveyForm(surveyData);
+        } catch(e) { console.error("Ошибка чтения данных анкеты:", e); }
+    }
+    
+    outcomeModal.show();
+}
+
+function handleSaveOutcome() {
+    const btn = document.getElementById('saveOutcomeBtn');
+    toggleButtonSpinner(btn, true);
+    
+    const meeting = allMeetings.find(m => m.ID === activeMeetingId);
+    if (!meeting) {
+        toggleButtonSpinner(btn, false);
+        return;
+    }
+
+    // Собираем данные анкеты в структурированный JSON
+    const surveyData = {};
+    const form = document.getElementById('outcome-survey-form');
+    
+    form.querySelectorAll('[data-question]').forEach(el => {
+        const path = el.dataset.question.split('.');
+        let currentLevel = surveyData;
+        
+        path.forEach((key, index) => {
+            if (index === path.length - 1) { // Если это последний ключ в пути
+                if (el.type === 'checkbox') {
+                    if (!currentLevel[key]) currentLevel[key] = [];
+                    if (el.checked) currentLevel[key].push(el.value);
+                } else if (el.type === 'radio') {
+                    if (el.checked) currentLevel[key] = el.value;
+                } else { // text, number, textarea
+                    if (el.value) currentLevel[key] = el.value;
+                }
+            } else { // Если это промежуточный ключ
+                if (!currentLevel[key]) currentLevel[key] = {};
+                currentLevel = currentLevel[key];
+            }
+        });
+    });
+
+    // ВЫВОДИМ В КОНСОЛЬ ДЛЯ ПРОВЕРКИ
+    console.log("Собранные данные анкеты:", surveyData);
+    showToast("Данные анкеты собраны (см. консоль)");
+    
+    // В будущем здесь будет вызов callApi('saveClientSurvey', ...)
+    // callApi('saveClientSurvey', { clientID: meeting.ClientID, surveyData: surveyData })
+    //     .then(() => {
+    //         showToast("Анкета успешно сохранена в 1С");
+    //         // Опционально можно обновить локальные данные
+    //         meeting.AnketaDataJSON = JSON.stringify(surveyData);
+    //     })
+    //     .catch(onFailure)
+    //     .finally(() => {
+    //         toggleButtonSpinner(btn, false);
+    //         outcomeModal.hide();
+    //     });
+    
+    // Пока просто скрываем окно
+    setTimeout(() => {
+        toggleButtonSpinner(btn, false);
+        outcomeModal.hide();
+    }, 500);
+}
+
+// Новая функция для заполнения формы из сохраненных данных
+function populateSurveyForm(data) {
+    const form = document.getElementById('outcome-survey-form');
+    // Обходим все ключи верхнего уровня (например, "Общая информация", "Портфель")
+    Object.keys(data).forEach(mainKey => {
+        const mainValue = data[mainKey];
+        // Обходим все под-ключи (например, "Стаж работы", "Процедуры")
+        Object.keys(mainValue).forEach(subKey => {
+            const nestedValue = mainValue[subKey];
+            const questionPath = `${mainKey}.${subKey}`;
+            
+            // Обрабатываем вложенные объекты (как в "Портфеле")
+            if (typeof nestedValue === 'object' && !Array.isArray(nestedValue)) {
+                Object.keys(nestedValue).forEach(brandKey => {
+                    const brandValue = nestedValue[brandKey];
+                    const brandPath = `${questionPath}.${brandKey}`;
+                    form.querySelectorAll(`[data-question="${brandPath}"]`).forEach(el => setFieldValue(el, brandValue));
+                });
+            } else {
+                // Обрабатываем простые значения и массивы
+                form.querySelectorAll(`[data-question="${questionPath}"]`).forEach(el => setFieldValue(el, nestedValue));
+            }
+        });
+    });
+
+    // Вспомогательная функция для установки значений
+    function setFieldValue(el, value) {
+        if (el.type === 'checkbox' || el.type === 'radio') {
+            if (Array.isArray(value) ? value.includes(el.value) : value === el.value) {
+                el.checked = true;
+                // Триггерим событие, чтобы показать условные поля
+                if (el.classList.contains('survey-trigger') || el.classList.contains('survey-trigger-next-steps')) {
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        } else {
+            el.value = value;
+        }
+    }
+}
+
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+
+function handleSaveOutcome() {
+    const btn = document.getElementById('saveOutcomeBtn');
+    toggleButtonSpinner(btn, true);
+    
+    const meeting = allMeetings.find(m => m.ID === activeMeetingId);
+    if (!meeting) {
+        toggleButtonSpinner(btn, false);
+        return;
+    }
+
+    // Собираем данные анкеты в структурированный JSON
+    const surveyData = {};
+    const form = document.getElementById('outcome-survey-form');
+    
+    form.querySelectorAll('[data-question]').forEach(el => {
+        const path = el.dataset.question.split('.');
+        let currentLevel = surveyData;
+        
+        path.forEach((key, index) => {
+            if (index === path.length - 1) { // Если это последний ключ в пути
+                if (el.type === 'checkbox') {
+                    if (!currentLevel[key]) currentLevel[key] = [];
+                    if (el.checked) currentLevel[key].push(el.value);
+                } else if (el.type === 'radio') {
+                    if (el.checked) currentLevel[key] = el.value;
+                } else { // text, number, textarea
+                    if (el.value) currentLevel[key] = el.value;
+                }
+            } else { // Если это промежуточный ключ
+                if (!currentLevel[key]) currentLevel[key] = {};
+                currentLevel = currentLevel[key];
+            }
+        });
+    });
+
+    // ВЫВОДИМ В КОНСОЛЬ ДЛЯ ПРОВЕРКИ
+    console.log("Собранные данные анкеты:", surveyData);
+    showToast("Данные анкеты собраны (см. консоль)");
+    
+    // В будущем здесь будет вызов callApi('saveClientSurvey', ...)
+    // callApi('saveClientSurvey', { clientID: meeting.ClientID, surveyData: surveyData })
+    //     .then(() => {
+    //         showToast("Анкета успешно сохранена в 1С");
+    //         // Опционально можно обновить локальные данные
+    //         meeting.AnketaDataJSON = JSON.stringify(surveyData);
+    //     })
+    //     .catch(onFailure)
+    //     .finally(() => {
+    //         toggleButtonSpinner(btn, false);
+    //         outcomeModal.hide();
+    //     });
+    
+    // Пока просто скрываем окно
+    setTimeout(() => {
+        toggleButtonSpinner(btn, false);
+        outcomeModal.hide();
+    }, 500);
+}
+
+// Новая функция для заполнения формы из сохраненных данных
+function populateSurveyForm(data) {
+    const form = document.getElementById('outcome-survey-form');
+    // Обходим все ключи верхнего уровня (например, "Общая информация", "Портфель")
+    Object.keys(data).forEach(mainKey => {
+        const mainValue = data[mainKey];
+        // Обходим все под-ключи (например, "Стаж работы", "Процедуры")
+        Object.keys(mainValue).forEach(subKey => {
+            const nestedValue = mainValue[subKey];
+            const questionPath = `${mainKey}.${subKey}`;
+            
+            // Обрабатываем вложенные объекты (как в "Портфеле")
+            if (typeof nestedValue === 'object' && !Array.isArray(nestedValue)) {
+                Object.keys(nestedValue).forEach(brandKey => {
+                    const brandValue = nestedValue[brandKey];
+                    const brandPath = `${questionPath}.${brandKey}`;
+                    form.querySelectorAll(`[data-question="${brandPath}"]`).forEach(el => setFieldValue(el, brandValue));
+                });
+            } else {
+                // Обрабатываем простые значения и массивы
+                form.querySelectorAll(`[data-question="${questionPath}"]`).forEach(el => setFieldValue(el, nestedValue));
+            }
+        });
+    });
+
+    // Вспомогательная функция для установки значений
+    function setFieldValue(el, value) {
+        if (el.type === 'checkbox' || el.type === 'radio') {
+            if (Array.isArray(value) ? value.includes(el.value) : value === el.value) {
+                el.checked = true;
+                // Триггерим событие, чтобы показать условные поля
+                if (el.classList.contains('survey-trigger') || el.classList.contains('survey-trigger-next-steps')) {
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        } else {
+            el.value = value;
+        }
+    }
+}
+
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+    async function handleGetLocationClick() {
+        const btn = document.getElementById('get-meeting-location-btn');
+        toggleButtonSpinner(btn, true);
+        try {
+            const { address, lat, lon } = await getAddressFromGeolocation();
+            document.getElementById('meeting-location').value = address;
+            document.getElementById('meeting-lat').value = lat;
+            document.getElementById('meeting-lon').value = lon;
+            showToast("Геолокация определена");
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            toggleButtonSpinner(btn, false);
+        }
+    }
+    async function handleGeoClick(event) {
+        const btn = event.target;
+        toggleButtonSpinner(btn, true);
+        const meetingId = btn.dataset.id;
+        const oldData = allMeetings.find(m => m.ID === meetingId);
+        if (!oldData) return;
+        try {
+            const { address, lat, lon } = await getAddressFromGeolocation();
+            const newData = { ...oldData, Location: address, LocationLat: lat, LocationLon: lon };
+            await callApi('updateMeeting', { newData, oldData });
+            showToast("Геолокация сохранена");
+            loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            toggleButtonSpinner(btn, false);
+        }
+    }
+    async function getAddressFromGeolocation() {
+        if (!navigator.geolocation) throw new Error("Геолокация не поддерживается");
+        return new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                try {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                    if (!response.ok) return reject(new Error('Ошибка сети'));
+                    const data = await response.json();
+                    if (data && data.address) {
+                        const addr = data.address;
+                        const address = [addr.road, addr.house_number, addr.city || addr.town].filter(Boolean).join(', ');
+                        resolve({ address, lat, lon });
+                    } else {
+                        reject(new Error("Адрес не найден"));
+                    }
+                } catch (e) {
+                    reject(new Error("Не удалось получить адрес"));
+                }
+            }, () => reject(new Error("Нет доступа к геолокации")), { timeout: 10000 });
+        });
+    }
+    // ЗАМЕНИТЕ СТАРУЮ ФУНКЦИЮ НА ЭТУ
+// ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ НА ЭТУ
+async function handleReportClick(btnElement) {
+    if (!btnElement) return;
+
+    const clientID = btnElement.dataset.clientId;
+    const clientName = btnElement.dataset.clientName;
+
+    if (!clientID) {
+        showToast("Ошибка: не найден ID клиента для отчета.");
+        return;
+    }
+
+    // 1. Показываем спиннер на самой кнопке, давая понять, что идет загрузка
+    toggleButtonSpinner(btnElement, true);
+
+    try {
+        // 2. СНАЧАЛА полностью загружаем данные
+        const data = await callApi('getClientReport', { clientID: clientID });
+
+        const reportModalBody = document.getElementById('reportModalBody');
+        document.getElementById('reportModalTitle').textContent = `Отчет по клиенту: ${clientName}`;
+
+        // 3. ПОТОМ отрисовываем готовый отчет в (пока еще скрытом) модальном окне
+        renderReport(data);
+
+        // 4. И ТОЛЬКО ТЕПЕРЬ показываем пользователю полностью готовое окно
+        reportModal.show();
+
+    } catch (e) {
+        onFailure(e);
+    } finally {
+        // 5. В любом случае (успех или ошибка) убираем спиннер с кнопки
+        toggleButtonSpinner(btnElement, false);
+    }
+}
+  // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+function renderReport(data) {
+    const reportModalBody = document.getElementById('reportModalBody');
+    let content = '';
+
+    if (reportCharts.length > 0) {
+        reportCharts.forEach(chart => chart.destroy());
+        reportCharts = [];
+    }
+
+    // Блок 1: Шапка отчета
+    if (data.clientInfo) {
+        let phoneHtml = 'Не указан';
+        if (data.clientInfo.phone) {
+            const cleanPhone = data.clientInfo.phone.replace(/[^+\d]/g, '');
+            phoneHtml = `<a href="tel:${cleanPhone}" class="text-decoration-none">${data.clientInfo.phone}</a>`;
+        }
+        let documentsStatusHtml = `<span class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Нет</span>`;
+        if (data.clientInfo.documents === true) {
+            documentsStatusHtml = `<span class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Есть</span>`;
+        }
+        content += `<div class="d-flex justify-content-between align-items-center mb-2"><h3 class="mb-0">${data.clientInfo.name || 'Имя не указано'}</h3><button class="btn btn-primary btn-sm js-create-meeting-from-report" data-client-id="${data.clientInfo.id || ''}" data-client-name="${data.clientInfo.name || ''}" data-client-address="${data.clientInfo.address || ''}" data-client-category="${data.clientInfo.category || ''}" data-client-phone="${data.clientInfo.phone || ''}"><i class="bi bi-calendar-plus me-1"></i> Новая встреча</button></div><hr class="mt-0 mb-3"><div class="mb-3"><div class="row"><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-telephone-fill me-2"></i>Телефон:</strong> ${phoneHtml}</p></div><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-star-fill me-2"></i>Категория:</strong> ${data.clientInfo.category || 'Не указана'}</p></div></div><div class="row mt-2"><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-mortarboard-fill me-2"></i>Образование:</strong> ${data.clientInfo.education || 'Не указано'}</p></div><div class="col-md-6"><p class="mb-1"><strong><i class="bi bi-file-earmark-text-fill me-2"></i>Документы:</strong> ${documentsStatusHtml}</p></div></div></div>`;
+    }
+
+    // Блок 2: Навигация по вкладкам
+    content += `<nav><div class="nav nav-tabs" id="report-tab" role="tablist"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#sales-content" type="button">Продажи (3 мес)</button><button class="nav-link" data-bs-toggle="tab" data-bs-target="#yearly-sales-content" type="button">Продажи (Год)</button><button class="nav-link" data-bs-toggle="tab" data-bs-target="#meetings-content" type="button">Встречи</button><button class="nav-link" data-bs-toggle="tab" data-bs-target="#calls-content" type="button">Звонки</button><button class="nav-link" data-bs-toggle="tab" data-bs-target="#seminars-content" type="button">Семинары</button></div></nav>`;
+
+    // Блок 3: Содержимое всех вкладок
+    content += `<div class="tab-content p-3 border border-top-0 rounded-bottom" id="report-tab-content">`;
+    
+    // Вкладки: Продажи (3 мес), Встречи, Звонки, Семинары (без изменений)
+    let salesContent = '';
+    if (data.salesReport && data.salesReport.brands && data.salesReport.brands.length > 0) {
+        salesContent += `<h5 class="mb-3">Продажи по брендам (c ${data.salesReport.periodStart} по ${data.salesReport.periodEnd})</h5><div class="row g-3">`;
+        data.salesReport.brands.forEach(brand => {
+            const salesRows = brand.salesByMonth.map(sale =>  `<li class="list-group-item d-flex justify-content-between"><span>${sale.month}</span> <span>${new Intl.NumberFormat('ru-RU').format(sale.amount)} usd</span></li>`).join('');
+            salesContent += `<div class="col-md-6"><div class="card h-100"><div class="card-header bg-light"><strong>${brand.brandName}</strong></div><ul class="list-group list-group-flush">${salesRows}<li class="list-group-item d-flex justify-content-between fw-bold"><span>Итого:</span> <span>${new Intl.NumberFormat('ru-RU').format(brand.totalAmount)} usd</span></li></ul></div></div>`;
+        });
+        salesContent += '</div>';
+    } else {
+        salesContent += '<p class="text-muted mt-2">Нет данных о продажах за последние 3 месяца.</p>';
+    }
+    content += `<div class="tab-pane fade show active" id="sales-content" role="tabpanel">${salesContent}</div>`;
+
+    // Вкладка "Встречи"
+    let meetingsContent = '';
+    if (data.lastMeetings && data.lastMeetings.length > 0) {
+        meetingsContent += '<ul class="list-unstyled mt-2">';
+        data.lastMeetings.forEach(meeting => { meetingsContent += `<li class="mb-3"><p class="mb-0"><strong>${meeting.date}:</strong></p><p class="mb-0 text-muted fst-italic">"${meeting.comment || 'Без комментария'}"</p></li>`; });
+        meetingsContent += '</ul>';
+    } else {
+        meetingsContent += '<p class="text-muted mt-2">Нет данных о последних встречах.</p>';
+    }
+    content += `<div class="tab-pane fade" id="meetings-content" role="tabpanel">${meetingsContent}</div>`;
+    
+    // Вкладка "Звонки"
+    let callsContent = '';
+    if (data.lastCalls && data.lastCalls.length > 0) {
+        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        const callsByMonth = {};
+        data.lastCalls.forEach(call => {
+            const date = new Date(call.date);
+            const monthKey = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+            if (!callsByMonth[monthKey]) { callsByMonth[monthKey] = []; }
+            callsByMonth[monthKey].push(call);
+        });
+        callsContent += '<div class="mt-2">';
+        const sortedMonths = Object.keys(callsByMonth).sort((a, b) => new Date(b.split(' ')[1], monthNames.indexOf(b.split(' ')[0])) - new Date(a.split(' ')[1], monthNames.indexOf(a.split(' ')[0])));
+        sortedMonths.forEach(month => {
+            callsContent += `<h6 class="mt-3">${month}</h6>`;
+            const incomingCalls = callsByMonth[month].filter(c => c.comment && c.comment.toLowerCase().startsWith('входящее'));
+            const outgoingCalls = callsByMonth[month].filter(c => c.comment && c.comment.toLowerCase().startsWith('исходящее'));
+            const otherCalls = callsByMonth[month].filter(c => !c.comment || (!c.comment.toLowerCase().startsWith('входящее') && !c.comment.toLowerCase().startsWith('исходящее')));
+            if (incomingCalls.length > 0) {
+                callsContent += '<p class="text-muted mb-1 small"><em>Входящие:</em></p><ul class="list-unstyled ps-3">';
+                incomingCalls.forEach(call => { const commentText = call.comment.replace(/входящее:?/i, '').trim(); callsContent += `<li><i class="bi bi-telephone-inbound me-2 text-success"></i><strong>${call.date}:</strong> ${commentText || 'Без комментария'}</li>`; });
+                callsContent += '</ul>';
+            }
+            if (outgoingCalls.length > 0) {
+                callsContent += '<p class="text-muted mb-1 small"><em>Исходящие:</em></p><ul class="list-unstyled ps-3">';
+                outgoingCalls.forEach(call => { const commentText = call.comment.replace(/исходящее:?/i, '').trim(); callsContent += `<li><i class="bi bi-telephone-outbound me-2 text-primary"></i><strong>${call.date}:</strong> ${commentText || 'Без комментария'}</li>`; });
+                callsContent += '</ul>';
+            }
+            if (otherCalls.length > 0) {
+                callsContent += '<p class="text-muted mb-1 small"><em>Прочие:</em></p><ul class="list-unstyled ps-3">';
+                otherCalls.forEach(call => { callsContent += `<li><i class="bi bi-telephone me-2 text-secondary"></i><strong>${call.date}:</strong> ${call.comment || 'Без комментария'}</li>`; });
+                callsContent += '</ul>';
+            }
+        });
+        callsContent += '</div>';
+    } else {
+        callsContent += '<p class="text-muted mt-2">Нет данных о звонках.</p>';
+    }
+    content += `<div class="tab-pane fade" id="calls-content" role="tabpanel">${callsContent}</div>`;
+    
+    // Вкладка "Семинары"
+    let seminarsContent = '';
+    if (data.seminars && data.seminars.length > 0) {
+        seminarsContent += '<ul class="list-group list-group-flush mt-2">';
+        data.seminars.forEach(seminar => { seminarsContent += `<li class="list-group-item ps-0">${seminar.date} - ${seminar.name}</li>`; });
+        seminarsContent += '</ul>';
+    } else {
+        seminarsContent += '<p class="text-muted mt-2">Нет данных о посещении семинаров.</p>';
+    }
+    content += `<div class="tab-pane fade" id="seminars-content" role="tabpanel">${seminarsContent}</div>`;
+
+    // Вкладка "Продажи (Год)" - ПОЛНОСТЬЮ НОВАЯ ЛОГИКА
+    // Вкладка "Продажи (Год)" - ИЗМЕНЕННАЯ ЛОГИКА
+    let yearlySalesContent = '';
+    const yearlyData = processYearlySalesData(data.yearlySalesReport);
+    if (yearlyData) {
+        yearlySalesContent += `<h5 class="mb-3">Общая динамика продаж за год</h5>`;
+        yearlySalesContent += `<p><strong>Общая сумма: ${new Intl.NumberFormat('ru-RU').format(yearlyData.grandTotal)} usd</strong></p>`;
+        yearlySalesContent += '<canvas id="yearlySalesChart" height="200"></canvas>';
+        yearlySalesContent += '<hr><h5 class="mt-4 mb-3">Детализация по брендам</h5>';
+        
+        yearlyData.brandsData.forEach((brand, index) => {
+            const salesCount = brand.monthlySales.filter(amount => amount > 0).length;
+            
+            // Если продаж мало (1 месяц) - рисуем компактный блок
+            if (salesCount <= 1) {
+                yearlySalesContent += `
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <h6 class="card-title mb-0 fw-normal">${brand.brandName}</h6>
+                        <span class="fs-6 fw-bold text-primary">${new Intl.NumberFormat('ru-RU').format(brand.total)} usd</span>
+                    </div>`;
+            } else { // Иначе рисуем полноценную карточку с графиком
+                yearlySalesContent += `
+                    <div class="card mb-3">
+                        <div class="card-body p-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="card-title mb-0">${brand.brandName}</h6>
+                                <span class="fs-5 fw-bold text-primary">${new Intl.NumberFormat('ru-RU').format(brand.total)} usd</span>
+                            </div>
+                            <hr class="my-2">
+                            <canvas id="mini-chart-brand-${index}" height="120"></canvas>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+    } else {
+        yearlySalesContent += '<p class="text-muted mt-2">Нет данных о продажах за год.</p>';
+    }
+    content += `<div class="tab-pane fade" id="yearly-sales-content" role="tabpanel">${yearlySalesContent}</div>`;
+    
+    content += `</div>`;
+    reportModalBody.innerHTML = content;
+
+    // Инициализация графиков
+    if (yearlyData) {
+        const brandColors = ['rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)', 'rgba(75, 192, 192, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(153, 102, 255, 0.6)'];
+        
+        const mainCtx = document.getElementById('yearlySalesChart')?.getContext('2d');
+        if(mainCtx) {
+             const mainChart = new Chart(mainCtx, {
+                type: 'line',
+                data: {
+                    labels: yearlyData.months,
+                    datasets: [{
+                        label: 'Все продажи, usd',
+                        data: yearlyData.monthlyTotals,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+            reportCharts.push(mainChart);
+        }
+
+        yearlyData.brandsData.forEach((brand, index) => {
+            const salesCount = brand.monthlySales.filter(amount => amount > 0).length;
+            if(salesCount < 2) return;
+
+            const miniCtx = document.getElementById(`mini-chart-brand-${index}`)?.getContext('2d');
+            if (miniCtx) {
+                const miniChart = new Chart(miniCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: yearlyData.months,
+                        datasets: [{
+                            label: 'Продажи, usd',
+                            data: brand.monthlySales,
+                            backgroundColor: brandColors[index % brandColors.length]
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                });
+                reportCharts.push(miniChart);
+            }
+        });
+    }
+}
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+       
+       // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---Новый блок для отчета за год
+function processYearlySalesData(yearlyReport) {
+    if (!yearlyReport || !yearlyReport.brands || yearlyReport.brands.length === 0) return null;
+
+    const salesByBrandMonth = {};
+    const allMonths = new Set();
+    
+    yearlyReport.brands.forEach(brand => {
+        salesByBrandMonth[brand.brandName] = {};
+        brand.salesByMonth.forEach(sale => {
+            allMonths.add(sale.month);
+            salesByBrandMonth[brand.brandName][sale.month] = sale.amount;
+        });
+    });
+
+    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+    const sortedMonths = Array.from(allMonths).sort((a, b) => {
+        const [aMonth, aYear] = a.split(' ');
+        const [bMonth, bYear] = b.split(' ');
+        return new Date(aYear, monthNames.indexOf(aMonth)) - new Date(bYear, monthNames.indexOf(bMonth));
+    });
+
+    let brandsData = Object.keys(salesByBrandMonth).map(brandName => {
+        const monthlySales = sortedMonths.map(monthKey => salesByBrandMonth[brandName][monthKey] || 0);
+        return {
+            brandName,
+            monthlySales,
+            total: monthlySales.reduce((sum, val) => sum + val, 0)
+        };
+    });
+
+    // --- ДОБАВЛЕНА СОРТИРОВКА БРЕНДОВ ---
+    brandsData.sort((a, b) => b.total - a.total);
+
+    const monthlyTotals = sortedMonths.map((monthKey, index) => {
+        return brandsData.reduce((sum, brand) => sum + brand.monthlySales[index], 0);
+    });
+
+    return {
+        months: sortedMonths,
+        brandsData: brandsData,
+        monthlyTotals: monthlyTotals,
+        grandTotal: yearlyReport.grandTotal
+    };
+}
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+
+    async function handleClientSearch() {
+        const searchInput = document.getElementById('clientSearchInput');
+        const resultContainer = document.getElementById('clientSearchResult');
+        const searchBtn = document.getElementById('clientSearchBtn');
+        const searchTerm = searchMask.unmaskedValue || searchInput.value;
+        if (!searchTerm) {
+            resultContainer.innerHTML = `<p class="text-danger">Введите запрос для поиска.</p>`;
+            return;
+        }
+        toggleButtonSpinner(searchBtn, true);
+        resultContainer.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>`;
+        resultContainer.replaceWith(resultContainer.cloneNode(true));
+        const newResultContainer = document.getElementById('clientSearchResult');
+        try {
+            const payload = { searchTerm: searchTerm, managerLogin: currentUser };
+            const result = await callApi('findClient', payload);
+            if (result && result.found && result.clients && result.clients.length > 0) {
+                const clientsHtml = result.clients.map(client => {
+                    const isDisabled = !client.isMine;
+                    const disabledClass = isDisabled ? 'disabled' : '';
+                    const titleText = isDisabled ? `Закреплен за: ${client.managerName || 'другой менеджер'}` : 'Создать встречу';
+                    return `<li class="list-group-item"><div class="row align-items-center"><div class="col"><strong>${client.clientName}</strong><small class="text-muted d-block">Категория: ${client.ClientCategory || 'Не указана'}</small><small class="text-muted d-block">Менеджер: ${client.managerName || 'Не назначен'}</small></div><div class="col-auto"><div class="btn-group"><button class="btn btn-sm btn-outline-secondary report-btn-icon" data-client-id="${client.ClientID}" data-client-name="${client.clientName}" title="Данные по клиенту" ${disabledClass}><i class="bi bi-file-text"></i></button><button class="btn btn-sm btn-success create-meeting-from-search-btn" data-client-name="${client.clientName}" data-client-address="${client.clientAddress || ''}" data-client-id="${client.ClientID}" data-client-category="${client.ClientCategory || ''}" data-client-phone="${client.Phone || ''}" title="${titleText}" ${disabledClass}>Создать</button></div></div></div></li>`;
+                }).join('');
+                newResultContainer.innerHTML = `<ul class="list-group">${clientsHtml}</ul>`;
+            } else {
+                newResultContainer.innerHTML = `<div class="alert alert-warning"><strong>Клиент не найден.</strong><br>Попробуйте изменить поисковый запрос.</div>`;
+            }
+        } catch (e) {
+            newResultContainer.innerHTML = `<p class="text-danger">Ошибка при поиске: ${e.message}</p>`;
+        } finally {
+            toggleButtonSpinner(searchBtn, false);
+        }
+        newResultContainer.addEventListener('click', (e) => {
+            const createBtn = e.target.closest('.create-meeting-from-search-btn');
+            if (createBtn && !createBtn.disabled) {
+                const target = createBtn;
+                const clientName = target.dataset.clientName;
+                const clientAddress = target.dataset.clientAddress;
+                const clientID = target.dataset.clientId;
+                const clientCategory = target.dataset.clientCategory;
+                const clientPhone = target.dataset.clientPhone;
+                clientSearchModal.hide();
+                showAddForm();
+                document.getElementById('client-name').value = clientName;
+                document.getElementById('location').value = clientAddress;
+                document.getElementById('client-id').value = clientID;
+                document.getElementById('client-category').value = clientCategory;
+                document.getElementById('phone').value = clientPhone;
+                if (phoneMask) phoneMask.updateValue();
+            }
+        });
+    }
+    function showAddForm() {
+        currentEditingMeeting = null;
+        document.getElementById('form-title').textContent = "Новая встреча";
+        document.getElementById('meeting-form').reset();
+        document.getElementById('client-autocomplete-results').innerHTML = '';
+        if(phoneMask) phoneMask.updateValue();
+        document.getElementById('meeting-date').value = getTodayDateString();
+        document.getElementById('meeting-id').value = '';
+        document.getElementById('status').value = 'В работе';
+        showForm(true);
+    }
+       // ВСТАВЬТЕ ЭТУ НОВУЮ ФУНКЦИЮ
+function formatElapsedTime(ms) {
+    if (ms < 0) ms = 0;
+    const seconds = Math.floor((ms / 1000) % 60).toString().padStart(2, '0');
+    const minutes = Math.floor((ms / (1000 * 60)) % 60).toString().padStart(2, '0');
+    const hours = Math.floor(ms / (1000 * 60 * 60)).toString().padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
+}
+    function onActionComplete() { showForm(false); }
+    function handleCancelClick() { cancelConfirmModal.show(); }
+    function showForm(show) {
+        const viewMeetings = document.getElementById('view-meetings');
+        const formSection = document.getElementById('form-section');
+        if (viewMeetings && formSection) {
+            viewMeetings.classList.toggle(HIDDEN_CLASS, show);
+            formSection.classList.toggle(HIDDEN_CLASS, !show);
+        }
+        // --- ВСТАВЬТЕ ЭТОТ БЛОК В САМЫЙ КОНЕЦ СКРИПТА ---
+
+// ГЛОБАЛЬНЫЙ ТАЙМЕР ДЛЯ ОБНОВЛЕНИЯ СЧЕТЧИКОВ
+
+setInterval(() => {
+    document.querySelectorAll('.timer').forEach(timerEl => {
+        const startTime = parseInt(timerEl.dataset.startTime, 10);
+        if (startTime) {
+            timerEl.textContent = formatElapsedTime(Date.now() - startTime);
+        }
+    });
+}, 1000);
+    }
+       
+</script>
+</body>
+
+</html>
     /* Новая переменная для безопасной зоны снизу с запасом в 0px */
     --safe-area-bottom: env(safe-area-inset-bottom, 0px); 
 }
