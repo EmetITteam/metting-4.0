@@ -1802,8 +1802,7 @@ function filterAndGroupMeetings() {
             }
         }, 500);
     }
-    // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
-// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+
 // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 function handleFormSubmit(e) {
     e.preventDefault();
@@ -1829,21 +1828,15 @@ function handleFormSubmit(e) {
     if (isUpdating) {
         meetingData.ID = meetingId;
         if (currentEditingMeeting) {
+            // Переносим существующие данные, чтобы не потерять их
             meetingData.calendarEventId = currentEditingMeeting.calendarEventId;
-            
-            // --- ИСПРАВЛЕНИЕ ЗДЕСЬ: Упаковываем данные в объекты ---
-            // Собираем данные о геолокации старта в объект, как этого ожидает 1С
-            meetingData.locationData = {
-                address: currentEditingMeeting.StartAddress || "",
-                lat: currentEditingMeeting.StartLatitude || "",
-                lon: currentEditingMeeting.StartLongitude || ""
-            };
-            // Собираем данные о геолокации завершения в объект
-            meetingData.endLocationData = {
-                address: currentEditingMeeting.EndAddress || "",
-                lat: currentEditingMeeting.EndLatitude || "",
-                lon: currentEditingMeeting.EndLongitude || ""
-            };
+            meetingData.StartAddress = currentEditingMeeting.StartAddress;
+            meetingData.StartLatitude = currentEditingMeeting.StartLatitude;
+            meetingData.StartLongitude = currentEditingMeeting.StartLongitude;
+            meetingData.EndAddress = currentEditingMeeting.EndAddress;
+            meetingData.EndLatitude = currentEditingMeeting.EndLatitude;
+            meetingData.EndLongitude = currentEditingMeeting.EndLongitude;
+            meetingData.AnketaDataJSON = currentEditingMeeting.AnketaDataJSON; // Переносим существующие данные анкеты
         }
     }
     
@@ -1858,6 +1851,7 @@ function handleFormSubmit(e) {
         toggleButtonSpinner(saveBtn, false);
     });
 }
+
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     function handleEditClick(event) {
     event.preventDefault();
