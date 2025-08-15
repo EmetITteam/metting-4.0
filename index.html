@@ -1890,6 +1890,7 @@ function handleFormSubmit(e) {
 
 // НОВАЯ ФУНКЦИЯ ВМЕСТО handleCompleteClick
 // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 async function handleMeetingStateToggle(event) {
     const btn = event.target.closest('.js-state-toggle-btn');
     if (!btn) return;
@@ -1912,6 +1913,7 @@ async function handleMeetingStateToggle(event) {
             const locationData = await getAddressFromGeolocation();
 
             const oldData = meeting;
+            // ЯВНО ДОБАВЛЯЕМ endLocationData В ОБЪЕКТ newData
             const newData = { ...oldData, Status: 'Завершено', endLocationData: locationData };
             await callApi('updateMeeting', { newData, oldData });
             
@@ -1935,20 +1937,18 @@ async function handleMeetingStateToggle(event) {
             loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
         }
     } catch (e) {
-        // --- БЛОК ОБРАБОТКИ ОШИБКИ ГЕОЛОКАЦИИ ---
+        // Блок обработки ошибки геолокации
         if (confirm(`Не удалось получить геолокацию. Ошибка: ${e.message}\n\nПродолжить без фиксации координат?`)) {
             try {
                 if (isMeetingRunning) {
-                    // --- ИСПРАВЛЕНИЕ ЗДЕСЬ ---
                     const newData = { ...meeting, Status: 'Завершено', endLocationData: null }; // Добавляем endLocationData: null
                     await callApi('updateMeeting', { newData: newData, oldData: meeting });
-                    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
                     delete activeTimers[meetingId];
                     localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
                     showToast("Встреча завершена (без Geo)");
                 } else {
-                    await callApi('startMeeting', { meetingId: meetingId, locationData: null }); // Отправляем startMeeting с null
+                    await callApi('startMeeting', { meetingId: meetingId, locationData: null });
                     activeTimers[meetingId] = { startTime: Date.now() };
                     localStorage.setItem('activeTimers', JSON.stringify(activeTimers));
                     showToast("Встреча начата (без Geo)");
@@ -1963,8 +1963,7 @@ async function handleMeetingStateToggle(event) {
         }
     }
 }
-// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
-// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+
     function handleRescheduleClick(event) {
         const meetingId = event.target.dataset.id;
         const meetingData = allMeetings.find(m => m.ID === meetingId);
