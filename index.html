@@ -2077,7 +2077,7 @@ async function handleSaveOutcome() {
         return;
     }
 
-    // 1. Собираем данные анкеты в структурированный JSON
+   // 1. Собираем данные анкеты
     const surveyData = {};
     const form = document.getElementById('outcome-survey-form');
     form.querySelectorAll('[data-question]').forEach(el => {
@@ -2112,12 +2112,30 @@ try {
     });
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
 
-        // 4. Отправляем комментарий на сервер (привязываем к ВСТРЕЧЕ)
-        // Используем существующий метод updateMeeting
+        // 4. Отправляем комментарий и ВСЕ ДАННЫЕ О ЛОКАЦИИ на сервер
         const oldData = meeting;
-        const newData = { ...oldData, Comment: meetingComment };
-        // Убедимся, что отправляем только нужные поля, а не весь объект со старой анкетой
-        delete newData.AnketaDataJSON; 
+        const newData = { 
+            ...oldData, 
+            Comment: meetingComment
+        };
+
+        // --- ИСПРАВЛЕНИЕ ЗДЕСЬ ---
+        // Явно добавляем ОБЪЕКТЫ локаций, если они есть в исходных данных
+        if (oldData.StartAddress || oldData.StartLatitude) {
+            newData.locationData = {
+                address: oldData.StartAddress || "",
+                lat: oldData.StartLatitude || "",
+                lon: oldData.StartLongitude || ""
+            };
+        }
+        if (oldData.EndAddress || oldData.EndLatitude) {
+            newData.endLocationData = {
+                address: oldData.EndAddress || "",
+                lat: oldData.EndLatitude || "",
+                lon: oldData.EndLongitude || ""
+            };
+        }
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
         await callApi('updateMeeting', { newData, oldData });
         
         showToast("Итоги встречи и анкета успешно сохранены!");
