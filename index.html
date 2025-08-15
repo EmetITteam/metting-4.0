@@ -2083,7 +2083,7 @@ function handleSaveOutcome() {
     // 2. Готовим данные для отправки
     const payload = {
         clientID: meeting.ClientID,
-        surveyDataJSON: surveyDataJSON // Отправляем как строку
+        surveyData: surveyDataJSON// Отправляем как строку
     };
 
     // 3. Вызываем API для сохранения данных анкеты в 1С
