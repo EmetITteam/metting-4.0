@@ -2077,7 +2077,7 @@ function handleSaveOutcome() {
     });
     const surveyPayload = {
         clientID: meeting.ClientID,
-        surveyData: surveyDataJSON// Отправляем как строку
+        surveyData: JSON.stringify(surveyData)
     };
     const saveSurveyPromise = callApi('saveClientSurvey', surveyPayload);
 
