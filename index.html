@@ -2042,6 +2042,8 @@ function handleOutcomeClick(event) {
 
 // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 
+// --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+
 function handleSaveOutcome() {
     const btn = document.getElementById('saveOutcomeBtn');
     toggleButtonSpinner(btn, true);
@@ -2084,12 +2086,27 @@ function handleSaveOutcome() {
 
     // --- Действие 2: Подготовка данных КОММЕНТАРИЯ встречи ---
     const comment = document.getElementById('meetingComment').value;
-    let saveCommentPromise = Promise.resolve(); // Создаем "пустой" промис на случай, если комментарий не изменился
+    let saveCommentPromise = Promise.resolve(); 
 
-    // Отправляем запрос на обновление, только если комментарий действительно поменялся
     if (comment !== meeting.Comment) {
         const oldData = meeting;
-        const newData = { ...meeting, Comment: comment }; // Создаем копию встречи с новым комментарием
+        
+        // --- ИСПРАВЛЕНИЕ ЗДЕСЬ: Собираем ПОЛНЫЙ объект newData ---
+        const newData = { ...meeting, Comment: comment };
+
+        // Явно добавляем недостающие вложенные объекты, которые ожидает сервер
+        newData.locationData = {
+            address: meeting.StartAddress || "",
+            lat: meeting.StartLatitude || "",
+            lon: meeting.StartLongitude || ""
+        };
+        newData.endLocationData = {
+            address: meeting.EndAddress || "",
+            lat: meeting.EndLatitude || "",
+            lon: meeting.EndLongitude || ""
+        };
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
         const commentPayload = { newData, oldData };
         saveCommentPromise = callApi('updateMeeting', commentPayload);
     }
@@ -2098,10 +2115,9 @@ function handleSaveOutcome() {
     Promise.all([saveSurveyPromise, saveCommentPromise])
         .then(() => {
             showToast("Итоги встречи успешно сохранены");
-            // Обновляем данные на странице, чтобы видеть актуальный комментарий
             loadInitialData(formatDateToYYYYMMDD(datePicker.getStartDate().toJSDate()), formatDateToYYYYMMDD(datePicker.getEndDate().toJSDate()));
         })
-        .catch(onFailure) // Показываем одну ошибку, если хотя бы один из запросов не удался
+        .catch(onFailure)
         .finally(() => {
             toggleButtonSpinner(btn, false);
             outcomeModal.hide();
