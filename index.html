@@ -1618,46 +1618,67 @@ function getCategoryColor(categoryName) {
             });
         }
     }
-    function updateDashboardWidgets() {
-        const widgetsContainer = document.getElementById('dashboard-widgets');
-        if (!widgetsContainer) return;
-        const startDate = datePicker.getStartDate()?.toJSDate();
-        const endDate = datePicker.getEndDate()?.toJSDate();
-        if (!startDate || !endDate) return;
-        const today = new Date();
-        const isTodayView = startDate.toDateString() === today.toDateString() && endDate.toDateString() === today.toDateString();
-        let meetingsForPeriod;
-        let totalValue;
-        let totalLabel;
-        if (isTodayView) {
-            const todayString = getTodayDateString().split('-').reverse().join('.');
-            meetingsForPeriod = allMeetings.filter(m => m.Date === todayString);
-            totalValue = meetingsForPeriod.length;
-            totalLabel = "Сегодня";
-        } else {
-            meetingsForPeriod = allMeetings.filter(m => {
-                const dateParts = m.Date.split('.');
-                const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
-                const startDateWithoutTime = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-                const endDateWithoutTime = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-                return meetingDate >= startDateWithoutTime && meetingDate <= endDateWithoutTime;
-            });
-            totalValue = meetingsForPeriod.length;
-            totalLabel = "Всего";
-        }
-        const todayStringForStats = getTodayDateString().split('-').reverse().join('.');
-        const meetingsToday = allMeetings.filter(m => m.Date === todayStringForStats);
-        const completedToday = meetingsToday.filter(m => m.Status === 'Завершена' || m.Status === 'Завершено').length;
-        const now = new Date();
-        const overdue = allMeetings.filter(m => {
-            const dateParts = m.Date.split('.');
-            const timeParts = m.Time.split(':');
-            const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]);
-            return meetingDate < now && (m.Status === 'В работе' || m.Status === 'Запланировано');
-        }).length;
-        widgetsContainer.innerHTML = `<div class="col-4"><div class="widget-card"><div class="widget-value text-primary">${totalValue}</div><div class="widget-label">${totalLabel}</div></div></div><div class="col-4"><div class="widget-card"><div class="widget-value text-success">${completedToday}</div><div class="widget-label">Завершено</div></div></div><div class="col-4"><a href="#" id="widget-overdue-filter" class="widget-card"><div class="widget-value text-danger">${overdue}</div><div class="widget-label">Просрочено</div></a></div>`;
-    }
+    // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 
+function updateDashboardWidgets() {
+    const widgetsContainer = document.getElementById('dashboard-widgets');
+    if (!widgetsContainer) return;
+    const startDate = datePicker.getStartDate()?.toJSDate();
+    const endDate = datePicker.getEndDate()?.toJSDate();
+    if (!startDate || !endDate) return;
+
+    // --- ИЗМЕНЕНИЕ ЗДЕСЬ: Вся логика теперь использует ЕДИНЫЙ источник данных `meetingsForPeriod` ---
+
+    // 1. Сначала фильтруем ВСЕ встречи, которые попадают в выбранный диапазон дат.
+    const meetingsForPeriod = allMeetings.filter(m => {
+        const dateParts = m.Date.split('.');
+        const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+        const startDateWithoutTime = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+        const endDateWithoutTime = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+        return meetingDate >= startDateWithoutTime && meetingDate <= endDateWithoutTime;
+    });
+
+    // 2. Теперь считаем все виджеты на основе этого отфильтрованного списка `meetingsForPeriod`.
+    const totalValue = meetingsForPeriod.length;
+    
+    const completedForPeriod = meetingsForPeriod.filter(m => m.Status === 'Завершена' || m.Status === 'Завершено').length;
+
+    const now = new Date();
+    const overdueForPeriod = meetingsForPeriod.filter(m => {
+        const dateParts = m.Date.split('.');
+        const timeParts = m.Time.split(':');
+        const meetingDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]);
+        return meetingDate < now && (m.Status === 'В работе' || m.Status === 'Запланировано');
+    }).length;
+
+    // 3. Определяем подпись для виджета "Всего"
+    const today = new Date();
+    const isTodayView = startDate.toDateString() === today.toDateString() && endDate.toDateString() === today.toDateString();
+    const totalLabel = isTodayView ? "Сегодня" : "Всего";
+
+    // 4. Отображаем результат
+    widgetsContainer.innerHTML = `
+        <div class="col-4">
+            <div class="widget-card">
+                <div class="widget-value text-primary">${totalValue}</div>
+                <div class="widget-label">${totalLabel}</div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="widget-card">
+                <div class="widget-value text-success">${completedForPeriod}</div>
+                <div class="widget-label">Завершено</div>
+            </div>
+        </div>
+        <div class="col-4">
+            <a href="#" id="widget-overdue-filter" class="widget-card">
+                <div class="widget-value text-danger">${overdueForPeriod}</div>
+                <div class="widget-label">Просрочено</div>
+            </a>
+        </div>`;
+}
+
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
 // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
 function filterAndGroupMeetings() {
     const searchTerm = document.getElementById('searchInput1').value.toLowerCase();
