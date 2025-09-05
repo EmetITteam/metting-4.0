@@ -1082,24 +1082,7 @@ clientListFilter.addEventListener('input', () => {
             });
         }
 
-        // --- НАЧАЛО ВАШЕЙ ВСТАВКИ ---
-        console.log("1. DOMContentLoaded сработал. Начинаем запуск приложения.");
-
-        if (window.Sentry) {
-            console.log("2. Объект window.Sentry существует. Вызываем Sentry.onLoad().");
-            
-            Sentry.onLoad(() => {
-                console.log("3. Sentry.onLoad() ВЫПОЛНИЛСЯ. Запускаем checkActiveSession().");
-                checkActiveSession();
-            });
-    
-            console.log("2A. Код после вызова Sentry.onLoad() продолжает работу.");
-    
-        } else {
-            console.log("2. Объект window.Sentry НЕ НАЙДЕН. Запускаем checkActiveSession() напрямую.");
-            checkActiveSession();
-        }
-        // --- КОНЕЦ ВАШЕЙ ВСТАВКИ ---
+        checkActiveSession();
     });
 
 
