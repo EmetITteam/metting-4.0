@@ -2684,6 +2684,31 @@ setInterval(() => {
     });
 }, 1000);
     }
+       // --- Временный код для теста Sentry на кнопке "Настройки" ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Находим все ссылки в боковом меню
+    const menuLinks = document.querySelectorAll('#sideMenu .list-group-item a');
+
+    // Перебираем их, чтобы найти именно ссылку "Настройки"
+    menuLinks.forEach(link => {
+        if (link.textContent.trim() === 'Настройки') {
+            
+            console.log('Тестовый обработчик Sentry привязан к кнопке "Настройки".');
+
+            // Вешаем на нее наш тестовый обработчик клика
+            link.addEventListener('click', (event) => {
+                // Отменяем стандартное действие ссылки
+                event.preventDefault(); 
+
+                console.log('Кнопка "Настройки" нажата. Вызываем тестовую ошибку для Sentry...');
+                
+                // Вызываем несуществующую функцию для теста
+                myUndefinedFunction(); 
+            });
+        }
+    });
+});
+// --- Конец временного кода ---
        
 </script>
 </body>
