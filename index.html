@@ -1071,7 +1071,7 @@ clientListFilter.addEventListener('input', () => {
                         return meetingDate < now && (m.Status === 'В работе' || m.Status === 'Запланировано');
                     });
                     
-                    const originalMeetings = allMeetings;
+                   const originalMeetings = allMeetings;
                     allMeetings = overdueMeetings;
                     filterAndGroupMeetings();
                     allMeetings = originalMeetings;
@@ -1082,19 +1082,9 @@ clientListFilter.addEventListener('input', () => {
             });
         }
 
-        // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
-        // Запускаем приложение только после полной инициализации Sentry
-        if (window.Sentry) {
-            Sentry.onLoad(() => {
-                checkActiveSession();
-            });
-        } else {
-            // Если Sentry по какой-то причине не загрузился (например, заблокирован),
-            // все равно запускаем приложение, чтобы оно продолжало работать.
-            checkActiveSession();
-        }
-        // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
+        checkActiveSession();
     });
+
 
     // --- Единый глобальный обработчик кликов ---
     // ЗАМЕНИТЕ ВЕСЬ ВАШ ГЛОБАЛЬНЫЙ ОБРАБОТЧИК CLick НА ЭТОТ
