@@ -1,59 +1,62 @@
-// Используем единый стиль 'require' для всех библиотек
-const Sentry = require('@sentry/node');
-const { ProfilingIntegration } = require("@sentry/profiling-node");
+// ВСТАВЬТЕ ЭТОТ БЛОК В САМОЕ НАЧАЛО ФАЙЛА
+import * as Sentry from '@sentry/node';
+import { ProfilingIntegration } from "@sentry/profiling-node";
 const axios = require('axios');
 const { google } = require('googleapis');
-
-// Инициализируем Sentry СРАЗУ ЖЕ. 
-// Vercel выполнит этот код один раз при "холодном старте" функции.
+// ВСТАВЬТЕ ЭТОТ БЛОК СЮДА
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
-  integrations: [ new ProfilingIntegration() ],
+  integrations: [
+    new ProfilingIntegration(),
+  ],
   tracesSampleRate: 1.0,
   profilesSampleRate: 1.0,
 });
 
-// Основная логика вынесена в отдельную async функцию
-async function mainHandler(request, response) {
+// --- Основная функция-обработчик ---
+export default async function handler(request, response) {
     if (request.method !== 'POST') {
         return response.status(405).json({ message: 'Only POST requests allowed' });
     }
 
-    // Блок try/catch остается внутри, но теперь он будет работать под "присмотром" Sentry
-    try {
-        const { action } = request.body;
-        const dataToSendToOneC = request.body;
+    const { action } = request.body;
+    const dataToSendToOneC = request.body;
 
+    try {
         console.log(`[ШАГ 1] Отправка в 1С для действия "${action}":`, JSON.stringify(dataToSendToOneC, null, 2));
         const responseFrom1C = await forwardRequestToOneC(dataToSendToOneC);
         console.log('[ШАГ 2] ПОЛУЧЕН ОТВЕТ ОТ 1С:', JSON.stringify(responseFrom1C, null, 2));
 
         if (responseFrom1C.status === 'success' && responseFrom1C.data) {
             if (action === 'saveNewMeeting' || action === 'updateMeeting') {
+                console.log('[ШАГ 3] Начинаем работу с Google Calendar...');
+                // Мы ОБЯЗАТЕЛЬНО дожидаемся завершения работы с календарем
                 await handleCalendarEvent(action, responseFrom1C.data);
+                console.log('[ШАГ 6] Работа с Google Calendar завершена.');
             }
         }
 
+        // Ответ браузеру отправляется только после того, как все операции завершены
+        console.log('[ШАГ 7] Отправляем финальный ответ в браузер.');
         response.status(200).json(responseFrom1C);
 
     } catch (error) {
-        // Эта ошибка теперь будет поймана Sentry.withSentry
-        console.error("!!! КРИТИЧЕСКАЯ ОШИБКА ОБРАБОТЧИКА:", error.message);
-        
-        // Эта часть важна, чтобы браузер получил корректный ответ
-        if (error.response && error.response.status) {
-            response.status(error.response.status).json(error.response.data || { message: 'Ошибка от сервера 1С' });
+        Sentry.captureException(error); // <--- ДОБАВЬТЕ ТОЛЬКО ЭТУ СТРОКУ
+      // --- ДОБАВЛЕНО: Даем Sentry 2 секунды, чтобы гарантированно отправить отчет ---
+        await Sentry.flush(2000); 
+        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+      console.error("!!! КРИТИЧЕСКАЯ ОШИБКА ОБРАБОТЧИКА:", error.message);
+        if (error.response) {
+            response.status(error.response.status).json(error.response.data);
         } else {
-            response.status(500).json({ status: 'error', message: 'Внутренняя ошибка сервера Vercel' });
+            response.status(500).json({ status: 'error', message: 'Ошибка прокси-сервера при обращении к 1С' });
         }
-        
-        // Мы "пробрасываем" ошибку дальше, чтобы обертка Sentry.withSentry ее поймала
-        throw error;
     }
 }
 
 
-// Вспомогательные функции остаются без изменений ...
+// --- Вспомогательные функции ---
+
 async function forwardRequestToOneC(requestBody) {
     // ... этот код остается без изменений ...
     const ONEC_API_URL = process.env.ONEC_API_URL;
@@ -139,8 +142,4 @@ function parseDateTimeToStrings(dateStr, timeStr) {
     const pad = (num) => num.toString().padStart(2, '0');
     const endTimeStr = `${endDate.getFullYear()}-${pad(endDate.getMonth() + 1)}-${pad(endDate.getDate())}T${pad(endDate.getHours())}:${pad(endDate.getMinutes())}:00`;
     return [startTimeStr, endTimeStr];
-
-// --- ИЗМЕНЕНИЕ 3: САМОЕ ГЛАВНОЕ ---
-// САМОЕ ГЛАВНОЕ: Экспортируем нашу функцию, обернутую в Sentry.
-// Этот экспорт должен быть единственным в файле.
-module.exports = Sentry.withSentry(mainHandler);
+}
