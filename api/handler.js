@@ -41,8 +41,11 @@ export default async function handler(request, response) {
         response.status(200).json(responseFrom1C);
 
     } catch (error) {
-        console.error("!!! КРИТИЧЕСКАЯ ОШИБКА ОБРАБОТЧИКА:", error.message);
         Sentry.captureException(error); // <--- ДОБАВЬТЕ ТОЛЬКО ЭТУ СТРОКУ
+      // --- ДОБАВЛЕНО: Даем Sentry 2 секунды, чтобы гарантированно отправить отчет ---
+        await Sentry.flush(2000); 
+        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+      console.error("!!! КРИТИЧЕСКАЯ ОШИБКА ОБРАБОТЧИКА:", error.message);
         if (error.response) {
             response.status(error.response.status).json(error.response.data);
         } else {
