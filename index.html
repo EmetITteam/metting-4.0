@@ -1527,27 +1527,58 @@ function getCategoryColor(categoryName) {
     return '#A0AEC0'; // Нейтральный серый по умолчанию
 }
 // --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
-    async function callApi(action, payload) {
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action, payload })
-            });
-            if (!response.ok) {
-                const errorText = await response.text(); 
-                throw new Error(`Ошибка сервера: ${response.status}. Ответ: ${errorText}`);
+    // --- НАЧАЛО БЛОКА НА ЗАМЕНУ ---
+
+async function callApi(action, payload) {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, payload })
+        });
+
+        // ПРОВЕРКА ОТВЕТА СЕРВЕРА
+        if (!response.ok) {
+            const errorText = await response.text();
+            const errorMessage = `Ошибка API от сервера 1С: Статус ${response.status} для действия "${action}". Ответ: ${errorText}`;
+
+            // --- Вручную отправляем ошибку сервера в Sentry ---
+            if (window.Sentry) { // Проверяем, что Sentry инициализирован
+                 Sentry.captureMessage(errorMessage, 'error'); // Отправляем как важное сообщение
             }
-            const result = await response.json();
-            if (result.status === 'error') {
-                throw new Error(result.message);
-            }
-            return result.data;
-        } catch (e) {
-            console.error("API call failed:", e);
-            throw e.message ? e : new Error('Ошибка сети или ответа сервера.');
+
+            throw new Error(errorMessage); // Продолжаем стандартную обработку ошибки
         }
+
+        const result = await response.json();
+
+        // ПРОВЕРКА ЛОГИЧЕСКОЙ ОШИБКИ ВНУТРИ 1С
+        if (result.status === 'error') {
+            const errorMessage = `Ошибка бизнес-логики 1С для действия "${action}": ${result.message}`;
+
+            // --- Вручную отправляем ошибку бизнес-логики в Sentry ---
+             if (window.Sentry) {
+                 Sentry.captureMessage(errorMessage, 'warning'); // Отправляем как предупреждение
+            }
+
+            throw new Error(result.message);
+        }
+        return result.data;
+
+    } catch (e) {
+        // Здесь ловятся сетевые ошибки (сервер недоступен) или ошибки разбора JSON
+
+        // --- Отправляем исключение в Sentry ---
+        if (window.Sentry) {
+            Sentry.captureException(e); // captureException лучше подходит для перехвата исключений
+        }
+
+        console.error("API call failed:", e);
+        throw e.message ? e : new Error('Ошибка сети или ответа сервера.');
     }
+}
+
+// --- КОНЕЦ БЛОКА НА ЗАМЕНУ ---
     function onFailure(error, errorElement = null) {
         console.error(error);
         if (errorElement) {
