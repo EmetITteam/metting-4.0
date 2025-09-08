@@ -1,20 +1,21 @@
-// ВСТАВЬТЕ ЭТОТ БЛОК В САМОЕ НАЧАЛО ФАЙЛА
+// Импорты остаются, как и раньше
 import * as Sentry from '@sentry/node';
 import { ProfilingIntegration } from "@sentry/profiling-node";
 const axios = require('axios');
 const { google } = require('googleapis');
-// ВСТАВЬТЕ ЭТОТ БЛОК СЮДА
+
+// Инициализация Sentry остается, как и раньше
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
-  integrations: [
-    new ProfilingIntegration(),
-  ],
+  integrations: [ new ProfilingIntegration() ],
   tracesSampleRate: 1.0,
   profilesSampleRate: 1.0,
 });
 
-// --- Основная функция-обработчик ---
-export default async function handler(request, response) {
+
+// --- ИЗМЕНЕНИЕ 1: Ваша основная функция теперь не экспортируется по умолчанию ---
+// Мы убрали "export default" отсюда
+async function handler(request, response) {
     if (request.method !== 'POST') {
         return response.status(405).json({ message: 'Only POST requests allowed' });
     }
@@ -22,6 +23,8 @@ export default async function handler(request, response) {
     const { action } = request.body;
     const dataToSendToOneC = request.body;
 
+    // --- ИЗМЕНЕНИЕ 2: Блок try...catch теперь не нуждается в ручной отправке в Sentry ---
+    // Обертка Sentry сделает это автоматически
     try {
         console.log(`[ШАГ 1] Отправка в 1С для действия "${action}":`, JSON.stringify(dataToSendToOneC, null, 2));
         const responseFrom1C = await forwardRequestToOneC(dataToSendToOneC);
@@ -30,22 +33,19 @@ export default async function handler(request, response) {
         if (responseFrom1C.status === 'success' && responseFrom1C.data) {
             if (action === 'saveNewMeeting' || action === 'updateMeeting') {
                 console.log('[ШАГ 3] Начинаем работу с Google Calendar...');
-                // Мы ОБЯЗАТЕЛЬНО дожидаемся завершения работы с календарем
                 await handleCalendarEvent(action, responseFrom1C.data);
                 console.log('[ШАГ 6] Работа с Google Calendar завершена.');
             }
         }
 
-        // Ответ браузеру отправляется только после того, как все операции завершены
         console.log('[ШАГ 7] Отправляем финальный ответ в браузер.');
         response.status(200).json(responseFrom1C);
 
     } catch (error) {
-        Sentry.captureException(error); // <--- ДОБАВЬТЕ ТОЛЬКО ЭТУ СТРОКУ
-      // --- ДОБАВЛЕНО: Даем Sentry 2 секунды, чтобы гарантированно отправить отчет ---
-        await Sentry.flush(2000); 
-        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
-      console.error("!!! КРИТИЧЕСКАЯ ОШИБКА ОБРАБОТЧИКА:", error.message);
+        // Мы УБРАЛИ отсюда Sentry.captureException и Sentry.flush,
+        // так как обертка Sentry перехватит ошибку сама.
+        
+        console.error("!!! КРИТИЧЕСКАЯ ОШИБКА ОБРАБОТЧИКА:", error.message);
         if (error.response) {
             response.status(error.response.status).json(error.response.data);
         } else {
@@ -54,9 +54,7 @@ export default async function handler(request, response) {
     }
 }
 
-
-// --- Вспомогательные функции ---
-
+// Вспомогательные функции остаются без изменений ...
 async function forwardRequestToOneC(requestBody) {
     // ... этот код остается без изменений ...
     const ONEC_API_URL = process.env.ONEC_API_URL;
@@ -142,4 +140,8 @@ function parseDateTimeToStrings(dateStr, timeStr) {
     const pad = (num) => num.toString().padStart(2, '0');
     const endTimeStr = `${endDate.getFullYear()}-${pad(endDate.getMonth() + 1)}-${pad(endDate.getDate())}T${pad(endDate.getHours())}:${pad(endDate.getMinutes())}:00`;
     return [startTimeStr, endTimeStr];
-}
+
+// --- ИЗМЕНЕНИЕ 3: САМОЕ ГЛАВНОЕ ---
+// Экспортируем нашу функцию, "обернутую" в Sentry.
+// Это автоматически добавит перехват ошибок и ожидание их отправки.
+export default Sentry.withSentry(handler);
