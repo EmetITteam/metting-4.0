@@ -1,5 +1,17 @@
+// ВСТАВЬТЕ ЭТОТ БЛОК В САМОЕ НАЧАЛО ФАЙЛА
+import * as Sentry from '@sentry/node';
+import { ProfilingIntegration } from "@sentry/profiling-node";
 const axios = require('axios');
 const { google } = require('googleapis');
+// ВСТАВЬТЕ ЭТОТ БЛОК СЮДА
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  integrations: [
+    new ProfilingIntegration(),
+  ],
+  tracesSampleRate: 1.0,
+  profilesSampleRate: 1.0,
+});
 
 // --- Основная функция-обработчик ---
 export default async function handler(request, response) {
@@ -30,6 +42,7 @@ export default async function handler(request, response) {
 
     } catch (error) {
         console.error("!!! КРИТИЧЕСКАЯ ОШИБКА ОБРАБОТЧИКА:", error.message);
+        Sentry.captureException(error); // <--- ДОБАВЬТЕ ТОЛЬКО ЭТУ СТРОКУ
         if (error.response) {
             response.status(error.response.status).json(error.response.data);
         } else {
